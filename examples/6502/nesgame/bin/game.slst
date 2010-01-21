@@ -1,0 +1,32 @@
+SOURCE LISTING
+==============
+FILE: ../../lib/std_ram.as
+	Spanning Bank(s) RAM to RAM
+	Start Bank @ Bin: $00000000, Org: $0000, Offset: $0000
+	End   Bank @ Bin: $00000000, Org: $0000, Offset: $0000
+	Size   in Binary: $00000100 (0.250000 KBytes)
+FILE: visuals.as
+	Spanning Bank(s) BANK_MAIN_ENTRY to BANK_MAIN_ENTRY
+	Start Bank @ Bin: $00000000, Org: $C000, Offset: $0000
+	End   Bank @ Bin: $00000000, Org: $C000, Offset: $0000
+	Size   in Binary: $00004000 (16.000000 KBytes)
+FILE: main.as
+	Spanning Bank(s) BANK_MAIN_ENTRY to BANK_MAIN_ENTRY
+	Start Bank @ Bin: $00000000, Org: $C000, Offset: $0000
+	End   Bank @ Bin: $00000000, Org: $C000, Offset: $0000
+	Size   in Binary: $00004000 (16.000000 KBytes)
+FILE: ../../lib/std_ram.as
+	Spanning Bank(s) RAM to RAM
+	Start Bank @ Bin: $00000000, Org: $0000, Offset: $0000
+	End   Bank @ Bin: $00000000, Org: $0000, Offset: $000E
+	Size   in Binary: $00000100 (0.250000 KBytes)
+FILE: visuals.as
+	Spanning Bank(s) BANK_MAIN_ENTRY to BANK_MAIN_ENTRY
+	Start Bank @ Bin: $00000000, Org: $C000, Offset: $0000
+	End   Bank @ Bin: $00000000, Org: $C000, Offset: $0156
+	Size   in Binary: $00003FFA (15.994141 KBytes)
+FILE: main.as
+	Spanning Bank(s) BANK_MAIN_ENTRY to BANK_MAIN_ENTRY
+	Start Bank @ Bin: $00000000, Org: $C000, Offset: $0156
+	End   Bank @ Bin: $00000000, Org: $C000, Offset: $01DF
+	Size   in Binary: $00003EA4 (15.660156 KBytes)

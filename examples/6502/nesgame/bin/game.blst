@@ -1,0 +1,11 @@
+BANK LISTING
+============
+FILE: game.as
+
+PRG ROM	BANK_MAIN_ENTRY
+	ORG: $C000, END: $C1DF, SIZE:   479 / MAX SIZE: 16384, FREE: 15905, 
+-----------------------------------
+CHR ROM	CHR_FONT_BANK
+	ORG: $0000, END: $2000, SIZE:  8192 / MAX SIZE:  8192, FREE:     0, 
+Total PRG bytes free: $00003E21 (15905)
+Total CHR bytes free: $00000000 (0)

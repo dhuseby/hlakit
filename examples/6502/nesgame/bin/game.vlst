@@ -1,0 +1,46 @@
+VARIABLE LISTING
+================
+FILE: game.as
+
+OFFS: (SIZE)[ARRY]: CAST	NAME
+----- ------------- ----	-----------------------------------------
+4016: (1   )      : byte	JOYSTICK_CNT0
+4017: (1   )      : byte	JOYSTICK_CNT1
+4000: (1   )      : byte	SQUAREWAVEA_CNT0
+4001: (1   )      : byte	SQUAREWAVEA_CNT1
+4002: (1   )      : byte	SQUAREWAVEA_FREQ0
+4003: (1   )      : byte	SQUAREWAVEA_FREQ1
+4004: (1   )      : byte	SQUAREWAVEB_CNT0
+4005: (1   )      : byte	SQUAREWAVEB_CNT1
+4006: (1   )      : byte	SQUAREWAVEB_FREQ0
+4007: (1   )      : byte	SQUAREWAVEB_FREQ1
+4008: (1   )      : byte	TRIANGLEWAVE_CNT0
+4009: (1   )      : byte	TRIANGLEWAVE_CNT1
+400A: (1   )      : byte	TRIANGLEWAVE_FREQ0
+400B: (1   )      : byte	TRIANGLEWAVE_FREQ1
+400C: (1   )      : byte	NOISE_CNT0
+400D: (1   )      : byte	NOISE_CNT1
+400E: (1   )      : byte	NOISE_FREQ0
+400F: (1   )      : byte	NOISE_FREQ1
+4010: (1   )      : byte	PCM_CNT
+4011: (1   )      : byte	PCM_VOLUMECNT
+4012: (1   )      : byte	PCM_ADDRESS
+4013: (1   )      : byte	PCM_LENGTH
+4015: (1   )      : byte	SND_CNT
+0000: (1   )      : byte	_b_temp
+0001: (2   )      : word	_w_temp
+0003: (2   )      : pointer	_p_temp
+0005: (2   )      : pointer	_jsrind_temp
+0007: (1   )      : byte	_b_remainder
+0008: (1   )      : byte	_random_value
+0009: (1   )      : byte	_random_ticks
+000A: (2   )      : pointer	_mem_src
+000C: (2   )      : pointer	_mem_dest
+000E: (1   )      : byte	counter
+000F: (1   )      : byte	palcol
+0010: (2   )      : pointer	paddr
+0012: (2   )      : pointer	pstr
+0014: (1   )[64  ]: char	msgbuf
+C050: (1   )[8   ]: byte	setamt
+C156: (1   )[27  ]: char	strTitle
+C171: (1   )[14  ]: char	strHello
