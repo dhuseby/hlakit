@@ -2,83 +2,141 @@
 
 import os
 import sys
+import optparse
+import hlakit
 
-from optparse import OptionGroup
-from optparse import OptionParser
 from pyparsing import *
 
-
-# get the directory that we're running in
-script_dir = os.path.dirname(os.path.realpath(__file__))
-include_dirs = []
-lib_dirs = []
-
+# globals
+HLAKIT_VERSION = "0.0.1"
 
 class Options(object):
     def __init__(self):
         self._options = None
         self._args = None
 
-        parser = OptionParser()
+        # calculate the script dir
+        self._script_dir = os.path.dirname(os.path.realpath(__file__))
+
+        parser = optparse.OptionParser(version = "%prog " + HLAKIT_VERSION)
         parser.add_option('--cpu', default=None, dest='cpu')
         parser.add_option('--platform', default=None, dest='platform')
+        parser.add_option('-L', '--lib', action="append", default=[], dest='lib')
+        parser.add_option('-I', '--include', action="append", default=[], dest='include')
 
         (self._options, self._args) = parser.parse_args()
 
-    def __getitem__(self, key):
-        if self._options.has_key(key):
-            return self._options[key]
+    def get_include_dirs(self):
+        return self._options.include
 
-        raise KeyError(key)
+    def get_lib_dirs(self):
+        return self._options.lib
 
-    def __setitem__(self, key, value):
-        self._options[key] = value
+    def get_options(self):
+        return self._options
 
     def get_args(self):
         return self._args
 
+    def get_script_dir(self):
+        return self._script_dir
 
-class Compiler(object):
+class HLAParser(hlakit.Parser):
 
-    def __init__(self):
-        self._expressions = {}
+    class StateFrame(object):
+        """
+        Helper class that holds an entire state frame
+        """
+        def __init__(self, f, exprs):
+           
+            # the current file name
+            self._file = f
 
-    def _init_include_expr(self):
+           # initialize the pyparsing parser as ZeroOrMore(Or())
+            # of all of the expressions 
+            expr_or = Or([])
+            for e in exprs.iteritems():
+                expr_or.append(e[1])
+            
+            self._parser = ZeroOrMore(expr_or)
 
-        # define include literal
-        self._include = Literal('#include')
 
-        # ==> #include "foo.h"
+    def __init__(self, options = None):
 
-        # define a quoted file path 
-        self._literal_file_path = quotedString(Word(alphanums + '/.'))
-        self._literal_file_path.setParseAction(removeQuotes)
+        super(HLAParser, self).__init__()
 
-        # define a literal include line
-        self._literal_include_line = Suppress(self._include) + self._literal_file_path
-        #self._literal_include_line.setParseAction(_include_literal_file)
+        # store the options
+        self._options = options
 
-        # ==> #include <foo.h>
+        # state stack for tracking the current file being parsed
+        self._state_stack = []
 
-        # define an angle bracketed file path
-        self._implied_file_path = Supress(Literal('<')) + Word(alphanums + '/.') + Supress(Literal('>'))
+        # current state frame
+        self._state = None
+
+        # initialize the expressions 
+        self._exprs = {}
+
+        # load up all of the expression creator objects 
+        self._preprocessor = hlakit.Preprocessor(self)
+
+        # add them to the expressions map
+        self._exprs.update(self._preprocessor.get_exprs())
+
+    def get_options(self):
+        return self._options
+
+    def _do_parse(self):
+        # parse the file
+        print "Parsing: %s" % self._state._file.name
+        tokens = self._state._parser.parseFile(self._state._file, True)
+        print "Done parsing: %s" % self._state._file.name
+        return tokens
+
+    def parse(self, f):
+
+        # push our current state if we're recursively parsing
+        if self._state:
+            # push our current state on the stack
+            self._state_stack.append(self._state)
+
+        # set up a new context
+        self._state = HLAParser.StateFrame(f, self._exprs)
+
+        # do the parse
+        tokens = self._do_parse()
+
+        # restore previous state if there is one
+        if len(self._state_stack):
+            self._state = self._state_stack.pop()
+
+        return tokens
         
-        # define an implied include line
-        self._implied_include_line = Suppress(self._include) + self._implied_file_path
-        #self._implied_include_line.setParseAction(_include_implied_file)
-
-        # build the "include" expression in the top level map of expressions
-        self._expressions['include'] = Or([self._literal_include_line, self._implied_include_line])
-
-    def compile(self, f):
-        pass
-
-
 def main():
     options = Options()
     print options._options
     print options._args
 
+    p = HLAParser(options)
+    for f in options.get_args():
+
+        # calculate the correct path to the file 
+        if f[0] == '/':
+            fpath = f
+        else:
+            fpath = os.path.join(options.get_script_dir(), f)
+
+        # open the file
+        inf = open(fpath, 'r')
+
+        # parse the file 
+        tokens = p.parse(inf)
+
+        # close the file
+        inf.close()
+
+        # dump the tokens
+        print tokens
 
 if __name__ == "__main__":
     

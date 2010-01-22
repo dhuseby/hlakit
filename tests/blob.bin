@@ -1,0 +1,75 @@
+HLAKit -- A High Level Assembler Toolkit
+Version 0.0.1
+Copyright (C) 2010 Dave Huseby <dave@linuxprogrammer.org>
+
+Introduction
+============
+
+HLAKit is based on and inspired by the NESHLA project by Brian Provinciano.  He
+created an awesome NES-specific high level assembly (HLA) language that makes
+writing NES games much easier than wrangling the cc65 toolchain or any other
+NES toolchain out there.
+
+The goal of HLAKit is to create an easily extensible high level assembler
+toolkit.  The high level assembly language that the front end parses is
+derived from the high level assembly that NESHLA supported.  It has been
+extended to allow for more cpu and platform specific extensions and to
+make processor specific assembly mnemonics easily switchable.
+
+Unlike C, the HLA language doesn't seek to completely abstract the hardware
+from the programmer.  Instead the HLA borrows C's functional/file organization
+mechanics but still requires programmers to write assembly mnemonics to get
+things done.  The end result is an assembly language that is easy to organize
+and understand, making building large complex software easier than traditional
+"flat" assembly.
+
+Design
+======
+
+Like most compilers, the HLAKit compiler is organized into a front-end and a
+back-end.  This separation allows for the abstraction of different CPU's and
+platforms on the back-end, making the HLAKit compiler easy to extend to new
+hardware.
+
+Because the language is just assembly with C-style function semantics and 
+flow control, the HLAKit front end has to understand the different assembly
+mnemonics for each CPU.  This means that supporting a new CPU requires writing
+a sub-parser for the HLAKit front-end that can parse the assembly mnemonics
+for the CPU as well as writing a back-end generator that can emit the proper
+binary for the CPU.
+
+The main HLAKit front-end handles parsing and processing the common
+preprocessor directives and function definitions.  The assembly mnemonics
+parsing is handled by the CPU specific front-end parser.
+
+Along with CPU-specific pieces of code, there are platform-specific pieces as
+well.  All platform-specific features are exposed through preprocessor
+directives that are scoped in a namespace for the platform.  For instance, the
+NES has three interrupt vectors that can be assigned using the following 
+preprocessor directives:
+
+#nes.reset my_reset
+#nes.interrupt my_interrupt
+#nes.nmi my_nmi
+
+Selecting the CPU and platform for a project can be done with either
+preprocessor directives or command line arguments.  The preprocessor commands
+are:
+
+#cpu 6502
+#platform NES
+
+The command line options are --cpu=6502 and --platform=NES for specifying
+the CPU and platform respectively.
+
+Supported CPUs
+==============
+
+6502
+
+Supported Platforms
+===================
+
+Nintendo Entertainment System (NES)
+Atari Lynx
+
