@@ -46,7 +46,6 @@ class Preprocessor(Exprs):
         self._init_memory_exprs()
 
     def _init_defines_exprs(self):
-        """
         # define the preprocessor conditional compile keywords
         d_define = Keyword('#define')
         d_undef = Keyword('#undef')
@@ -56,8 +55,53 @@ class Preprocessor(Exprs):
         d_endif = Keyword('#endif')
 
         # define label
-        label = Word(alpha, alphanums + '-_')
-        """
+        label = Word(alphas, alphanums + '-_').setResultsName('label')
+
+        # define value
+        value = Word(printables).setResultsName('value')
+
+        # ==> #define label [value]
+        define_line = Suppress(d_define) + \
+                      label + \
+                      Optional(value) + \
+                      Suppress(LineEnd())
+        define_line.setParseAction(self._define_line)
+
+        # ==> #undef label
+        undef_line = Suppress(d_undef) + \
+                     label + \
+                     Suppress(LineEnd())
+        undef_line.setParseAction(self._undef_line)
+
+        # ==> #ifdef label
+        ifdef_line = Suppress(d_ifdef) + \
+                     label + \
+                     Suppress(LineEnd())
+        ifdef_line.setParseAction(self._ifdef_line)
+
+        # ==> #ifndef label
+        ifndef_line = Suppress(d_ifndef) + \
+                      label + \
+                      Suppress(LineEnd())
+        ifndef_line.setParseAction(self._ifndef_line)
+
+        # ==> #else
+        else_line = Suppress(d_else) + \
+                    Suppress(LineEnd())
+        else_line.setParseAction(self._else_line)
+
+        # ==> #endif
+        endif_line = Suppress(d_endif) + \
+                     Suppress(LineEnd())
+        endif_line.setParseAction(self._endif_line)
+
+        # put the conditional compile expressions in the top level map
+        self._exprs['define_line'] = define_line
+        self._exprs['undef_line'] = undef_line
+        self._exprs['ifdef_line'] = ifdef_line
+        self._exprs['ifndef_line'] = ifndef_line
+        self._exprs['else_line'] = else_line
+        self._exprs['endif_line'] = endif_line
 
     def _init_messages_exprs(self):
         # define message literals
@@ -141,6 +185,37 @@ class Preprocessor(Exprs):
     # Parse Action Callbacks
     #
 
+    def _define_line(self, pstring, location, tokens):
+        # check to see if there is a value
+        value = None
+        if hasattr(tokens, 'value'):
+            value = tokens.value
+
+        # define the symbol
+        self.get_parser().set_symbol(tokens.label, value)
+
+        # return empty list to eat tokens
+        return []
+
+    def _undef_line(self, pstring, location, tokens):
+        # delete the symbol
+        self.get_parser().delete_symbol(tokens.label)
+
+    def _ifdef_line(self, pstring, location, tokens):
+        # use skipTo to skip to the next #else, #endif OR #ifdef
+        # if we hit another #ifdef, then recurse
+        # if we hit an #endif, unwind
+        pass
+
+    def _ifndef_line(self, pstring, location, tokens):
+        pass
+
+    def _else_line(self, pstring, location, tokens):
+        pass
+
+    def _endif_line(self, pstring, location, tokens):
+        pass
+
     def _todo_message(self, pstring, location, tokens):
         print "TODO: %s" % tokens.message
         # return an empty list to that the todo message token
@@ -170,16 +245,15 @@ class Preprocessor(Exprs):
         if len(tokens) != 1:
             raise ParseFatalException ('invalid include file path length')
 
-        script_dir = self.get_parser().get_options().get_script_dir()
+        # build a list of paths to search
+        search_paths = []
+        search_paths.append(self.get_parser().get_cur_script_dir())
 
         # calculate the full path to the included file
-        if tokens.file_path[0] == '/':
-            include_file = tokens.file_path
-        else:
-            include_file = os.path.join(script_dir, tokens.file_path)
+        include_file = self.get_parser().get_options().get_file_path(tokens.file_path, search_paths)
 
-        # check to make sure the file exists
-        if not os.path.exists(include_file):
+        # check for error
+        if not include_file:
             raise ParseFatalException('included file does not exist: %s' % include_file)
 
         # open the file
@@ -209,20 +283,12 @@ class Preprocessor(Exprs):
         include_paths = self.get_parser().get_options().get_include_dirs()
         if len(include_paths) == 0:
             raise ParseFatalException('no include directories specified')
-        
-        script_dir = self.get_parser().get_options().get_script_dir()
+      
+        # search for the file in the include directories
+        search_paths = self.get_parser().get_options().get_include_dirs()
+        include_file = self.get_parser().get_options().get_file_path(tokens.file_path, search_paths)
 
-        # search the include paths in order for the included file
-        include_file = None
-        for path in include_paths:
-            if path[0] == '/':
-                include_test = os.path.join(path, tokens.file_path)
-            else:
-                include_test = os.path.join(script_dir, path, tokens.file_path)
-            if os.path.exists(include_test):
-                include_file = include_test
-                break
-
+        # check for error
         if not include_file:
             raise ParseFatalException('included file does not exist: %s' % include_file)
         
@@ -247,16 +313,15 @@ class Preprocessor(Exprs):
         if len(tokens) != 1:
             raise ParseFatalException ('invalid include file path length')
 
-        script_dir = self.get_parser().get_options().get_script_dir()
+        # build a list of paths to search
+        search_paths = []
+        search_paths.append(self.get_parser().get_cur_script_dir())
 
         # calculate the full path to the included file
-        if tokens.file_path[0] == '/':
-            include_file = tokens.file_path
-        else:
-            include_file = os.path.join(script_dir, tokens.file_path)
+        include_file = self.get_parser().get_options().get_file_path(tokens.file_path, search_paths)
 
-        # check to make sure the file exists
-        if not os.path.exists(include_file):
+        # check for error
+        if not include_file:
             raise ParseFatalException('included file does not exist: %s' % include_file)
 
         # open the file
@@ -269,6 +334,4 @@ class Preprocessor(Exprs):
         inf.close()
 
         return blob
-
-
 

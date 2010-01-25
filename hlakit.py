@@ -16,7 +16,7 @@ class Options(object):
         self._args = None
 
         # calculate the script dir
-        self._script_dir = os.path.dirname(os.path.realpath(__file__))
+        self._app_dir = os.path.dirname(os.path.realpath(__file__))
 
         parser = optparse.OptionParser(version = "%prog " + HLAKIT_VERSION)
         parser.add_option('--cpu', default=None, dest='cpu')
@@ -38,8 +38,55 @@ class Options(object):
     def get_args(self):
         return self._args
 
-    def get_script_dir(self):
-        return self._script_dir
+    def get_file_dir(self, f, search_paths = None):
+
+        # calculate the correct path to the file 
+        if f[0] == '/':
+            # if it starts with a '/' then it is an absolute path
+            return os.path.dirname(f)
+    
+        # if no search_paths are provided, then default to the app dir
+        if search_paths == None:
+            search_paths = [ self.get_app_dir() ]
+
+        # look in the search paths for the file they specified
+        for path in search_paths:
+            if path[0] == '/':
+                test_path = os.path.join(path, f)
+            else:
+                test_path = os.path.join(self.get_app_dir(), path, f)
+
+            # if we've found it, then return the dir it resides in
+            if os.path.exists(test_path):
+                return os.path.dirname(test_path)
+
+        return None
+
+    def get_file_path(self, f, search_paths = None):
+        # calculate the correct path to the file 
+        if f[0] == '/':
+            # if it starts with a '/' then it is an absolute path
+            return f
+       
+        # if no search_paths are provided, then default to the app dir
+        if search_paths == None:
+            search_paths = [ self.get_app_dir() ]
+
+        # look in the search paths for the file they specified
+        for path in search_paths:
+            if path[0] == '/':
+                test_path = os.path.join(path, f)
+            else:
+                test_path = os.path.join(self.get_app_dir(), path, f)
+
+            # if we've found it, then return the dir it resides in
+            if os.path.exists(test_path):
+                return test_path
+
+        return None
+
+    def get_app_dir(self):
+        return self._app_dir
 
 class HLAParser(hlakit.Parser):
 
@@ -48,8 +95,8 @@ class HLAParser(hlakit.Parser):
         Helper class that holds an entire state frame
         """
         def __init__(self, f, exprs):
-           
-            # the current file name
+          
+           # the current file name
             self._file = f
 
            # initialize the pyparsing parser as ZeroOrMore(Or())
@@ -74,7 +121,10 @@ class HLAParser(hlakit.Parser):
         # current state frame
         self._state = None
 
-        # initialize the expressions 
+        # define symbols
+        self._symbols = {}
+
+         # initialize the expressions 
         self._exprs = {}
 
         # load up all of the expression creator objects 
@@ -85,6 +135,25 @@ class HLAParser(hlakit.Parser):
 
     def get_options(self):
         return self._options
+
+    def set_symbol(self, label, value = None):
+        self._state._symbols[label] = value
+
+    def get_symbol(self, label):
+        return self._state._symbols[label]
+
+    def has_symbol(self, label):
+        return self._state._symbols.haskey(label)
+
+    def delete_symbol(self, label):
+        if self._state._symbols.haskey(label):
+            self._state._symbols.pop(label)
+
+    def get_symbols(self):
+        return self._state._symbols
+
+    def get_cur_script_dir(self):
+        return os.path.dirname(self._state._file.name)
 
     def _do_parse(self):
         # parse the file
@@ -121,10 +190,7 @@ def main():
     for f in options.get_args():
 
         # calculate the correct path to the file 
-        if f[0] == '/':
-            fpath = f
-        else:
-            fpath = os.path.join(options.get_script_dir(), f)
+        fpath = options.get_file_path(f)
 
         # open the file
         inf = open(fpath, 'r')
@@ -136,6 +202,7 @@ def main():
         inf.close()
 
         # dump the tokens
+        print "TOKEN STREAM:"
         print tokens
 
 if __name__ == "__main__":
