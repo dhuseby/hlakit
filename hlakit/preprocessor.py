@@ -1,7 +1,6 @@
 import os
 
 from pyparsing import *
-from exprs import Exprs
 
 class IncBin(object):
     """
@@ -14,24 +13,49 @@ class IncBin(object):
     def get_data(self):
         return self._data
 
-class Preprocessor(Exprs):
+class Preprocessor(object):
 
     FILE_NAME_CHARS = '0123456789' + \
                       'abcdefghijklmnopqrstuvwxyz' + \
                       'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + \
                       '!"#$%&\\\'()*+,-./:;=?@[]^_`{|}~'
 
-    def __init__(self, parser):
+    class StateFrame(object):
+        """
+        Helper class that holds an entire state frame
+        """
+        def __init__(self, f, exprs):
+          
+           # the current file name
+            self._file = f
+
+           # initialize the pyparsing parser as ZeroOrMore(Or())
+            # of all of the expressions 
+            expr_or = Or([])
+            for e in exprs:
+                expr_or.append(e[1])
+            
+            self._parser = ZeroOrMore(expr_or)
+
+    def __init__(self, options = None):
 
         # init the base class
-        super(Preprocessor, self).__init__(parser)
+        super(Preprocessor, self).__init__()
 
-        # varibles for storing the state as we recursively parse files
-        self._state = []
-        self._file = None
+        # store our options
+        self._options = options
+
+        # stack of parser states to enable recursive file parsing
+        self._state_stack = []
+
+        # current parser state
+        self._state = None
 
         # initialize the map of expressions
-        self._exprs = {}
+        self._exprs = []
+
+        # preprocessor symbols table
+        self._symbols = {}
 
         # build the preprocessor expressions
         self._init_preprocessor_exprs()
@@ -39,11 +63,56 @@ class Preprocessor(Exprs):
     def get_exprs(self):
         return self._exprs
 
+    def _log(self, s):
+        indent = ""
+        for i in range(0,len(self._state_stack)):
+           indent += "    "
+
+        print indent + s
+
+    def _get_cur_script_dir(self):
+        return os.path.dirname(self._state._file.name)
+
+    def _do_parse(self):
+        # parse the file
+        self._log("Parsing: %s" % self._state._file.name)
+        tokens = self._state._parser.parseFile(self._state._file, parseAll=True)
+        self._log("Done parsing: %s" % self._state._file.name)
+        return tokens
+
+    def parse(self, f):
+        # push our current state if we're recursively parsing
+        if self._state:
+            # push our current state on the stack
+            self._state_stack.append(self._state)
+
+        # set up a new context
+        self._state = Preprocessor.StateFrame(f, self._exprs)
+
+        # do the parse
+        tokens = self._do_parse()
+
+        # restore previous state if there is one
+        if len(self._state_stack):
+            self._state = self._state_stack.pop()
+
+        return tokens
+
     def _init_preprocessor_exprs(self):
         self._init_defines_exprs()
         self._init_messages_exprs()
         self._init_files_exprs()
         self._init_memory_exprs()
+        # note that generic exprs must be last
+        self._init_generic_exprs()
+
+    def _init_generic_exprs(self):
+        # this matches all lines that don't match any other rules
+        generic_line = ZeroOrMore(~LineEnd() + Word(printables)) + Suppress(LineEnd())
+        generic_line.setParseAction(self._generic_line)
+
+        # add it to the expressions list
+        self._exprs.append(('generic_line', generic_line))
 
     def _init_defines_exprs(self):
         # define the preprocessor conditional compile keywords
@@ -102,13 +171,13 @@ class Preprocessor(Exprs):
         endif_line.setParseAction(self._endif_line)
 
         # put the conditional compile expressions in the top level map
-        self._exprs['define_line'] = define_line
-        self._exprs['define_line_value'] = define_line_value
-        self._exprs['undef_line'] = undef_line
-        self._exprs['ifdef_line'] = ifdef_line
-        self._exprs['ifndef_line'] = ifndef_line
-        self._exprs['else_line'] = else_line
-        self._exprs['endif_line'] = endif_line
+        self._exprs.append(('define_line', define_line))
+        self._exprs.append(('define_line_value', define_line_value))
+        self._exprs.append(('undef_line', undef_line))
+        self._exprs.append(('ifdef_line', ifdef_line))
+        self._exprs.append(('ifndef_line', ifndef_line))
+        self._exprs.append(('else_line', else_line))
+        self._exprs.append(('endif_line', endif_line))
 
     def _init_messages_exprs(self):
         # define message literals
@@ -142,10 +211,10 @@ class Preprocessor(Exprs):
         fatal_line.setParseAction(self._error_message)
         
         # put the message expressions in the top level map
-        self._exprs['todo_line'] = todo_line
-        self._exprs['warning_line'] = warning_line
-        self._exprs['error_line'] = error_line
-        self._exprs['fatal_line'] = fatal_line
+        self._exprs.append(('todo_line', todo_line))
+        self._exprs.append(('warning_line', warning_line))
+        self._exprs.append(('error_line', error_line))
+        self._exprs.append(('fatal_line', fatal_line))
 
     def _init_files_exprs(self):
         
@@ -181,21 +250,41 @@ class Preprocessor(Exprs):
         literal_incbin_line.setParseAction(self._include_literal_incbin)
 
         # build the "include" expression in the top level map of expressions
-        self._exprs['literal_include_line'] = literal_include_line
-        self._exprs['implied_include_line'] = implied_include_line
-        self._exprs['literal_incbin_line'] = literal_incbin_line
+        self._exprs.append(('literal_include_line', literal_include_line))
+        self._exprs.append(('implied_include_line', implied_include_line))
+        self._exprs.append(('literal_incbin_line', literal_incbin_line))
 
     def _init_memory_exprs(self):
         pass
+
+    def _set_symbol(self, label, value = None):
+        self._symbols[label] = value
+
+    def _get_symbol(self, label):
+        return self._symbols[label]
+
+    def _has_symbol(self, label):
+        return self._symbols.has_key(label)
+
+    def _delete_symbol(self, label):
+        if self._symbols.haskey(label):
+            self._symbols.pop(label)
+
+    def _get_symbols(self):
+        return self._symbols
 
     #
     # Parse Action Callbacks
     #
 
+    def _generic_line(self, pstring, location, tokens):
+        self._log('Generic line: %s' % tokens)
+        return []
+
     def _define_line(self, pstring, location, tokens):
         # define the symbol
-        print 'Defining: %s' % tokens.label
-        self.get_parser().set_symbol(tokens.label, None)
+        self._log('Defining: %s' % tokens.label)
+        self._set_symbol(tokens.label, None)
 
         # return empty list to eat tokens
         return []
@@ -207,52 +296,49 @@ class Preprocessor(Exprs):
             value = tokens.value
 
         # define the symbol
-        print 'Defining: %s as %s' % (tokens.label, ' '.join(value))
-        self.get_parser().set_symbol(tokens.label, ' '.join(value))
+        self._log('Defining: %s as %s' % (tokens.label, ' '.join(value)))
+        self._set_symbol(tokens.label, ' '.join(value))
 
         # return empty list to eat tokens
         return []
 
     def _undef_line(self, pstring, location, tokens):
         # delete the symbol
-        self.get_parser().delete_symbol(tokens.label)
+        self._delete_symbol(tokens.label)
+
+        # return empty list to eat tokens
+        return []
 
     def _ifdef_line(self, pstring, location, tokens):
-
-        value = None
-        if self.get_parser().has_symbol(tokens.label):
-            value = self.get_parser().get_symbol(tokens.label)
-
-        print "Value: %s" % value
-
-        # use skipTo to skip to the next #else, #endif OR #ifdef
-        # if we hit another #ifdef, then recurse
-        # if we hit an #endif, unwind
-        pass
+        self._log("Ifdef %s is %s" % (tokens.label, self._has_symbol(tokens.label)))
+        return []
 
     def _ifndef_line(self, pstring, location, tokens):
-        pass
+        self._log("Ifndef %s is %s" % (tokens.label, not self._has_symbol(tokens.label)))
+        return []
 
     def _else_line(self, pstring, location, tokens):
-        pass
-
+        self._log("Else")
+        return []
+    
     def _endif_line(self, pstring, location, tokens):
-        pass
+        self._log("Endif")
+        return []
 
     def _todo_message(self, pstring, location, tokens):
-        print "TODO: %s" % tokens.message
+        self._log("TODO: %s" % tokens.message)
         # return an empty list to that the todo message token
         # gets deleted from the token stream
         return []
 
     def _warning_message(self, pstring, location, tokens):
-        print "WARNING: %s" % tokens.message
+        self._log("WARNING: %s" % tokens.message)
         # return an empty list to that the todo message token
         # gets deleted from the token stream
         return []
 
     def _error_message(self, pstring, location, tokens):
-        print "ERROR: %s" % tokens.message
+        self._log("ERROR: %s" % tokens.message)
         # raise a fatal exception to halt parsing
         raise ParseFatalException(tokens.message)
 
@@ -270,10 +356,10 @@ class Preprocessor(Exprs):
 
         # build a list of paths to search
         search_paths = []
-        search_paths.append(self.get_parser().get_cur_script_dir())
+        search_paths.append(self._get_cur_script_dir())
 
         # calculate the full path to the included file
-        include_file = self.get_parser().get_options().get_file_path(tokens.file_path, search_paths)
+        include_file = self._options.get_file_path(tokens.file_path, search_paths)
 
         # check for error
         if not include_file:
@@ -283,7 +369,7 @@ class Preprocessor(Exprs):
         inf = open(include_file, 'r')
 
         # recursively parse the file
-        recursive_tokens = self.get_parser().parse(inf)
+        recursive_tokens = self.parse(inf)
 
         # close the file
         inf.close()
@@ -303,13 +389,13 @@ class Preprocessor(Exprs):
             raise ParseFatalException('invalid include file path length')
 
         # calculate the path
-        include_paths = self.get_parser().get_options().get_include_dirs()
+        include_paths = self._options.get_include_dirs()
         if len(include_paths) == 0:
             raise ParseFatalException('no include directories specified')
       
         # search for the file in the include directories
-        search_paths = self.get_parser().get_options().get_include_dirs()
-        include_file = self.get_parser().get_options().get_file_path(tokens.file_path, search_paths)
+        search_paths = self._options.get_include_dirs()
+        include_file = self._options.get_file_path(tokens.file_path, search_paths)
 
         # check for error
         if not include_file:
@@ -319,7 +405,7 @@ class Preprocessor(Exprs):
         inf = open(include_file, 'r')
 
         # recursively parse the file
-        recursive_tokens = self.get_parser().parse(inf)
+        recursive_tokens = self.parse(inf)
 
         # close the file
         inf.close()
@@ -338,10 +424,10 @@ class Preprocessor(Exprs):
 
         # build a list of paths to search
         search_paths = []
-        search_paths.append(self.get_parser().get_cur_script_dir())
+        search_paths.append(self._get_cur_script_dir())
 
         # calculate the full path to the included file
-        include_file = self.get_parser().get_options().get_file_path(tokens.file_path, search_paths)
+        include_file = self._options.get_file_path(tokens.file_path, search_paths)
 
         # check for error
         if not include_file:
