@@ -55,17 +55,23 @@ class Preprocessor(Exprs):
         d_endif = Keyword('#endif')
 
         # define label
-        label = Word(alphas, alphanums + '-_').setResultsName('label')
+        label = Word(alphas + '_', alphanums + '_').setResultsName('label')
 
         # define value
-        value = Word(printables).setResultsName('value')
+        value = OneOrMore(~LineEnd() + Word(printables)).setResultsName('value')
 
-        # ==> #define label [value]
+        # ==> #define label
         define_line = Suppress(d_define) + \
                       label + \
-                      Optional(value) + \
                       Suppress(LineEnd())
         define_line.setParseAction(self._define_line)
+        
+        # ==> #define label value
+        define_line_value = Suppress(d_define) + \
+                            label + \
+                            value + \
+                            Suppress(LineEnd())
+        define_line_value.setParseAction(self._define_line_value)
 
         # ==> #undef label
         undef_line = Suppress(d_undef) + \
@@ -97,6 +103,7 @@ class Preprocessor(Exprs):
 
         # put the conditional compile expressions in the top level map
         self._exprs['define_line'] = define_line
+        self._exprs['define_line_value'] = define_line_value
         self._exprs['undef_line'] = undef_line
         self._exprs['ifdef_line'] = ifdef_line
         self._exprs['ifndef_line'] = ifndef_line
@@ -186,13 +193,22 @@ class Preprocessor(Exprs):
     #
 
     def _define_line(self, pstring, location, tokens):
+        # define the symbol
+        print 'Defining: %s' % tokens.label
+        self.get_parser().set_symbol(tokens.label, None)
+
+        # return empty list to eat tokens
+        return []
+
+    def _define_line_value(self, pstring, location, tokens):
         # check to see if there is a value
         value = None
         if hasattr(tokens, 'value'):
             value = tokens.value
 
         # define the symbol
-        self.get_parser().set_symbol(tokens.label, value)
+        print 'Defining: %s as %s' % (tokens.label, ' '.join(value))
+        self.get_parser().set_symbol(tokens.label, ' '.join(value))
 
         # return empty list to eat tokens
         return []
@@ -202,6 +218,13 @@ class Preprocessor(Exprs):
         self.get_parser().delete_symbol(tokens.label)
 
     def _ifdef_line(self, pstring, location, tokens):
+
+        value = None
+        if self.get_parser().has_symbol(tokens.label):
+            value = self.get_parser().get_symbol(tokens.label)
+
+        print "Value: %s" % value
+
         # use skipTo to skip to the next #else, #endif OR #ifdef
         # if we hit another #ifdef, then recurse
         # if we hit an #endif, unwind

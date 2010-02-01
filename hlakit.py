@@ -137,20 +137,20 @@ class HLAParser(hlakit.Parser):
         return self._options
 
     def set_symbol(self, label, value = None):
-        self._state._symbols[label] = value
+        self._symbols[label] = value
 
     def get_symbol(self, label):
-        return self._state._symbols[label]
+        return self._symbols[label]
 
     def has_symbol(self, label):
-        return self._state._symbols.haskey(label)
+        return self._symbols.haskey(label)
 
     def delete_symbol(self, label):
-        if self._state._symbols.haskey(label):
-            self._state._symbols.pop(label)
+        if self._symbols.haskey(label):
+            self._symbols.pop(label)
 
     def get_symbols(self):
-        return self._state._symbols
+        return self._symbols
 
     def get_cur_script_dir(self):
         return os.path.dirname(self._state._file.name)
@@ -158,7 +158,7 @@ class HLAParser(hlakit.Parser):
     def _do_parse(self):
         # parse the file
         print "Parsing: %s" % self._state._file.name
-        tokens = self._state._parser.parseFile(self._state._file, True)
+        tokens = self._state._parser.parseFile(self._state._file, parseAll=True)
         print "Done parsing: %s" % self._state._file.name
         return tokens
 
@@ -204,6 +204,10 @@ def main():
         # dump the tokens
         print "TOKEN STREAM:"
         print tokens
+        # dump the define symbols
+        print "DEFINED SYMBOLS"
+        for s in p._symbols.iteritems():
+            print "%s = %s" % (s[0], s[1])
 
 if __name__ == "__main__":
     
