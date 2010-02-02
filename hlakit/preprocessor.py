@@ -8,10 +8,40 @@ class IncBin(object):
     directly into the final binary from the code.
     """
     def __init__(self, f):
+        self._name = f.name
         self._data = f.read()
 
     def get_data(self):
         return self._data
+
+    def __str__(self):
+        return "Included Binary: %s" % self._name
+
+    __repr__ = __str__
+
+class CodeLine(object):
+    """
+    This is a wrapper class around a line of code that contains
+    it's origin file and line number before preprocessing.
+    """
+    def __init__(self, code, f, line_no):
+        self._code = code
+        self._f = f
+        self._line_no = line_no
+
+    def get_code(self):
+        return self._code
+
+    def get_file(self):
+        return self._f
+
+    def get_line_no(self):
+        return self._line_no
+
+    def __str__(self):
+        return self._code
+
+    __repr__ = __str__
 
 class Preprocessor(object):
 
@@ -26,16 +56,29 @@ class Preprocessor(object):
         """
         def __init__(self, f, exprs):
           
-           # the current file name
+            # init the line number
+            self._line_no = 0
+
+            # the current file name
             self._file = f
 
-           # initialize the pyparsing parser as ZeroOrMore(Or())
+            # initialize the pyparsing parser as ZeroOrMore(Or())
             # of all of the expressions 
             expr_or = Or([])
             for e in exprs:
                 expr_or.append(e[1])
-            
+           
+            # build final parser
             self._parser = ZeroOrMore(expr_or)
+
+        def increment_line_no(self):
+            self._line_no += 1
+
+        def get_file(self):
+            return os.path.basename(self._file.name)
+
+        def get_line_no(self):
+            return self._line_no
 
     def __init__(self, options = None):
 
@@ -50,6 +93,9 @@ class Preprocessor(object):
 
         # current parser state
         self._state = None
+
+        # the ignore state
+        self._ignore_stack = [ False ]
 
         # initialize the map of expressions
         self._exprs = []
@@ -273,15 +319,45 @@ class Preprocessor(object):
     def _get_symbols(self):
         return self._symbols
 
+    def _ignore(self):
+        if self._ignore_stack[-1] == True or self._ignore_stack[-1] == None:
+            return True
+
+        return False
+
     #
     # Parse Action Callbacks
     #
 
     def _generic_line(self, pstring, location, tokens):
-        self._log('Generic line: %s' % tokens)
-        return []
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
+
+        # merge the tokens back into a single line of text
+        line = ' '.join(tokens)
+
+        # return an appropriate array of tokens
+        if not len(line):
+            return []
+        else:
+            # TODO: do macro expansion here
+            
+            # output some nice debug
+            self._log("%s:%s: Generic line: %s" % (self._state.get_file(), self._state.get_line_no(), line))
+            
+            # return a CodeLine object ecapsulating the code 
+            return [CodeLine(line, self._state.get_file(), self._state.get_line_no())]
 
     def _define_line(self, pstring, location, tokens):
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
+
         # define the symbol
         self._log('Defining: %s' % tokens.label)
         self._set_symbol(tokens.label, None)
@@ -290,6 +366,12 @@ class Preprocessor(object):
         return []
 
     def _define_line_value(self, pstring, location, tokens):
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
+
         # check to see if there is a value
         value = None
         if hasattr(tokens, 'value'):
@@ -303,6 +385,12 @@ class Preprocessor(object):
         return []
 
     def _undef_line(self, pstring, location, tokens):
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
+
         # delete the symbol
         self._delete_symbol(tokens.label)
 
@@ -310,35 +398,118 @@ class Preprocessor(object):
         return []
 
     def _ifdef_line(self, pstring, location, tokens):
+        # increment line number
+        self._state.increment_line_no()
+
+        # the top of the ignore stack is None if we're nested inside
+        # of an ignored block of code.  we have to push another None
+        # on the stack to track our nesting
+        if self._ignore():
+            self._ignore_stack.append(None)
+            return []
+
         self._log("Ifdef %s is %s" % (tokens.label, self._has_symbol(tokens.label)))
+        
+        # check to see if we should turn ignore on
+        if not self._has_symbol(tokens.label):
+            self._ignore_stack.append(True)
+        else:
+            self._ignore_stack.append(False)
+
         return []
 
     def _ifndef_line(self, pstring, location, tokens):
+        # increment line number
+        self._state.increment_line_no()
+
+        # the top of the ignore stack is None if we're nested inside
+        # of an ignored block of code.  we have to push another None
+        # on the stack to track our nesting
+        if self._ignore():
+            self._ignore_stack.append(None)
+            return []
+
         self._log("Ifndef %s is %s" % (tokens.label, not self._has_symbol(tokens.label)))
+        
+        # check to see if we should turn ignore on
+        if self._has_symbol(tokens.label):
+            self._ignore_stack.append(True)
+        else:
+            self._ignore_stack.append(False)
+
         return []
 
     def _else_line(self, pstring, location, tokens):
+        # increment line number
+        self._state.increment_line_no()
+
         self._log("Else")
+
+        # the top of the ignore stack is None if we're nested inside
+        # of an ingnored block of code.  we don't do anything in that case.
+        if self._ignore_stack[-1] == None:
+            return []
+
+        # so we're in an active block of code if we get here so we need
+        # to check to see if we're in a block and if so, flip from active
+        # to innactive.
+        if len(self._ignore_stack) <= 1:
+            raise ParseFatalException("#else outside of #ifdef/#ifndef block")
+
+        # swap states
+        if self._ignore():
+            self._ignore_stack[-1] = False
+        else:
+            self._ignore_stack[-1] = True
+
         return []
     
     def _endif_line(self, pstring, location, tokens):
+        # increment line number
+        self._state.increment_line_no()
+
         self._log("Endif")
+
+        if len(self._ignore_stack) <= 1:
+            raise ParseFatalException("#endif without matching #ifdef/#ifndef")
+
+        # pop the current ignore state off of the stack
+        self._ignore_stack.pop()
+
         return []
 
     def _todo_message(self, pstring, location, tokens):
-        self._log("TODO: %s" % tokens.message)
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
+
+        self._log("%s:%s: TODO: %s" % (self._state.get_file(), self._state.get_line_no(), tokens.message))
         # return an empty list to that the todo message token
         # gets deleted from the token stream
         return []
 
     def _warning_message(self, pstring, location, tokens):
-        self._log("WARNING: %s" % tokens.message)
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
+
+        self._log("%s:%s: WARNING: %s" % (self._state.get_file(), self._state.get_line_no(), tokens.message))
         # return an empty list to that the todo message token
         # gets deleted from the token stream
         return []
 
     def _error_message(self, pstring, location, tokens):
-        self._log("ERROR: %s" % tokens.message)
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
+
+        self._log("%s:%s: ERROR: %s" % (self._state.get_file(), self._state.get_line_no(), tokens.message))
         # raise a fatal exception to halt parsing
         raise ParseFatalException(tokens.message)
 
@@ -351,6 +522,12 @@ class Preprocessor(object):
         injected into the overall token map of the overall parse.
         """
         
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
+
         if len(tokens) != 1:
             raise ParseFatalException ('invalid include file path length')
 
@@ -368,6 +545,9 @@ class Preprocessor(object):
         # open the file
         inf = open(include_file, 'r')
 
+        # output some nice info
+        self._log("%s:%s: including: %s" % (self._state.get_file(), self._state.get_line_no(), os.path.basename(inf.name)))
+        
         # recursively parse the file
         recursive_tokens = self.parse(inf)
 
@@ -384,6 +564,12 @@ class Preprocessor(object):
         tokens from the parsed included file so that they get
         injected into the overall token map of the overall parse.
         """
+
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
 
         if len(tokens) != 1:
             raise ParseFatalException('invalid include file path length')
@@ -419,6 +605,12 @@ class Preprocessor(object):
         binary.
         """
         
+        # increment line number
+        self._state.increment_line_no()
+
+        if self._ignore():
+            return []
+
         if len(tokens) != 1:
             raise ParseFatalException ('invalid include file path length')
 
