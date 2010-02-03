@@ -19,12 +19,25 @@ class Options(object):
         self._app_dir = os.path.dirname(os.path.realpath(__file__))
 
         parser = optparse.OptionParser(version = "%prog " + HLAKIT_VERSION)
-        parser.add_option('--cpu', default=None, dest='cpu')
-        parser.add_option('--platform', default=None, dest='platform')
-        parser.add_option('-L', '--lib', action="append", default=[], dest='lib')
-        parser.add_option('-I', '--include', action="append", default=[], dest='include')
+        parser.add_option('--cpu', default=None, dest='cpu',
+                          help='specifying the cpu activates the assembly opcodes for the given cpu.\n'
+                               'you probably want to specify a platform instead if you are coding for\n'
+                               'a specific machine.  if you want to just create a generic binary for\n'
+                               'a given cpu, then this is the option for you.')
+        parser.add_option('--platform', default=None, dest='platform',
+                          help='specifying the platform activates platform specific preprocessor directives\n'
+                               'and implies the cpu so you don\'t have to specify the cpu.')
+        parser.add_option('-L', '--lib', action="append", default=[], dest='lib',
+                          help='specify directories to search for source files implementing board \n'
+                               'support functions')
+        parser.add_option('-I', '--include', action="append", default=[], dest='include',
+                          help='specify directories to search for include files')
 
         (self._options, self._args) = parser.parse_args()
+
+        # check for required options
+        if (not self._options.platform) and (not self._options.cpu):
+            parser.error('You must specify either a platform with --platform or a cpu with --cpu')
 
     def get_include_dirs(self):
         return self._options.include
