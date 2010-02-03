@@ -27,9 +27,6 @@ class Options(object):
         parser.add_option('--platform', default=None, dest='platform',
                           help='specifying the platform activates platform specific preprocessor directives\n'
                                'and implies the cpu so you don\'t have to specify the cpu.')
-        parser.add_option('-L', '--lib', action="append", default=[], dest='lib',
-                          help='specify directories to search for source files implementing board \n'
-                               'support functions')
         parser.add_option('-I', '--include', action="append", default=[], dest='include',
                           help='specify directories to search for include files')
 
