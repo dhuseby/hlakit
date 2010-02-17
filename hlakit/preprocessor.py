@@ -106,6 +106,8 @@ class Preprocessor(object):
         super(Preprocessor, self).__init__()
 
         # initialize the machine and cpu
+        self._machine = None
+        self._cpu = None
         machine = options.get_options().machine
         cpu = options.get_options().cpu
         if machine:
@@ -144,6 +146,7 @@ class Preprocessor(object):
         return self._exprs
 
     def _log(self, s):
+        # TODO: convert this to use the logger object
         indent = ""
         for i in range(0,len(self._state_stack)):
            indent += "    "
@@ -183,8 +186,23 @@ class Preprocessor(object):
         self._init_messages_exprs()
         self._init_files_exprs()
         self._init_memory_exprs()
+        # add in the machine and cpu preprocessor exprs
+        self._init_machine_exprs()
+        self._init_cpu_exprs()
         # note that generic exprs must be last
         self._init_generic_exprs()
+
+    def _init_machine_exprs(self):
+        # this gets all of the preprocessor expressions from the machine
+        # and adds them to the preprocessor expressions list
+        if self._machine:
+            self._exprs.extend(self._machine.get_preprocessor_exprs())
+
+    def _init_cpu_exprs(self):
+        # this gets all of the preprocessor expressions from the cpu
+        # and adds them to the preprocessor expressions list
+        if self._cpu:
+            self._exprs.extend(self._cpu.get_preprocessor_exprs())
 
     def _init_generic_exprs(self):
         # this matches all lines that don't match any other rules
