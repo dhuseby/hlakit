@@ -51,7 +51,7 @@ class CodeLine(object):
         return self._line_no
 
     def __str__(self):
-        return self._code
+        return "%s: %d: %s" % (self._f, self._line_no, self._code)
 
     __repr__ = __str__
 
@@ -353,6 +353,15 @@ class Preprocessor(object):
     def _get_symbols(self):
         return self._symbols
 
+    def _expand_symbols(self, line):
+        expanded_line = line
+        for (symbol, value) in self._symbols.iteritems():
+            if value == None:
+                value = ''
+            expanded_line = expanded_line.replace(symbol, value)
+
+        return expanded_line
+
     def _ignore(self):
         if self._ignore_stack[-1] == True or self._ignore_stack[-1] == None:
             return True
@@ -377,7 +386,8 @@ class Preprocessor(object):
         if not len(line):
             return []
         else:
-            # TODO: do macro expansion here
+            # do macro expansion here
+            line = self._expand_symbols(line)
             
             # output some nice debug
             self._log("%s:%s: Generic line: %s" % (self._state.get_file(), self._state.get_line_no(), line))
@@ -409,11 +419,14 @@ class Preprocessor(object):
         # check to see if there is a value
         value = None
         if hasattr(tokens, 'value'):
-            value = tokens.value
+            value = ' '.join(tokens.value)
+
+        # do macro expansion here so that we support recursive macros
+        value = self._expand_symbols(value)
 
         # define the symbol
-        self._log('Defining: %s as %s' % (tokens.label, ' '.join(value)))
-        self._set_symbol(tokens.label, ' '.join(value))
+        self._log('Defining: %s as %s' % (tokens.label, value))
+        self._set_symbol(tokens.label, value)
 
         # return empty list to eat tokens
         return []
