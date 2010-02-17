@@ -51,7 +51,29 @@ class CodeLine(object):
         return self._line_no
 
     def __str__(self):
-        return "%s: %d: %s" % (self._f, self._line_no, self._code)
+        return self._code
+
+    __repr__ = __str__
+
+class CodeBlock(object):
+    """
+    This encapsulates a list of CodeLine objects into a cohesive
+    code block that can be translated back into plain text.
+    """
+    def __init__(self):
+        self._lines = []
+
+    def append(self, line):
+        self._lines.append(line)
+
+    def num_lines(self):
+        return len(self._lines)
+
+    def __str__(self):
+        out = "\n"
+        for line in self._lines:
+            out += str(line) + "\n"
+        return out + "\n"
 
     __repr__ = __str__
 
@@ -178,6 +200,32 @@ class Preprocessor(object):
         # restore previous state if there is one
         if len(self._state_stack):
             self._state = self._state_stack.pop()
+        else:
+            # when we get here, we're done parsing everything...
+            # it's time to merge un-processed lines into code blocks for
+            # parsing by the compiler pass.
+            pp_tokens = []
+            current_block = CodeBlock()
+            for token in tokens:
+                if type(token) is CodeLine:
+                    current_block.append(token)
+                else:
+                    # if the current code block has lines in it, then
+                    # push it into the pp_tokens list and start a new
+                    # CodeBlock...
+                    if current_block.num_lines() > 0:
+                        pp_tokens.append(current_block)
+                        current_block = CodeBlock()
+
+                    # append the non-CodeLine token to the pp_tokens list
+                    pp_tokens.append(token)
+
+            # make sure we append the last code block
+            if current_block.num_lines() > 0:
+                pp_tokens.append(current_block)
+
+            # make sure we return the pp_tokens
+            tokens = pp_tokens
 
         return tokens
 
