@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""
+HLAKit
+Copyright (C) David Huseby <dave@linuxprogrammer.org>
+
+This software is licensed under the Creative Commons Attribution-NonCommercial-
+ShareAlike 3.0 License.  You may read the full text of the license in the 
+included LICENSE file or by visiting here: 
+<http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>
+"""
 
 import os
 import sys
@@ -20,21 +29,21 @@ class Options(object):
 
         parser = optparse.OptionParser(version = "%prog " + HLAKIT_VERSION)
         parser.add_option('--cpu', default=None, dest='cpu',
-                          help='specifying the cpu activates the assembly opcodes for the given cpu.\n'
-                               'you probably want to specify a platform instead if you are coding for\n'
-                               'a specific machine.  if you want to just create a generic binary for\n'
-                               'a given cpu, then this is the option for you.')
-        parser.add_option('--platform', default=None, dest='platform',
-                          help='specifying the platform activates platform specific preprocessor directives\n'
-                               'and implies the cpu so you don\'t have to specify the cpu.')
+            help='specifying the cpu activates the assembly opcodes for the given cpu.\n'
+                'you probably want to specify a machine instead if you are coding for\n'
+                'a specific machine.  if you want to just create a generic binary for\n'
+                'a given cpu, then this is the option for you.')
+        parser.add_option('--machine', default=None, dest='machine',
+            help='specifying the machine activates machine specific preprocessor directives\n'
+                'and implies the cpu so you don\'t have to specify the cpu.')
         parser.add_option('-I', '--include', action="append", default=[], dest='include',
-                          help='specify directories to search for include files')
+            help='specify directories to search for include files')
 
         (self._options, self._args) = parser.parse_args()
 
         # check for required options
-        if (not self._options.platform) and (not self._options.cpu):
-            parser.error('You must specify either a platform with --platform or a cpu with --cpu')
+        if (not self._options.machine) and (not self._options.cpu):
+            parser.error('You must specify either a machine with --machine or a cpu with --cpu')
 
     def get_include_dirs(self):
         return self._options.include
@@ -100,11 +109,9 @@ class Options(object):
 
 def main():
     options = Options()
-    print options._options
-    print options._args
-
     p = hlakit.Preprocessor(options)
     # c = hlakit.Compiler(options)
+    
     for f in options.get_args():
 
         # calculate the correct path to the file 
