@@ -28,6 +28,11 @@ class MOS6502(CPU):
         # initialize the expressions lists
         self._preprocessor_exprs = []
 
+        # CPU specific values for binary generation
+        self._start_symbol = None
+        self._nmi_symbol = None
+        self._irq_symbol = None
+
         # build the expressions
         self._init_preprocessor_exprs()
         
@@ -44,10 +49,63 @@ class MOS6502(CPU):
         return None
 
     def _init_preprocessor_exprs(self):
-        pass
+        # 6502 specific preprocessor directives
+        start = Keyword('#interrupt.start')
+        nmi = Keyword('#interrupt.nmi')
+        irq = Keyword('#interrupt.irq')
+
+        # define the value
+        value = Word(printables).setResultsName('value')
+
+        # start interrupt line
+        start_line = Suppress(start) + \
+                     value + \
+                     Suppress(LineEnd())
+        start_line.setParseAction(self._start_line)
+
+        # nmi interrupt line
+        nmi_line = Suppress(nmi) + \
+                   value + \
+                   Suppress(LineEnd())
+        nmi_line.setParseAction(self._nmi_line)
+
+        # irq interrupt line
+        irq_line = Suppress(irq) + \
+                   value + \
+                   Suppress(LineEnd())
+        irq_line.setParseAction(self._irq_line)
+
+        # put the expressions in the top level map
+        self._preprocessor_exprs.append(('start_line', start_line))
+        self._preprocessor_exprs.append(('nmi_line', nmi_line))
+        self._preprocessor_exprs.append(('irq_line', irq_line))
 
     #
     # Parse Action Callbacks
     #
+
+    def _start_line(self, pstring, location, tokens):
+        if len(tokens.value) == 0:
+            raise ParseFatalException('#interrupt.start must have exactly 1 argument')
+
+        self._start_symbol = tokens.value
+
+        return []
+
+    def _nmi_line(self, pstring, location, tokens):
+        if len(tokens.value) == 0:
+            raise ParseFatalException('#interrupt.nmi must have exactly 1 argument')
+
+        self._nmi_symbol = tokens.value
+
+        return []
+
+    def _irq_line(self, pstring, location, tokens):
+        if len(tokens.value) == 0:
+            raise ParseFatalException('#interrupt.irq must have exactly 1 argument')
+
+        self._irq_symbol = tokens.value
+
+        return []
 
 

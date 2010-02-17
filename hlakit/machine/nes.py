@@ -155,9 +155,6 @@ class NES(Machine):
         self._preprocessor_exprs.append(('chrrepeat_line', chrrepeat_line))
         self._preprocessor_exprs.append(('off_line', off_line))
 
-    def _get_mapper_number(self, mapper_name):
-        return NES.MAPPERS[mapper_name]
-
     def _convert_bool_argument(self, token):
         # try to convert the token to int, otherwise
         # it is a string...
