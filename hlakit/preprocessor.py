@@ -10,69 +10,7 @@ included LICENSE file or by visiting here:
 
 import os
 from pyparsing import *
-
-class IncBin(object):
-    """
-    This is a wrapper class around some binary data included
-    directly into the final binary from the code.
-    """
-    def __init__(self, f):
-        self._name = f.name
-        self._data = f.read()
-
-    def get_data(self):
-        return self._data
-
-    def __str__(self):
-        return "Included Binary: %s" % self._name
-
-    __repr__ = __str__
-
-class CodeLine(object):
-    """
-    This is a wrapper class around a line of code that contains
-    it's origin file and line number before preprocessing.
-    """
-    def __init__(self, code, f, line_no):
-        self._code = code
-        self._f = f
-        self._line_no = line_no
-
-    def get_code(self):
-        return self._code
-
-    def get_file(self):
-        return self._f
-
-    def get_line_no(self):
-        return self._line_no
-
-    def __str__(self):
-        return self._code
-
-    __repr__ = __str__
-
-class CodeBlock(object):
-    """
-    This encapsulates a list of CodeLine objects into a cohesive
-    code block that can be translated back into plain text.
-    """
-    def __init__(self):
-        self._lines = []
-
-    def append(self, line):
-        self._lines.append(line)
-
-    def num_lines(self):
-        return len(self._lines)
-
-    def __str__(self):
-        out = "\n"
-        for line in self._lines:
-            out += str(line) + "\n"
-        return out + "\n"
-
-    __repr__ = __str__
+from tokens import *
 
 class Preprocessor(object):
 

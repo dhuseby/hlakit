@@ -9,10 +9,10 @@ included LICENSE file or by visiting here:
 """
 
 import os
+from pyparsing import *
 from cpu import *
 from machine import *
-
-from pyparsing import *
+from tokens import *
 
 class Compiler(object):
 
@@ -34,6 +34,9 @@ class Compiler(object):
         # compiler symbols table
         self._symbols = {}
 
+        # the parser used
+        self._parser = None
+
         # build the compiler expressions
         self._init_compiler_exprs()
 
@@ -41,21 +44,41 @@ class Compiler(object):
         return self._exprs
 
     def compile(self, tokens):
-        return tokens
+        # initialize the parser
+        expr_or = Or([])
+        for e in self._exprs:
+            expr_or.append(e[1])
+
+        # build final parser
+        self._parser = ZeroOrMore(expr_or)
+
+        cc_tokens = []
+        for token in tokens:
+            if type(token) is CodeBlock:
+                # add in the tokens from the compiler parser
+                print "Parsing:\n" + str(token)
+                cc_tokens.extend(self._parser.parseString(str(token), parseAll=True))
+            else:
+                # non-CodeBlock tokens get passed through because they are
+                # probably linker related (e.g. #incbin, #bank.tell, etc)
+                cc_tokens.append(token)
+
+        return cc_tokens
 
     def _init_compiler_exprs(self):
-        """
-        # add in the generic HLA expressions
-        self._init_function_exprs()
-        self._init_while_exprs()
-        self._init_for_exprs()
-        self._init_if_exprs()
         # add in the machine and cpu preprocessor exprs
         self._init_machine_exprs()
         self._init_cpu_exprs()
-        # note that generic exprs must be last
-        self._init_generic_exprs()
-        """
-        pass
 
+    def _init_machine_exprs(self):
+        # this gets all of the compiler expressions from the machine
+        # specific defintion class
+        if self._machine:
+            self._exprs.extend(self._machine.get_compiler_exprs())
+
+    def _init_cpu_exprs(self):
+        # this gets all fo the compiler expressions from the cpu specific
+        # definition class
+        if self._cpu:
+            self._exprs.extend(self._cpu.get_compiler_exprs())
 

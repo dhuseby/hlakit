@@ -27,8 +27,11 @@ class NES(Machine):
         # store the logger
         self._logger = logger
 
-        # initialize the expressions lists
+        # initialize the preprocessor expressions list
         self._preprocessor_exprs = []
+
+        # initialize the compiler expressions list
+        self._compiler_exprs = []
 
         # create our iNES header
         self._ines = iNES()
@@ -48,7 +51,7 @@ class NES(Machine):
         return self._preprocessor_exprs
 
     def get_compiler_exprs(self):
-        return None
+        return self._compiler_exprs
 
     def get_file_writer(self):
         # the file writer is the platform specific binary
