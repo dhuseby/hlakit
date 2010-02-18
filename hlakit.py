@@ -13,16 +13,33 @@ import os
 import sys
 import optparse
 import hlakit
+from hlakit.cpu import *
+from hlakit.machine import *
 
 from pyparsing import *
 
 # globals
-HLAKIT_VERSION = "0.0.1"
+HLAKIT_VERSION = "0.0.2"
 
 class Options(object):
+    """
+    This encapsulates the command line options and the options related
+    functions.
+    """
+
+    CPU = {
+        '6502': 'MOS6502',
+        'mos6502': 'MOS6502',
+    }
+    MACHINE = {
+        'nes': 'NES',
+        'lynx': 'Lynx'
+    }
     def __init__(self):
         self._options = None
         self._args = None
+        self._cpu = None
+        self._machine = None
 
         # calculate the script dir
         self._app_dir = os.path.dirname(os.path.realpath(__file__))
@@ -107,10 +124,38 @@ class Options(object):
     def get_app_dir(self):
         return self._app_dir
 
+    def get_cpu(self, logger):
+        # call this just in case they call get_cpu first
+        self.get_machine(logger)
+
+        # if the cpu was not created then they must have specified
+        # --cpu instead of --machine
+        if self._cpu == None:
+            cpu = self._options.cpu
+            cpu_ctor = globals()[Options.CPU[cpu.lower()]]
+            self._cpu = cpu_ctor(self, logger)
+
+        return self._cpu
+
+    def get_machine(self, logger):
+
+        # create the machine instance if it hasn't already been created
+        if self._machine == None:
+            machine = self._options.machine
+            if machine:
+                machine_ctor = globals()[Options.MACHINE[machine.lower()]]
+                self._machine = machine_ctor(self, logger)
+                cpu = self._machine.get_cpu()
+                cpu_ctor = globals()[Options.CPU[cpu.lower()]]
+                self._cpu = cpu_ctor(self, logger)
+
+        return self._machine
+
 def main():
     options = Options()
     p = hlakit.Preprocessor(options)
-    # c = hlakit.Compiler(options)
+    c = hlakit.Compiler(options)
+    #l = hlakit.Linker(options)
     
     for f in options.get_args():
 
@@ -121,17 +166,20 @@ def main():
         inf = open(fpath, 'r')
 
         # parse the file 
-        tokens = p.parse(inf)
+        pp_tokens = p.parse(inf)
 
         # close the file
         inf.close()
 
         # compile the tokenstream
-        # c.compile(tokens)
+        cc_tokens = c.compile(pp_tokens)
+
+        # linke the compiled tokens into a binary
+        #l.link(cc_tokens)
 
         # dump the tokens
         print "TOKEN STREAM:"
-        print tokens
+        print cc_tokens
 
 if __name__ == "__main__":
     

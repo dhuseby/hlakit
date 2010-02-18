@@ -11,3 +11,4 @@ included LICENSE file or by visiting here:
 import cpu
 import machine
 from preprocessor import Preprocessor
+from compiler import Compiler

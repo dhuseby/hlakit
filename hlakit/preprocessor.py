@@ -9,9 +9,6 @@ included LICENSE file or by visiting here:
 """
 
 import os
-from cpu import *
-from machine import *
-
 from pyparsing import *
 
 class IncBin(object):
@@ -79,14 +76,6 @@ class CodeBlock(object):
 
 class Preprocessor(object):
 
-    CPU = {
-        '6502': 'MOS6502',
-        'mos6502': 'MOS6502',
-    }
-    MACHINE = {
-        'nes': 'NES',
-        'lynx': 'Lynx'
-    }
     FILE_NAME_CHARS = '0123456789' + \
                       'abcdefghijklmnopqrstuvwxyz' + \
                       'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + \
@@ -128,20 +117,8 @@ class Preprocessor(object):
         super(Preprocessor, self).__init__()
 
         # initialize the machine and cpu
-        self._machine = None
-        self._cpu = None
-        machine = options.get_options().machine
-        cpu = options.get_options().cpu
-        if machine:
-            machine_ctor = globals()[Preprocessor.MACHINE[machine.lower()]]
-            self._machine = machine_ctor(options, logger)
-            cpu = self._machine.get_cpu()
-            cpu_ctor = globals()[Preprocessor.CPU[cpu.lower()]]
-            self._cpu = cpu_ctor(options, logger)
-        else:
-            self._machine = None
-            cpu_ctor = globals()[Preprocessor.CPU[cpu.lower()]]
-            self._cpu = cpu_ctor(options, logger)
+        self._machine = options.get_machine(logger)
+        self._cpu = options.get_cpu(logger)
 
         # store our options
         self._options = options
