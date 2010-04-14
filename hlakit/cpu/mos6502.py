@@ -11,20 +11,7 @@ included LICENSE file or by visiting here:
 import os
 from pyparsing import *
 from cpu import CPU
-
-class Number(object):
-    def __init__(self, token, value):
-        self._token = token
-        self._value = value
-
-    def __int__(self):
-        return self._value
-
-    def __str__(self):
-        return self._token
-
-    def __repr__(self):
-        return 'Number(%s) == %d' % (self._token, self._value)
+from hlakit.number import Number
 
 class Variable(object):
     def __init__(self, type, name, value = None, shared = False, address = None):
@@ -132,22 +119,11 @@ class MOS6502(CPU):
 
     def _init_compiler_exprs(self):
 
-        ### numbers ###
-
-        # numbers
-        decimal_ = Word(nums).setResultsName('decimal') + Optional('K').setResultsName('kilo')
-        hex_ = Combine(Suppress('0x') + Word(hexnums)).setResultsName('hex')
-        asmhex_ = Combine(Suppress('$') + Word(hexnums)).setResultsName('asmhex')
-        binary_ = Combine(Suppress('%') + Word('01')).setResultsName('binary')
-        true_ = Keyword('true').setResultsName('boolean')
-        TRUE_ = Keyword('TRUE').setResultsName('boolean')
-        false_ = Keyword('false').setResultsName('boolean')
-        FALSE_ = Keyword('FALSE').setResultsName('boolean')
-        number_ = hex_ | asmhex_ | binary_ | decimal_ | true_ | TRUE_ | false_ | FALSE_
-        number_.setParseAction(self._number)
-        
         ### variable declarations ###
-        
+       
+        # numbers
+        number_ = Number.exprs()
+
         # keywords
         shared_ = Keyword('shared')
         typedef_ = Keyword('typedef')
@@ -232,29 +208,6 @@ class MOS6502(CPU):
         self._irq_symbol = tokens.value
 
         return []
-
-    def _number(self, pstring, location, token):
-        # figure out which type of number we got
-        if len(token.decimal):
-            tok = token.decimal
-            value = int(token.decimal, 10)
-            if len(token.kilo):
-                value *= 1024
-                tok += 'K'
-            return Number(tok, value)
-        elif len(token.hex):
-            return Number('0x' + token.hex, int(token.hex, 16))
-        elif len(token.asmhex):
-            return Number('$' + token.asmhex, int(token.asmhex, 16))
-        elif len(token.binary):
-            return Number('%' + token.binary, int(token.binary, 2))
-        elif len(token.boolean):
-            value = 0
-            if token.boolean.lower() == 'true':
-                value = 1
-            return Number(token.boolean, value)
-        else:
-            raise ParseFatalException('number value with none of the expected attributes')
 
     def _variable(self, pstring, location, tokens):
         shared = False

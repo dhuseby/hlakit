@@ -11,7 +11,7 @@ included LICENSE file or by visiting here:
 import os
 from pyparsing import *
 from cpu import *
-from machine import *
+from platform import *
 from tokens import *
 
 class Compiler(object):
@@ -21,8 +21,8 @@ class Compiler(object):
         # init the base class
         super(Compiler, self).__init__()
 
-        # initialize the machine and cpu
-        self._machine = options.get_machine(logger)
+        # initialize the platform and cpu
+        self._platform = options.get_platform(logger)
         self._cpu = options.get_cpu(logger)
 
         # store our options
@@ -56,7 +56,7 @@ class Compiler(object):
         for token in tokens:
             if type(token) is CodeBlock:
                 # add in the tokens from the compiler parser
-                print "Parsing:\n" + str(token)
+                print "Compiling:\n" + str(token)
                 cc_tokens.extend(self._parser.parseString(str(token), parseAll=True))
             else:
                 # non-CodeBlock tokens get passed through because they are
@@ -66,15 +66,15 @@ class Compiler(object):
         return cc_tokens
 
     def _init_compiler_exprs(self):
-        # add in the machine and cpu preprocessor exprs
-        self._init_machine_exprs()
+        # add in the platform and cpu preprocessor exprs
+        self._init_platform_exprs()
         self._init_cpu_exprs()
 
-    def _init_machine_exprs(self):
-        # this gets all of the compiler expressions from the machine
+    def _init_platform_exprs(self):
+        # this gets all of the compiler expressions from the platform 
         # specific defintion class
-        if self._machine:
-            self._exprs.extend(self._machine.get_compiler_exprs())
+        if self._platform:
+            self._exprs.extend(self._platform.get_compiler_exprs())
 
     def _init_cpu_exprs(self):
         # this gets all fo the compiler expressions from the cpu specific
