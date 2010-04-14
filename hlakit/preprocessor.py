@@ -274,28 +274,39 @@ class Preprocessor(object):
             message_string = message_string.setResultsName('message')
 
             # ==> #todo "message"
-            todo_line = Suppress(todo) + message_string + Suppress(LineEnd())
+            todo_line = Suppress(todo) + Suppress(LineEnd())
             todo_line.setParseAction(self._todo_message)
+            todo_line_msg = Suppress(todo) + message_string + Suppress(LineEnd())
+            todo_line_msg.setParseAction(self._todo_message)
             
             # ==> #warning "message"
-            warning_line = Suppress(warning) + message_string + Suppress(LineEnd())
+            warning_line = Suppress(warning) + Suppress(LineEnd())
             warning_line.setParseAction(self._warning_message)
+            warning_line_msg = Suppress(warning) + message_string + Suppress(LineEnd())
+            warning_line_msg.setParseAction(self._warning_message)
 
             # ==> #error "message"
-            error_line = Suppress(error) + message_string + Suppress(LineEnd())
+            error_line = Suppress(error) + Suppress(LineEnd())
             error_line.setParseAction(self._error_message)
+            error_line_msg = Suppress(error) + message_string + Suppress(LineEnd())
+            error_line_msg.setParseAction(self._error_message)
 
             # ==> #fatal "message"
-            fatal_line = Suppress(fatal) + message_string + Suppress(LineEnd())
-            # NOTE: error and fatal use the same parse action because I
-            #       couldn't think of how they would differ in practice
+            # NOTE: I can't see any difference between a fatal message and an error message
+            fatal_line = Suppress(fatal) + Suppress(LineEnd())
+            fatal_line.setParseAction(self._error_message)
+            fatal_line_msg = Suppress(fatal) + message_string + Suppress(LineEnd())
             fatal_line.setParseAction(self._error_message)
             
             # put the message expressions in the top level map
             self._exprs.append(('todo_line', todo_line))
+            self._exprs.append(('todo_line_msg', todo_line_msg))
             self._exprs.append(('warning_line', warning_line))
+            self._exprs.append(('warning_line_msg', warning_line_msg))
             self._exprs.append(('error_line', error_line))
+            self._exprs.append(('error_line_msg', error_line_msg))
             self._exprs.append(('fatal_line', fatal_line))
+            self._exprs.append(('fatal_line_msg', fatal_line_msg))
 
         def _init_files_exprs(self):
             
