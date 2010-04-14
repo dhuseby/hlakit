@@ -11,6 +11,7 @@ included LICENSE file or by visiting here:
 import os
 from pyparsing import *
 from cpu import CPU
+from tokens import InterruptVector
 from hlakit.number import Number
 
 class Variable(object):
@@ -92,30 +93,45 @@ class MOS6502(CPU):
         irq = Keyword('#interrupt.irq')
 
         # define the value
-        value = Word(printables).setResultsName('value')
+        symbol = Word(alphas, alphanums + '_').setResultsName('symbol')
 
         # start interrupt line
         start_line = Suppress(start) + \
-                     value + \
+                     symbol + \
                      Suppress(LineEnd())
         start_line.setParseAction(self._start_line)
+        start_line_address = Suppress(start) + \
+                     Number.exprs().setResultsName('address') + \
+                     Suppress(LineEnd())
+        start_line_address.setParseAction(self._start_line)
 
         # nmi interrupt line
         nmi_line = Suppress(nmi) + \
-                   value + \
+                   symbol + \
                    Suppress(LineEnd())
         nmi_line.setParseAction(self._nmi_line)
+        nmi_line_address = Suppress(nmi) + \
+                     Number.exprs().setResultsName('address') + \
+                     Suppress(LineEnd())
+        nmi_line_address.setParseAction(self._start_line)
 
         # irq interrupt line
         irq_line = Suppress(irq) + \
-                   value + \
+                   symbol + \
                    Suppress(LineEnd())
         irq_line.setParseAction(self._irq_line)
+        irq_line_address = Suppress(irq) + \
+                     Number.exprs().setResultsName('address') + \
+                     Suppress(LineEnd())
+        irq_line_address.setParseAction(self._start_line)
 
         # put the expressions in the top level map
         self._preprocessor_exprs.append(('start_line', start_line))
+        self._preprocessor_exprs.append(('start_line_address', start_line_address))
         self._preprocessor_exprs.append(('nmi_line', nmi_line))
+        self._preprocessor_exprs.append(('nmi_line_address', nmi_line_address))
         self._preprocessor_exprs.append(('irq_line', irq_line))
+        self._preprocessor_exprs.append(('irq_line_address', irq_line_address))
 
     def _init_compiler_exprs(self):
 
@@ -186,28 +202,28 @@ class MOS6502(CPU):
     #
 
     def _start_line(self, pstring, location, tokens):
-        if len(tokens.value) == 0:
-            raise ParseFatalException('#interrupt.start must have exactly 1 argument')
+        if 'symbol' in tokens.keys():
+            return InterruptVector(InterruptVector.START, tokens.symbol)
+        elif 'address' in tokens.keys():
+            return InterruptVector(InterruptVector.START, tokens.address)
 
-        self._start_symbol = tokens.value
-
-        return []
+        raise ParseFatalException('invalid argument for #interrupt.start')
 
     def _nmi_line(self, pstring, location, tokens):
-        if len(tokens.value) == 0:
-            raise ParseFatalException('#interrupt.nmi must have exactly 1 argument')
+        if 'symbol' in tokens.keys():
+            return InterruptVector(InterruptVector.NMI, tokens.symbol)
+        elif 'address' in tokens.keys():
+            return InterruptVector(InterruptVector.NMI, tokens.address)
 
-        self._nmi_symbol = tokens.value
-
-        return []
+        raise ParseFatalException('invalid argument for #interrupt.nmi')
 
     def _irq_line(self, pstring, location, tokens):
-        if len(tokens.value) == 0:
-            raise ParseFatalException('#interrupt.irq must have exactly 1 argument')
+        if 'symbol' in tokens.keys():
+            return InterruptVector(InterruptVector.IRQ, tokens.symbol)
+        elif 'address' in tokens.keys():
+            return InterruptVector(InterruptVector.IRQ, tokens.address)
 
-        self._irq_symbol = tokens.value
-
-        return []
+        raise ParseFatalException('invalid argument for #interrupt.nmi')
 
     def _variable(self, pstring, location, tokens):
         shared = False
