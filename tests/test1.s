@@ -4,15 +4,14 @@
 #todo 'one more'
 #include 'test2.s'
 #setpad "hello, world!"
-#setpad 0xDEADBEEF
-#align 2K
-
 function blah(boo, bar)
 {
     mov x,boo
     add bar,y
 }
 
+#setpad 0xDEADBEEF
+#align 2K
 #ifdef _FOO
 #define _BLAH_FOO (1)
 #define FOO "BAR"

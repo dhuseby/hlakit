@@ -438,6 +438,9 @@ class Preprocessor(object):
             # merge the tokens back into a single line of text
             line = ' '.join(tokens)
 
+            # strip whitespace
+            line = line.strip()
+
             # return an appropriate array of tokens
             if not len(line):
                 return []
