@@ -2,6 +2,9 @@
 #todo 'world'
 #todo 'one more'
 #include 'test2.s'
+#setpad "hello, world!"
+#setpad 0xDEADBEEF
+#align 2K
 
 function blah(boo, bar)
 {

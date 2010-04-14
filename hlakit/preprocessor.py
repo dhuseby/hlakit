@@ -11,6 +11,7 @@ included LICENSE file or by visiting here:
 import os
 from pyparsing import *
 from tokens import *
+from number import Number
 
 class Preprocessor(object):
 
@@ -347,7 +348,37 @@ class Preprocessor(object):
             self._exprs.append(('symbol_incbin_line', symbol_incbin_line))
 
         def _init_memory_exprs(self):
-            pass
+            
+            # define setpad and align keywords
+            setpad = Keyword('#setpad')
+            align = Keyword('#align')
+
+            # define quoted string for the messages
+            message = Word(printables)
+            message_string = quotedString(message)
+            message_string.setParseAction(removeQuotes)
+            message_string = message_string.setResultsName('message')
+
+            # setpad line
+            setpad_number_line = Suppress(setpad) + \
+                                 Number.exprs().setResultsName('value') + \
+                                 Suppress(LineEnd())
+            setpad_number_line.setParseAction(self._setpad_line)
+            setpad_string_line = Suppress(setpad) + \
+                                 message_string + \
+                                 Suppress(LineEnd())
+            setpad_string_line.setParseAction(self._setpad_line)
+
+            # align line
+            align_line = Suppress(align) + \
+                         Number.exprs().setResultsName('value') + \
+                         Suppress(LineEnd())
+            align_line.setParseAction(self._align_line)
+
+            # build the expression map
+            self._exprs.append(('setpad_number_line', setpad_number_line))
+            self._exprs.append(('setpad_string_line', setpad_string_line))
+            self._exprs.append(('align_line', align_line))
 
         def _set_symbol(self, label, value = None):
             self._symbols[label] = value
@@ -700,4 +731,21 @@ class Preprocessor(object):
             inf.close()
 
             return blob
+
+        def _setpad_line(self, pstring, location, tokens):
+
+            if 'message' in tokens.keys():
+                return SetPad(tokens.message)
+            elif 'value' in tokens.keys():
+                return SetPad(tokens.value)
+
+            raise ParseFatalExpression('invalid padding value')
+
+        def _align_line(self, pstring, location, tokens):
+            
+            if 'value' in tokens.keys():
+                return SetAlign(tokens.value)
+
+            raise ParseFatalExpression('invalid alignment value')
+
 

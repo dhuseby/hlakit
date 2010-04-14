@@ -31,6 +31,36 @@ class IncBin(object):
 
     __repr__ = __str__
 
+class SetPad(object):
+    """
+    Token for setting the current padding contents
+    """
+    def __init__(self, padding):
+        self._padding = padding
+
+    def get_padding(self):
+        return self._padding
+
+    def __str__(self):
+        return "<%s>" % self._padding
+
+    __repr__ = __str__
+
+class SetAlign(object):
+    """
+    Token for setting the current alignment value
+    """
+    def __init__(self, alignment):
+        self._alignment = alignment
+
+    def get_alignement(self):
+        return self._alignment
+
+    def __str__(self):
+        return "<0x%x>" % self._alignment
+
+    __repr__ = __str__
+
 class CodeLine(object):
     """
     This is a wrapper class around a line of code that contains
