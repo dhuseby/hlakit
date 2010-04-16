@@ -11,7 +11,7 @@ included LICENSE file or by visiting here:
 import os
 from pyparsing import *
 from tokens import *
-from number import Number
+from values import *
 
 class Preprocessor(object):
 
@@ -372,7 +372,7 @@ class Preprocessor(object):
 
             # setpad line
             setpad_number_line = Suppress(setpad) + \
-                                 Number.exprs().setResultsName('value') + \
+                                 NumericValue.exprs().setResultsName('value') + \
                                  Suppress(LineEnd())
             setpad_number_line.setParseAction(self._setpad_line)
             setpad_string_line = Suppress(setpad) + \
@@ -382,7 +382,7 @@ class Preprocessor(object):
 
             # align line
             align_line = Suppress(align) + \
-                         Number.exprs().setResultsName('value') + \
+                         NumericValue.exprs().setResultsName('value') + \
                          Suppress(LineEnd())
             align_line.setParseAction(self._align_line)
 

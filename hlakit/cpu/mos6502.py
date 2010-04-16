@@ -12,7 +12,7 @@ import os
 from pyparsing import *
 from cpu import CPU
 from tokens import *
-from hlakit.number import Number
+from hlakit.values import *
 from hlakit.types import *
 from hlakit.symbols import *
 from hlakit.tokens import *
@@ -95,7 +95,7 @@ class MOS6502(CPU):
                      Suppress(LineEnd())
         start_line.setParseAction(self._start_line)
         start_line_address = Suppress(start) + \
-                     Number.exprs().setResultsName('address') + \
+                     NumericValue.exprs().setResultsName('address') + \
                      Suppress(LineEnd())
         start_line_address.setParseAction(self._start_line)
 
@@ -105,7 +105,7 @@ class MOS6502(CPU):
                    Suppress(LineEnd())
         nmi_line.setParseAction(self._nmi_line)
         nmi_line_address = Suppress(nmi) + \
-                     Number.exprs().setResultsName('address') + \
+                     NumericValue.exprs().setResultsName('address') + \
                      Suppress(LineEnd())
         nmi_line_address.setParseAction(self._start_line)
 
@@ -115,7 +115,7 @@ class MOS6502(CPU):
                    Suppress(LineEnd())
         irq_line.setParseAction(self._irq_line)
         irq_line_address = Suppress(irq) + \
-                     Number.exprs().setResultsName('address') + \
+                     NumericValue.exprs().setResultsName('address') + \
                      Suppress(LineEnd())
         irq_line_address.setParseAction(self._start_line)
 
@@ -128,140 +128,7 @@ class MOS6502(CPU):
         self._preprocessor_exprs.append(('irq_line_address', irq_line_address))
 
     def _init_compiler_exprs(self):
-
-        ### variable declarations ###
-       
-        # numbers
-        number_ = Number.exprs()
-
-        # keywords
-        shared_ = Keyword('shared')
-        typedef_ = Keyword('typedef')
-        struct_ = Keyword('struct')
-
-        # name
-        label_ = Word(alphas, alphanums + '_')
-
-        # types
-        byte_ = Keyword('byte')
-        BYTE_ = Keyword('BYTE')
-        char_ = Keyword('char')
-        CHAR_ = Keyword('CHAR')
-        bool_ = Keyword('bool')
-        BOOL_ = Keyword('BOOL')
-        word_ = Keyword('word')
-        WORD_ = Keyword('WORD')
-        pointer_ = Keyword('pointer')
-        POINTER_ = Keyword('POINTER')
-        type_ = byte_ | BYTE_ | char_ | CHAR_ | bool_ | BOOL_ | word_ | WORD_ | pointer_ | POINTER_
-
-        # punctuation
-        equal_ = Suppress('=')
-        colon_ = Suppress(':')
-        lbrace_ = Suppress('{')
-        rbrace_ = Suppress('}')
-        lbracket_ = Suppress('[')
-        rbracket_ = Suppress(']')
-
-        # basic variable
-        basic_variable = Optional(shared_.setResultsName('shared')) + \
-                         type_.setResultsName('type') + \
-                         label_.setResultsName('label') + \
-                         Optional(colon_ + number_.setResultsName('address'))
-
-        # standard variable
-        standard_variable = basic_variable + \
-                            Optional(equal_ + number_.setResultsName('value'))
-        standard_variable.setParseAction(self._standard_variable)
-
-        """
-        # variable list
-        variable_list_item = label_.setResultsName('label') + \
-                             Optional(colon_ + number_.setResultsName('address')) + \
-                             Optional(equal_ + number_.setResultsName('value'))
-        variable_list_item.setParseAction(self._variable_list_item)
-        variable_list = standard_variable.setResultsName('var') + \
-                        OneOrMore(Suppress(',') + variable_list_item).setResultsName('var_list')
-        variable_list.setParseAction(self._variable_list)
-
-        # arrays
-        
-        # define quoted string for the messages
-        array_value_string = Word(printables)
-        array_value_string = quotedString(array_value_string)
-        array_value_string.setParseAction(removeQuotes)
-
-        # define array value block
-        array_value = Optional(OneOrMore(label_ + Suppress(':')).setResultsName('label_list')) + \
-                      number_.setResultsName('number')
-        array_value.setParseAction(self._array_value)
-
-        array_value_block = lbrace_ + \
-                            array_value.setResultsName('value') + \
-                            ZeroOrMore(Suppress(',') + array_value).setResultsName('value_list') + \
-                            rbrace_
-        array_value_block.setParseAction(self._array_value_block)
-
-        # array declaration
-        array_variable_string = Optional(shared_.setResultsName('shared')) + \
-                         type_.setResultsName('type') + \
-                         label_.setResultsName('label') + \
-                         lbracket_ + \
-                         Optional(number_.setResultsName('size')) + \
-                         rbracket_ + \
-                         Optional(colon_ + number_.setResultsName('address')) + \
-                         Optional(equal_ + array_value_string.setResultsName('value'))
-        array_variable_string.setParseAction(self._array_variable_string)
-        array_variable_block = Optional(shared_.setResultsName('shared')) + \
-                         type_.setResultsName('type') + \
-                         label_.setResultsName('label') + \
-                         lbracket_ + \
-                         Optional(number_.setResultsName('size')) + \
-                         rbracket_ + \
-                         Optional(colon_ + number_.setResultsName('address')) + \
-                         Optional(equal_ + array_value_block).setResultsName('value')
-        array_variable_block.setParseAction(self._array_variable_block)
-
-        # struct declaration
-        struct_block = lbrace_ + \
-                       OneOrMore(standard_variable | \
-                                 variable_list | \
-                                 array_variable_string | \
-                                 array_variable_block).setResultsName('var_list') + \
-                       rbrace_
-        struct_block.setParseAction(self._struct_block)
-
-        # this separates 'struct foo' out for use in typedefs as well
-        struct_type = struct_ + label_.setResultsName('type')
-
-        # this is for the declaration of variables with a struct type
-        struct_label_item = label_.setResultsName('label') + \
-                            Optional(colon_  + number_.setResultsName('address'))
-        struct_label_item.setParseAction(self._struct_label_item)
-        struct_label_list = struct_label_item.setResultsName('label') + \
-                            ZeroOrMore(Suppress(',') + struct_label_item).setResultsName('label_list')
-
-        # full struct variable declaration
-        struct_variable = Optional(shared_.setResultsName('shared')) + \
-                        struct_type + \
-                        Optional(colon_ + number_.setResultsName('address')) + \
-                        struct_block.setResultsName('members') + \
-                        Optional(struct_label_list)
-        struct_variable.setParseAction(self._struct_variable)
-
-        # typedefs
-        basic_typedef = typedef_ + basic_variable
-        """
-
-        # put the expressions in the compiler exprs
-        self._compiler_exprs.append(('standard_variable', standard_variable))
-        """
-        self._compiler_exprs.append(('variable_list', variable_list))
-        self._compiler_exprs.append(('array_variable_string', array_variable_string))
-        self._compiler_exprs.append(('array_variable_block', array_variable_block))
-        self._compiler_exprs.append(('struct_block', struct_block))
-        self._compiler_exprs.append(('struct_variable', struct_variable))
-        """
+        pass
 
     #
     # Parse Action Callbacks
@@ -291,6 +158,7 @@ class MOS6502(CPU):
 
         raise ParseFatalException('invalid argument for #interrupt.nmi')
 
+    """
     def _standard_variable(self, pstring, location, tokens):
 
         if 'type' not in tokens.keys():
@@ -322,7 +190,6 @@ class MOS6502(CPU):
 
         return v
 
-    """
     def _variable_list_item(self, pstring, location, tokens):
 
         if 'label' not in tokens.keys():

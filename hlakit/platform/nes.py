@@ -13,7 +13,7 @@ from pyparsing import *
 from platform import Platform
 from ines import iNES
 from hlakit.preprocessor import Preprocessor
-from hlakit.number import Number
+from hlakit.values import *
 from tokens import *
 
 class NES(Platform):
@@ -153,13 +153,13 @@ class NES(Platform):
 
         # ram org line
         ram_org_line = Suppress(ram_org) + \
-                       Number.exprs().setResultsName('value') + \
+                       NumericValue.exprs().setResultsName('value') + \
                        Suppress(LineEnd())
         ram_org_line.setParseAction(self._ram_org_line)
         ram_org_line_with_size = Suppress(ram_org) + \
-                       Number.exprs().setResultsName('value') + \
+                       NumericValue.exprs().setResultsName('value') + \
                        Suppress(',') + \
-                       Number.exprs().setResultsName('maxsize') + \
+                       NumericValue.exprs().setResultsName('maxsize') + \
                        Suppress(LineEnd())
         ram_org_line_with_size.setParseAction(self._ram_org_line)
 
@@ -170,13 +170,13 @@ class NES(Platform):
 
         # rom org line
         rom_org_line = Suppress(rom_org) + \
-                       Number.exprs().setResultsName('value') + \
+                       NumericValue.exprs().setResultsName('value') + \
                        Suppress(LineEnd())
         rom_org_line.setParseAction(self._rom_org_line)
         rom_org_line_with_size = Suppress(rom_org) + \
-                       Number.exprs().setResultsName('value') + \
+                       NumericValue.exprs().setResultsName('value') + \
                        Suppress(',') + \
-                       Number.exprs().setResultsName('maxsize') + \
+                       NumericValue.exprs().setResultsName('maxsize') + \
                        Suppress(LineEnd())
         rom_org_line_with_size.setParseAction(self._rom_org_line)
 
@@ -187,19 +187,19 @@ class NES(Platform):
 
         # rom banksize line
         rom_banksize_line = Suppress(rom_banksize) + \
-                            Number.exprs().setResultsName('size') + \
+                            NumericValue.exprs().setResultsName('size') + \
                             Suppress(LineEnd())
         rom_banksize_line.setParseAction(self._rom_banksize_line)
 
         # rom bank line
         rom_bank_line = Suppress(rom_bank) + \
-                        Number.exprs().setResultsName('number') + \
+                        NumericValue.exprs().setResultsName('number') + \
                         Suppress(LineEnd())
         rom_bank_line.setParseAction(self._rom_bank_line)
         rom_bank_line_with_size = Suppress(rom_bank) + \
-                                  Number.exprs().setResultsName('number') + \
+                                  NumericValue.exprs().setResultsName('number') + \
                                   Suppress(',') + \
-                                  Number.exprs().setResultsName('maxsize') + \
+                                  NumericValue.exprs().setResultsName('maxsize') + \
                                   Suppress(LineEnd())
         rom_bank_line_with_size.setParseAction(self._rom_bank_line)
         rom_bank_line_label = Suppress(rom_bank) + \
@@ -209,25 +209,25 @@ class NES(Platform):
         rom_bank_line_label_with_size = Suppress(rom_bank) + \
                                   label + \
                                   Suppress(',') + \
-                                  Number.exprs().setResultsName('maxsize') + \
+                                  NumericValue.exprs().setResultsName('maxsize') + \
                                   Suppress(LineEnd())
         rom_bank_line_label_with_size.setParseAction(self._rom_bank_line)
 
         # chr banksize line
         chr_banksize_line = Suppress(chr_banksize) + \
-                            Number.exprs().setResultsName('size') + \
+                            NumericValue.exprs().setResultsName('size') + \
                             Suppress(LineEnd())
         chr_banksize_line.setParseAction(self._chr_banksize_line)
 
         # chr bank line
         chr_bank_line = Suppress(chr_bank) + \
-                        Number.exprs().setResultsName('number') + \
+                        NumericValue.exprs().setResultsName('number') + \
                         Suppress(LineEnd())
         chr_bank_line.setParseAction(self._chr_bank_line)
         chr_bank_line_with_size = Suppress(chr_bank) + \
-                                  Number.exprs().setResultsName('number') + \
+                                  NumericValue.exprs().setResultsName('number') + \
                                   Suppress(',') + \
-                                  Number.exprs().setResultsName('maxsize') + \
+                                  NumericValue.exprs().setResultsName('maxsize') + \
                                   Suppress(LineEnd())
         chr_bank_line_with_size.setParseAction(self._chr_bank_line)
         chr_bank_line_label = Suppress(chr_bank) + \
@@ -237,7 +237,7 @@ class NES(Platform):
         chr_bank_line_label_with_size = Suppress(chr_bank) + \
                                   label + \
                                   Suppress(',') + \
-                                  Number.exprs().setResultsName('maxsize') + \
+                                  NumericValue.exprs().setResultsName('maxsize') + \
                                   Suppress(LineEnd())
         chr_bank_line_label_with_size.setParseAction(self._chr_bank_line)
 
@@ -252,7 +252,7 @@ class NES(Platform):
         chr_link_line_with_size = Suppress(chr_link) + \
                         literal_file_path + \
                         Suppress(',') + \
-                        Number.exprs().setResultsName('size') + \
+                        NumericValue.exprs().setResultsName('size') + \
                         Suppress(LineEnd())
         chr_link_line_with_size.setParseAction(self._chr_link_line)
 

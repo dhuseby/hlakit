@@ -1,1 +1,2 @@
-shared byte bar : 0xFFFD = %10010110
+shared byte bar : $FFD2 = 0xFFFF
+char foo[] = "blah"

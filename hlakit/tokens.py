@@ -8,6 +8,8 @@ included LICENSE file or by visiting here:
 <http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>
 """
 
+from values import *
+
 class IncBin(object):
     """
     This is a wrapper class around some binary data included
@@ -107,7 +109,6 @@ class CodeBlock(object):
 
     __repr__ = __str__
 
-
 class AssignValue(object):
     """
     encapsulates an assignment AST
@@ -115,6 +116,9 @@ class AssignValue(object):
     def __init__(self, lhs, rhs):
         self._lhs = lhs
         self._rhs = rhs
+
+        if isinstance(self._rhs, ArrayValue):
+            self._lhs.set_array_size(len(self._rhs))
 
     def __str__(self):
         return '%s = %s' % (self._lhs, self._rhs)

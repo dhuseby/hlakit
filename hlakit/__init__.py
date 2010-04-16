@@ -12,4 +12,4 @@ import cpu
 import platform
 from preprocessor import Preprocessor
 from compiler import Compiler
-from number import Number
+from values import *

@@ -68,10 +68,12 @@ class Variable(Symbol):
     """
     encapsulates a variable symbol
     """
-    def __init__(self, name, type, shared = False, address = None):
+    def __init__(self, name, type, shared=False, address=None, array=False, size=None):
         super(Variable, self).__init__(name, type)
         self._shared = shared
         self._address = address
+        self._array = array
+        self._size = size
 
         # register this symbol
         SymbolTable.instance()[name] = self
@@ -79,11 +81,31 @@ class Variable(Symbol):
     def is_shared(self):
         return self._shared
 
+    def is_array(self):
+        return self._array
+
     def set_address(self, address):
         self._address = address
 
     def get_address(self):
         return self._address
+
+    def set_array_size(self, size):
+        if self._array:
+            if self._size:
+                if self._size != size:
+                    raise ParseFatalException('array variable "%s" declaration doesn\'t match data size' % self.get_name())
+            else:
+                self._size = size
+        else:
+            raise ParseFatalException('variable "%s" is not declared as an array' % self.get_name())
+
+    def get_size_in_bytes(self):
+        size = self.get_type().get_size()
+        if self._array:
+            if self._size:
+                size *= self._size
+        return size
 
     def __str__(self):
         s = ''
@@ -92,6 +114,12 @@ class Variable(Symbol):
 
         s += self.get_type().get_name() + ' '
         s += self.get_name() + ' '
+
+        if self._array:
+            s += '['
+            if self._size:
+                s += '%s' % self._size
+            s += ']'
 
         if self._address:
             s += ': 0x%x' % self._address

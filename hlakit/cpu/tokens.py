@@ -8,7 +8,7 @@ included LICENSE file or by visiting here:
 <http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>
 """
 
-from hlakit.number import Number
+from hlakit.values import NumericValue
 
 class InterruptVector(object):
     """
@@ -31,7 +31,7 @@ class InterruptVector(object):
         return self._value
 
     def __str__(self):
-        if isinstance(self._value, Number):
+        if isinstance(self._value, NumericValue):
             return "<%s = 0x%x>" % (InterruptVector.NAMES[self._type], self._value)
         return "<%s = %s>" % (InterruptVector.NAMES[self._type], self._value)
 
