@@ -13,6 +13,7 @@ from pyparsing import *
 from cpu import *
 from platform import *
 from tokens import *
+from types import *
 
 class Compiler(object):
 
@@ -39,6 +40,9 @@ class Compiler(object):
 
         # build the compiler expressions
         self._init_compiler_exprs()
+
+        # build the type registry
+        self._init_compiler_types()
 
     def get_exprs(self):
         return self._exprs
@@ -81,4 +85,24 @@ class Compiler(object):
         # definition class
         if self._cpu:
             self._exprs.extend(self._cpu.get_compiler_exprs())
+
+    def _init_compiler_types(self):
+        # register the basic types
+        ByteType.register()
+        CharType.register()
+        BoolType.register()
+        WordType.register()
+
+        self._init_platform_types()
+        self._init_cpu_types()
+
+    def _init_platform_types(self):
+        # register the platform specific types
+        if self._platform:
+            self._platform.init_compiler_types()
+
+    def _init_cpu_types(self):
+        # register the cpu specific types
+        if self._cpu:
+            self._cpu.init_compiler_types()
 

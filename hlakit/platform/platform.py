@@ -25,4 +25,5 @@ class Platform(object):
     def get_file_writer(self):
         return None
 
-
+    def init_compiler_types(self):
+        pass

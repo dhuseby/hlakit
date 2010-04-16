@@ -108,3 +108,17 @@ class CodeBlock(object):
     __repr__ = __str__
 
 
+class AssignValue(object):
+    """
+    encapsulates an assignment AST
+    """
+    def __init__(self, lhs, rhs):
+        self._lhs = lhs
+        self._rhs = rhs
+
+    def __str__(self):
+        return '%s = %s' % (self._lhs, self._rhs)
+
+    __repr__ = __str__
+
+

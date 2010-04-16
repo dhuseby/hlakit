@@ -15,6 +15,8 @@ import optparse
 import hlakit
 from hlakit.cpu import *
 from hlakit.platform import *
+from hlakit.types import *
+from hlakit.symbols import *
 
 from pyparsing import *
 
@@ -188,8 +190,12 @@ def main():
         #l.link(cc_tokens)
 
         # dump the tokens
-        #print "TOKEN STREAM:"
-        #print cc_tokens
+        print "TOKEN STREAM:"
+        for t in cc_tokens:
+            print "%s: %s" % (type(t), t)
+
+        TypeRegistry.instance().dump()
+        SymbolTable.instance().dump()
 
 if __name__ == "__main__":
     

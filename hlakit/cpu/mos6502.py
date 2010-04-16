@@ -11,38 +11,28 @@ included LICENSE file or by visiting here:
 import os
 from pyparsing import *
 from cpu import CPU
-from tokens import InterruptVector
+from tokens import *
 from hlakit.number import Number
+from hlakit.types import *
+from hlakit.symbols import *
+from hlakit.tokens import *
 
-class Variable(object):
-    def __init__(self, type, name, value = None, shared = False, address = None):
-        self._type = type
-        self._name = name
-        self._value = value
-        self._shared = shared
-        self._address = address
+class PointerType(Type):
+    """
+    6502 specific pointer type
+    """
+    def __init__(self):
+        super(PointerType, self).__init__('pointer', 2)
 
-    def set_shared(self, shared):
-        self._shared = shared
+    def __str__(self):
+        return 'pointer size: 2'
 
-    def set_value(self, value):
-        self._value = value
+    __repr__ = __str__
 
-    def set_address(self, address):
-        self._address = address
+    @classmethod
+    def register(klass):
+        TypeRegistry.instance()['pointer'] = klass()
 
-    def __repr__(self):
-        s = 'Variable('
-        if self._shared:
-            s += 'shared '
-        s += self._type + ' '
-        s += self._name
-        if self._address:
-            s += ' @ ' + str(self._address)
-        s += ')'
-        if self._value:
-            s += ' == ' + str(self._value)
-        return s
 
 class MOS6502(CPU):
 
@@ -85,6 +75,10 @@ class MOS6502(CPU):
         # in this case it handles converting the 6502 mnemonics
         # into 6502 opcode binary data.
         return None
+
+    def init_compiler_types(self):
+        # register 6502 specific pointer type
+        PointerType.register()
 
     def _init_preprocessor_exprs(self):
         # 6502 specific preprocessor directives
@@ -143,9 +137,10 @@ class MOS6502(CPU):
         # keywords
         shared_ = Keyword('shared')
         typedef_ = Keyword('typedef')
+        struct_ = Keyword('struct')
 
         # name
-        name_ = Word(alphas, alphanums + '_')
+        label_ = Word(alphas, alphanums + '_')
 
         # types
         byte_ = Keyword('byte')
@@ -159,43 +154,114 @@ class MOS6502(CPU):
         pointer_ = Keyword('pointer')
         POINTER_ = Keyword('POINTER')
         type_ = byte_ | BYTE_ | char_ | CHAR_ | bool_ | BOOL_ | word_ | WORD_ | pointer_ | POINTER_
-        #struct_ = Combine(Suppress(Keyword('struct')) + name_).setResultsName('type')
 
         # punctuation
         equal_ = Suppress('=')
         colon_ = Suppress(':')
-        lbrace = Suppress('{')
-        rbrace = Suppress('}')
-        lbracket = Suppress('[')
-        rbracket = Suppress(']')
+        lbrace_ = Suppress('{')
+        rbrace_ = Suppress('}')
+        lbracket_ = Suppress('[')
+        rbracket_ = Suppress(']')
 
-        # simple variable
-        simple_variable_ = type_.setResultsName('type') + \
-            Group(name_ + Optional(ZeroOrMore(Suppress(',') + name_))).setResultsName('names')
-        simple_variable_.setParseAction(self._simple_variable)
+        # basic variable
+        basic_variable = Optional(shared_.setResultsName('shared')) + \
+                         type_.setResultsName('type') + \
+                         label_.setResultsName('label') + \
+                         Optional(colon_ + number_.setResultsName('address'))
 
-        # full variable
-        variable_ = Optional(shared_.setResultsName('shared')) + \
-                    Group(simple_variable_).setResultsName('vars') + \
-                    Optional(colon_ + number_.setResultsName('address')) + \
-                    Optional(equal_ + number_.setResultsName('value'))
-        variable_.setParseAction(self._variable)
+        # standard variable
+        standard_variable = basic_variable + \
+                            Optional(equal_ + number_.setResultsName('value'))
+        standard_variable.setParseAction(self._standard_variable)
 
-        # array
-        #varlist_ = OneOrMore(type_ + name_
-        #array_ = Optional(shared_.setResultsName('shared')) + \
-        #         type_.setResultsName('type') + \
-        #         name_.setResultsName('name') + \
-        #         lbracket + \
-        #         Optional(number_.setResultsName('size')) + \
-        #         rbracket + \
-        #         Optional(colon_ + number_.setResultsName('address')) + \
-        #         equal_ + \
-        #         lbrace + \
+        """
+        # variable list
+        variable_list_item = label_.setResultsName('label') + \
+                             Optional(colon_ + number_.setResultsName('address')) + \
+                             Optional(equal_ + number_.setResultsName('value'))
+        variable_list_item.setParseAction(self._variable_list_item)
+        variable_list = standard_variable.setResultsName('var') + \
+                        OneOrMore(Suppress(',') + variable_list_item).setResultsName('var_list')
+        variable_list.setParseAction(self._variable_list)
 
+        # arrays
+        
+        # define quoted string for the messages
+        array_value_string = Word(printables)
+        array_value_string = quotedString(array_value_string)
+        array_value_string.setParseAction(removeQuotes)
+
+        # define array value block
+        array_value = Optional(OneOrMore(label_ + Suppress(':')).setResultsName('label_list')) + \
+                      number_.setResultsName('number')
+        array_value.setParseAction(self._array_value)
+
+        array_value_block = lbrace_ + \
+                            array_value.setResultsName('value') + \
+                            ZeroOrMore(Suppress(',') + array_value).setResultsName('value_list') + \
+                            rbrace_
+        array_value_block.setParseAction(self._array_value_block)
+
+        # array declaration
+        array_variable_string = Optional(shared_.setResultsName('shared')) + \
+                         type_.setResultsName('type') + \
+                         label_.setResultsName('label') + \
+                         lbracket_ + \
+                         Optional(number_.setResultsName('size')) + \
+                         rbracket_ + \
+                         Optional(colon_ + number_.setResultsName('address')) + \
+                         Optional(equal_ + array_value_string.setResultsName('value'))
+        array_variable_string.setParseAction(self._array_variable_string)
+        array_variable_block = Optional(shared_.setResultsName('shared')) + \
+                         type_.setResultsName('type') + \
+                         label_.setResultsName('label') + \
+                         lbracket_ + \
+                         Optional(number_.setResultsName('size')) + \
+                         rbracket_ + \
+                         Optional(colon_ + number_.setResultsName('address')) + \
+                         Optional(equal_ + array_value_block).setResultsName('value')
+        array_variable_block.setParseAction(self._array_variable_block)
+
+        # struct declaration
+        struct_block = lbrace_ + \
+                       OneOrMore(standard_variable | \
+                                 variable_list | \
+                                 array_variable_string | \
+                                 array_variable_block).setResultsName('var_list') + \
+                       rbrace_
+        struct_block.setParseAction(self._struct_block)
+
+        # this separates 'struct foo' out for use in typedefs as well
+        struct_type = struct_ + label_.setResultsName('type')
+
+        # this is for the declaration of variables with a struct type
+        struct_label_item = label_.setResultsName('label') + \
+                            Optional(colon_  + number_.setResultsName('address'))
+        struct_label_item.setParseAction(self._struct_label_item)
+        struct_label_list = struct_label_item.setResultsName('label') + \
+                            ZeroOrMore(Suppress(',') + struct_label_item).setResultsName('label_list')
+
+        # full struct variable declaration
+        struct_variable = Optional(shared_.setResultsName('shared')) + \
+                        struct_type + \
+                        Optional(colon_ + number_.setResultsName('address')) + \
+                        struct_block.setResultsName('members') + \
+                        Optional(struct_label_list)
+        struct_variable.setParseAction(self._struct_variable)
+
+        # typedefs
+        basic_typedef = typedef_ + basic_variable
+        """
 
         # put the expressions in the compiler exprs
-        self._compiler_exprs.append(('variable', variable_))
+        self._compiler_exprs.append(('standard_variable', standard_variable))
+        """
+        self._compiler_exprs.append(('variable_list', variable_list))
+        self._compiler_exprs.append(('array_variable_string', array_variable_string))
+        self._compiler_exprs.append(('array_variable_block', array_variable_block))
+        self._compiler_exprs.append(('struct_block', struct_block))
+        self._compiler_exprs.append(('struct_variable', struct_variable))
+        """
 
     #
     # Parse Action Callbacks
@@ -225,41 +291,188 @@ class MOS6502(CPU):
 
         raise ParseFatalException('invalid argument for #interrupt.nmi')
 
-    def _variable(self, pstring, location, tokens):
-        shared = False
-        if len(tokens.shared):
-            shared = True
-        value = None
-        if bool(tokens.value):
-            value = tokens.value
+    def _standard_variable(self, pstring, location, tokens):
+
+        if 'type' not in tokens.keys():
+            raise ParseFatalException('variable declaration is missing type')
+
+        if 'label' not in tokens.keys():
+            raise ParseFatalException('variable declaration is missing name')
+
+        shared = 'shared' in tokens.keys()
+        
         address = None
-        if bool(tokens.address):
+        if 'address' in tokens.keys():
+            address = tokens.address
+        
+        value = None
+        if 'value' in tokens.keys():
+            value = tokens.value
+
+        # check to see if the type is registered
+        if TypeRegistry.instance()[tokens.type] is None:
+            raise ParseFatalException('unknown type %s' % tokens.type)
+
+        # create the variable, this adds it to the symbol table
+        v = Variable(tokens.label, TypeRegistry.instance()[tokens.type], shared, address)
+
+        # if there is a value specified, then return an AssignValue AST
+        if value:
+            return AssignValue(v, value)
+
+        return v
+
+    """
+    def _variable_list_item(self, pstring, location, tokens):
+
+        if 'label' not in tokens.keys():
+            raise ParseFatalException('variable list item missing name')
+
+        address = None
+        if 'address' in tokens.keys():
             address = tokens.address
 
-        if (len(tokens.vars) > 1) and address:
-            raise ParseFatalException('cannot assign address to multi-variable declaration')
-        if (len(tokens.vars) > 1) and value:
-            raise ParseFatalException('cannot assign value to multi-variable declaration')
+        value = None
+        if 'value' in tokens.keys():
+            value = tokens.value
 
-        # set the attributes of the single variable
-        if len(tokens.vars) == 1:
-            var = tokens.var[0]
-            var.set_shared(shared)
-            var.set_value(value)
-            var.set_address(address)
-            return var
+        return VariableDeclaration(tokens.label, address=address, value=value)
 
-        # set the shared attribute on all of the variables
-        toks = []
-        for var in tokens.vars:
-            var.set_shared(shared)
-            toks.append(var)
-        return toks
+    def _variable_list(self, pstring, location, tokens):
 
-    def _simple_variable(self, pstring, location, tokens):
-        # build the list of variables to return
-        import pdb; pdb.set_trace()
-        toks = []
-        for name in tokens.names:
-            toks.append(Variable(tokens.type, name))
-        return toks
+        if 'var_list' not in tokens.keys():
+            raise ParseFatalException('variable list declaration missing names')
+
+        if 'var' not in tokens.keys():
+            raise ParseFatalException('variable list missing variable type')
+
+        t = [ tokens.var ]
+        for i in range(0, len(tokens.var_list)):
+            tokens.var_list[i].set_shared(tokens.var.get_shared())
+            tokens.var_list[i].set_type(tokens.var.get_type())
+            t.append(tokens.var_list[i])
+
+        return t
+
+    def _array_value(self, pstring, location, tokens):
+        if 'number' not in tokens.keys():
+            raise ParseFatalException('array value missing')
+
+        labels = []
+        if 'label_list' in tokens.keys():
+            for i in range(0, len(tokens.label_list)):
+                labels.append(tokens.label_list[i])
+
+        return ArrayValue(tokens.number, labels)
+
+    def _array_value_block(self, pstring, location, tokens):
+        
+        if 'value' not in tokens.keys():
+            raise ParseFatalException('array block missing at least one value')
+
+        values = [ tokens.value ]
+        if 'value_list' in tokens.keys():
+            for i in range(0, len(tokens.value_list)):
+                values.append(tokens.value_list[i])
+
+        return values
+
+    def _array_variable_string(self, pstring, location, tokens):
+        if 'type' not in tokens.keys():
+            raise ParseFatalException('variable declaration is missing type')
+
+        if 'label' not in tokens.keys():
+            raise ParseFatalException('variable declaration is missing name')
+
+        shared = 'shared' in tokens.keys()
+        
+        address = None
+        if 'address' in tokens.keys():
+            address = tokens.address
+       
+        size = None
+        if 'size' in tokens.keys():
+            size = tokens.size
+
+        value = []
+        if 'value' in tokens.keys():
+            if not isinstance(tokens.value, str):
+                raise ParseFatalException('array string value not a string')
+
+            # decode the string
+            v = tokens.value.decode('string-escape')
+
+            for c in v:
+                value.append(ArrayValue(ord(c)))
+
+        return ArrayDeclaration(tokens.label, tokens.type, value, address, shared)
+
+    def _array_variable_block(self, pstring, location, tokens):
+
+        if 'type' not in tokens.keys():
+            raise ParseFatalException('variable declaration is missing type')
+
+        if 'label' not in tokens.keys():
+            raise ParseFatalException('variable declaration is missing name')
+
+        shared = 'shared' in tokens.keys()
+        
+        address = None
+        if 'address' in tokens.keys():
+            address = tokens.address
+       
+        size = None
+        if 'size' in tokens.keys():
+            size = tokens.size
+
+        value = []
+        if 'value' in tokens.keys():
+            # check to see if they specified the correct size
+            if size != None and size != len(tokens.value):
+                raise ParseFatalException('array size doesn\'t match the number of values given')
+
+            for i in range(0, len(tokens.value)):
+                value.append(tokens.value[i])
+
+        return ArrayDeclaration(tokens.label, tokens.type, value, address, shared)
+
+    def _struct_block(self, pstring, location, tokens):
+        if 'var_list' not in tokens.keys():
+            raise ParseFatalException('struct missing members')
+
+        vars = []
+        for i in range(0, len(tokens.var_list)):
+            vars.append(tokens.var_list[i])
+
+        return vars
+
+    def _struct_label_item(self, pstring, location, tokens):
+        if 'label' not in tokens.keys():
+            raise ParseFatalException('struct variable missing label')
+
+        address = None
+        if 'address' in tokens.keys():
+            address = tokens.address
+
+        return StructDeclaration(tokens.label, address=address)
+
+    def _struct_variable(self, pstring, location, tokens):
+        if 'type' not in tokens.keys():
+            raise ParseFatalException('struct missing type name')
+
+        shared = 'shared' in tokens.keys()
+
+        address = None
+        if 'address' in tokens.keys():
+            address = tokens.address
+
+
+        members = []
+        if 'members' in tokens.keys():
+            for i in range(0, len(tokens.members)):
+                members.append(tokens.members[i])
+
+        #TODO: process the label list to generate zero or more struct declarations
+
+        return StructDeclaration(tokens., members, address, shared)
+    """

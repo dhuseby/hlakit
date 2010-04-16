@@ -48,7 +48,7 @@ class Number(object):
             return klass(token.decimal, int(token.decimal, 10))
         elif len(token.decimal_with_k):
             value = int(token.decimal_with_k, 10) * 1024
-            return klass(token.decimal_with_k, value)
+            return klass(token.decimal_with_k + 'K', value)
         elif len(token.hex):
             return klass('0x' + token.hex, int(token.hex, 16))
         elif len(token.asmhex):
