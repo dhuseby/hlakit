@@ -9,6 +9,7 @@ included LICENSE file or by visiting here:
 """
 
 import os
+import sys
 from pyparsing import *
 from cpu import *
 from platform import *
@@ -148,119 +149,33 @@ class Compiler(object):
        
         # variable declaration
         # TODO: add support for multi-dimensioned arrays 
-        variable_declaration = Optional(shared_.setResultsName('shared')) + \
-                               type_ + \
-                               name_.setResultsName('name') + \
-                               Optional(lbracket_ + \
-                                        Optional(size_.setResultsName('size')) + \
-                                        rbracket_).setResultsName('array') + \
-                            Optional(colon_ + address_.setResultsName('address'))
-        variable_declaration.setParseAction(VariableDeclaration())
+        variable_stub = name_.setResultsName('name') + \
+                   Optional(lbracket_ + \
+                            Optional(size_.setResultsName('size')) + \
+                            rbracket_).setResultsName('array') + \
+                   Optional(colon_ + address_.setResultsName('address'))
+        variable_stub.setParseAction(VariableStub())
 
         # variable initialization
-        variable_initialization = variable_declaration.setResultsName('variable') + \
+        variable_initialization = variable_stub.setResultsName('variable') + \
                                   Optional(equal_ + value_.setResultsName('value'))
-        variable_initialization.setParseAction(VariableInitialization())
 
-        """
-        # standard variable
-        initialize_variable = basic_variable + \
-                            Optional(equal_ + number_.setResultsName('value'))
-        initialize_variable.setParseAction(InitializeVariable())
+        # full declaration
+        variable_declaration = Optional(shared_.setResultsName('shared')) + \
+                               type_ + \
+                               variable_initialization
+        variable_declaration.setParseAction(VariableDeclaration())
 
         # variable list
-        variable_list_item_declare = label_.setResultsName('label') + \
-                            Optional(colon_ + number_.setResultsName('address'))
-        variable_list_item_declare.setParseAction(self._variable_list_item_declare)
-
-        variable_list_item = variable_list_item_declare + \
-                             Optional(equal_ + number_.setResultsName('value'))
-        variable_list_item.setParseAction(self._variable_list_item)
-
-        variable_list = standard_variable.setResultsName('var') + \
-                        OneOrMore(Suppress(',') + variable_list_item).setResultsName('var_list')
-        variable_list.setParseAction(self._variable_list)
-
-        # arrays
-        
-        # define quoted string for the messages
-        array_value_string = Word(printables)
-        array_value_string = quotedString(array_value_string)
-        array_value_string.setParseAction(removeQuotes)
-
-        # define array value block
-        array_value = Optional(OneOrMore(label_ + Suppress(':')).setResultsName('label_list')) + \
-                      number_.setResultsName('number')
-        array_value.setParseAction(self._array_value)
-
-        array_value_block = lbrace_ + \
-                            array_value.setResultsName('value') + \
-                            ZeroOrMore(Suppress(',') + array_value).setResultsName('value_list') + \
-                            rbrace_
-        array_value_block.setParseAction(self._array_value_block)
-
-        # array declaration
-        array_variable_string = Optional(shared_.setResultsName('shared')) + \
-                         type_.setResultsName('type') + \
-                         label_.setResultsName('label') + \
-                         lbracket_ + \
-                         Optional(number_.setResultsName('size')) + \
-                         rbracket_ + \
-                         Optional(colon_ + number_.setResultsName('address')) + \
-                         Optional(equal_ + array_value_string.setResultsName('value'))
-        array_variable_string.setParseAction(self._array_variable_string)
-        array_variable_block = Optional(shared_.setResultsName('shared')) + \
-                         type_.setResultsName('type') + \
-                         label_.setResultsName('label') + \
-                         lbracket_ + \
-                         Optional(number_.setResultsName('size')) + \
-                         rbracket_ + \
-                         Optional(colon_ + number_.setResultsName('address')) + \
-                         Optional(equal_ + array_value_block).setResultsName('value')
-        array_variable_block.setParseAction(self._array_variable_block)
-
-        # struct declaration
-        struct_block = lbrace_ + \
-                       OneOrMore(standard_variable | \
-                                 variable_list | \
-                                 array_variable_string | \
-                                 array_variable_block).setResultsName('var_list') + \
-                       rbrace_
-        struct_block.setParseAction(self._struct_block)
-
-        # this separates 'struct foo' out for use in typedefs as well
-        struct_type = struct_ + label_.setResultsName('type')
-
-        # this is for the declaration of variables with a struct type
-        struct_label_item = label_.setResultsName('label') + \
-                            Optional(colon_  + number_.setResultsName('address'))
-        struct_label_item.setParseAction(self._struct_label_item)
-        struct_label_list = struct_label_item.setResultsName('label') + \
-                            ZeroOrMore(Suppress(',') + struct_label_item).setResultsName('label_list')
-
-        # full struct variable declaration
-        struct_variable = Optional(shared_.setResultsName('shared')) + \
-                        struct_type + \
-                        Optional(colon_ + number_.setResultsName('address')) + \
-                        struct_block.setResultsName('members') + \
-                        Optional(struct_label_list)
-        struct_variable.setParseAction(self._struct_variable)
-
-        # typedefs
-        basic_typedef = typedef_ + basic_variable
-        """
+        variable_list = variable_declaration + \
+                        OneOrMore(Suppress(',') + \
+                                  variable_initialization)
+        variable_list.setParseAction(VariableListDeclaration())
 
         # put the expressions in the compiler exprs
+        basic_exprs.append(('variable_stub', variable_stub))
         basic_exprs.append(('variable_declaration', variable_declaration))
-        basic_exprs.append(('variable_initialization', variable_initialization))
-        """
-        self._compiler_exprs.append(('standard_variable', standard_variable))
-        self._compiler_exprs.append(('variable_list', variable_list))
-        self._compiler_exprs.append(('array_variable_string', array_variable_string))
-        self._compiler_exprs.append(('array_variable_block', array_variable_block))
-        self._compiler_exprs.append(('struct_block', struct_block))
-        self._compiler_exprs.append(('struct_variable', struct_variable))
-        """
+        basic_exprs.append(('variable_list', variable_list))
 
         return basic_exprs
 
@@ -272,6 +187,35 @@ class ParserNode(object):
     def __call__(self, pstring, location, tokens):
         pass
 
+class VariableStub(ParserNode):
+    """
+    handles parsing a variable name, it's optional array size, and optinal
+    address
+    """
+    def __call__(self, pstring, location, tokens):
+        if 'name' not in tokens.keys():
+            raise ParseFatalException('variable declaration missing name')
+
+        # is this an array variable?
+        array = 'array' in tokens.keys()
+
+        # get the array size if it exists
+        size = None
+        if array and 'size' in tokens.keys():
+            size = tokens.size
+ 
+        # is there an address for this variable defined?
+        address = None
+        if 'address' in tokens.keys():
+            address = tokens.address
+
+        # check the symbol table to see if the variable is already declared
+        if SymbolTable.instance()[tokens.name] != None:
+            raise ParseFatalException('variable "%s" is already declared' % tokens.name)
+
+        # create the variable, leave the type unset for now
+        return Variable(tokens.name, None, False, address, array, size)
+
 class VariableDeclaration(ParserNode):
     """
     handles parsing a basic variable declaration
@@ -280,8 +224,8 @@ class VariableDeclaration(ParserNode):
         if 'type' not in tokens.keys():
             raise ParseFatalException('variable declaration is missing type')
 
-        if 'name' not in tokens.keys():
-            raise ParseFatalException('variable declaration is missing name')
+        if 'variable' not in tokens.keys():
+            raise ParseFatalException('variable declaration is missing')
 
         # is this a struct type?
         struct = 'struct' in tokens.keys()
@@ -289,43 +233,85 @@ class VariableDeclaration(ParserNode):
         # is this a shared variable?
         shared = 'shared' in tokens.keys()
 
-        # is this an array variable?
-        array = 'array' in tokens.keys()
-
-        size = None
-        if array and 'size' in tokens.keys():
-            size = tokens.size
-       
-        # is there an address for this variable defined?
-        address = None
-        if 'address' in tokens.keys():
-            address = tokens.address
-       
+        # get the type name
         type_name = tokens.type
         if struct:
             type_name = 'struct ' + type_name
+
+        # get the value if there is one
+        value = None
+        if 'value' in tokens.keys():
+            value = tokens.value
+
+        # get the variable
+        v = tokens.variable
 
         # check to see if the type is registered
         if TypeRegistry.instance()[type_name] is None:
             raise ParseFatalException('unknown type %s' % tokens.type)
 
-        # check the symbol table to see if the variable is already declared
-        if SymbolTable.instance()[tokens.name] != None:
-            raise ParseFatalException('variable "%s" is already declared' % tokens.name)
+        # check the symbol table to make sure it is already declared
+        if SymbolTable.instance()[v.get_name()] == None:
+            raise ParseFatalException('variable "%s" is not properly declared' % v.get_name())
 
-        # create the variable, this adds it to the symbol table
-        return Variable(tokens.name, TypeRegistry.instance()[type_name], 
-                        shared, address, array, size)
+        # make sure we have a variable
+        if not isinstance(v, Variable):
+            raise ParseFatalException('variable declaration is the wrong type')
 
-class VariableInitialization(ParserNode):
+        # we need to update the variable declaration to fill out the
+        # rest of its data members
+        v.set_type(TypeRegistry.instance()[type_name])
+        v.set_shared(shared)
+
+        # if there was a value, then return a list of tokens, one for
+        # the variable and one for the assignment of the variable
+        if value:
+            return [v, AssignValue(v, value)]
+
+        # return the updated variable
+        return v
+
+class VariableListDeclaration(ParserNode):
     """
-    handles parsing a variable initialization
+    handles parsing a variable name, it's optional array size, and optinal
+    address
     """
     def __call__(self, pstring, location, tokens):
-        if 'variable' not in tokens.keys():
-            raise ParseFatalException('variable assignment missing variable')
+        if len(tokens) < 1:
+            raise ParseFatalException('variable list missing first variable')
 
-        if 'value' not in tokens.keys():
-            raise ParseFatalException('variable assignment missing value')
+        if not isinstance(tokens[0], Variable):
+            raise ParseFatalException('first object in variable list not a variable')
 
-        return AssignValue(tokens.variable, tokens.value)
+        # get the first variable since it has all of the extra info that
+        # applies to the rest of the variables
+        first = tokens[0]
+
+        # start the array of tokens to return
+        ret = [ first ]
+
+        for i in range(1,len(tokens)):
+            # get the next object in the list
+            t = tokens[i]
+
+            if isinstance(t, Variable):
+                # fill in what we know about the first variable
+                t.set_type(first.get_type())
+                t.set_shared(first.is_shared())
+
+                # add it to the list of tokens to return
+                ret.append(t)
+            elif isinstance(t, Value):
+                # create an assign token for the previous variable
+                ret.append(AssignValue(ret[-1], t))
+            elif isinstance(t, AssignValue):
+                # if it is an already parsed value assing, just append
+                # it to the list of tokens
+                ret.append(t)
+            else:
+                raise ParseFatalException('unknown token type in var list declaration')
+
+        return ret
+                
+
+

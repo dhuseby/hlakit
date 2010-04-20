@@ -8,6 +8,8 @@ included LICENSE file or by visiting here:
 <http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>
 """
 
+from pyparsing import *
+
 class SymbolTable(object):
 
     class __impl(object):
@@ -53,7 +55,7 @@ class Symbol(object):
     """
     encapsulates a declared symbol
     """
-    def __init__(self, name, type):
+    def __init__(self, name, type=None):
         self._name = name
         self._type = type
 
@@ -63,12 +65,15 @@ class Symbol(object):
     def get_type(self):
         return self._type
 
+    def set_type(self, _type):
+        self._type = _type
+
 
 class Variable(Symbol):
     """
     encapsulates a variable symbol
     """
-    def __init__(self, name, type, shared=False, address=None, array=False, size=None):
+    def __init__(self, name, type=None, shared=False, address=None, array=False, size=None):
         super(Variable, self).__init__(name, type)
         self._shared = shared
         self._address = address
@@ -80,6 +85,9 @@ class Variable(Symbol):
 
     def is_shared(self):
         return self._shared
+
+    def set_shared(self, shared):
+        self._shared = shared
 
     def is_array(self):
         return self._array
@@ -93,7 +101,8 @@ class Variable(Symbol):
     def set_array_size(self, size):
         if self._array:
             if self._size:
-                if self._size != size:
+                # make sure the declared size matches the data size
+                if int(self._size) != int(size):
                     raise ParseFatalException('array variable "%s" declaration doesn\'t match data size' % self.get_name())
             else:
                 self._size = size
@@ -112,7 +121,9 @@ class Variable(Symbol):
         if self._shared:
             s += 'shared '
 
-        s += self.get_type().get_name() + ' '
+        if self.get_type():
+            s += self.get_type().get_name() + ' '
+
         s += self.get_name() + ' '
 
         if self._array:

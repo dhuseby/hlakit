@@ -80,7 +80,7 @@ class NumericValue(Value):
         return 1
 
     def __int__(self):
-        return self._value
+        return int(self._value)
 
     def __str__(self):
         return self._token
@@ -168,10 +168,12 @@ class ArrayValue(Value):
                 s += '%s' % i
             s += '"'
         else:
+            s += '{ '
             for i in range(0, len(self._items)):
                 if i > 0:
                     s += ', '
                 s += '%s' % self._items[i]
+            s += ' }'
 
         return s
 
