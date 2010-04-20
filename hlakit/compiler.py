@@ -75,7 +75,7 @@ class Compiler(object):
     def _init_compiler_exprs(self):
 
         # add in the expressions for parsing the basic structures of the language
-        self._exprs.extend(self._get_basic_exprs())
+        self._exprs.extend(self._get_variable_exprs())
 
         # add in the platform and cpu preprocessor exprs
         self._init_platform_exprs()
@@ -113,9 +113,9 @@ class Compiler(object):
         if self._cpu:
             self._cpu.init_compiler_types()
 
-    def _get_basic_exprs(self):
+    def _get_variable_exprs(self):
 
-        basic_exprs = []
+        variable_exprs = []
 
         # punctuation
         equal_ = Suppress('=')
@@ -172,12 +172,20 @@ class Compiler(object):
                                   variable_initialization)
         variable_list.setParseAction(VariableListDeclaration())
 
-        # put the expressions in the compiler exprs
-        basic_exprs.append(('variable_stub', variable_stub))
-        basic_exprs.append(('variable_declaration', variable_declaration))
-        basic_exprs.append(('variable_list', variable_list))
+        # typedef
+        typedef_declaration = typedef_.setResultsName('typedef') + \
+                              Optional(shared_.setResultsName('shared')) + \
+                              type_ + \
+                              name_.setResultsName('alias')
+        typedef_declaration.setParseAction(TypedefDeclaration())
 
-        return basic_exprs
+        # put the expressions in the compiler exprs
+        variable_exprs.append(('variable_stub', variable_stub))
+        variable_exprs.append(('variable_declaration', variable_declaration))
+        variable_exprs.append(('variable_list', variable_list))
+        variable_exprs.append(('typedef_declaration', typedef_declaration))
+
+        return variable_exprs
 
 
 class ParserNode(object):
@@ -227,11 +235,11 @@ class VariableDeclaration(ParserNode):
         if 'variable' not in tokens.keys():
             raise ParseFatalException('variable declaration is missing')
 
-        # is this a struct type?
-        struct = 'struct' in tokens.keys()
-
         # is this a shared variable?
         shared = 'shared' in tokens.keys()
+
+        # is this a struct type?
+        struct = 'struct' in tokens.keys()
 
         # get the type name
         type_name = tokens.type
@@ -248,7 +256,7 @@ class VariableDeclaration(ParserNode):
 
         # check to see if the type is registered
         if TypeRegistry.instance()[type_name] is None:
-            raise ParseFatalException('unknown type %s' % tokens.type)
+            raise ParseFatalException('unknown type %s' % type_name)
 
         # check the symbol table to make sure it is already declared
         if SymbolTable.instance()[v.get_name()] == None:
@@ -313,5 +321,39 @@ class VariableListDeclaration(ParserNode):
 
         return ret
                 
+class TypedefDeclaration(ParserNode):
+    """
+    handles parsing a typedef
+    """
+    def __call__(self, pstring, location, tokens):
+        if 'typedef' not in tokens.keys():
+            raise ParseFatalException('typedef missing keyword')
+
+        if 'type' not in tokens.keys():
+            raise ParseFatalException('original type missing in typedef')
+
+        if 'alias' not in tokens.keys():
+            raise ParseFatalException('aliased type missing in typedef')
+
+        # is the original type shared?
+        shared = 'shared' in tokens.keys()
+
+        # is this a struct type?
+        struct = 'struct' in tokens.keys()
+
+        # get the original type name
+        type_name = tokens.type
+        if struct:
+            type_name = 'struct ' + type_name
+
+        # check to see if the type is registered
+        if TypeRegistry.instance()[type_name] is None:
+            raise ParseFatalException('cannot typedef unknown type %s' % type_name)
+
+        # create the typedef, it handles registering the typedef
+        TypedefType(tokens.alias, type_name)
+
+        # return no tokens
+        return []
 
 

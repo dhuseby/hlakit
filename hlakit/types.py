@@ -159,15 +159,22 @@ class TypedefType(Type):
     """
     User-defined type alias
     """
-    def __init__(self, alias, type):
+    def __init__(self, alias, _type):
         super(TypedefType, self).__init__(alias, 0)
-        self._type = type
+
+        if isinstance(_type, Type):
+            self._type = _type
+        else:
+            self._type = TypeRegistry.instance()[str(_type)]
 
         # register this type in the registry
         TypeRegistry.instance()[self.get_name()] = self
 
     def get_size(self):
         return self._type.get_size()
+
+    def get_type(self):
+        return self._type
 
     def __str__(self):
         return 'typedef %s -> %s size: %d' % (self.get_name(), self._type.get_name(), self._type.get_size())
