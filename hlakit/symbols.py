@@ -9,6 +9,7 @@ included LICENSE file or by visiting here:
 """
 
 from pyparsing import *
+from types import *
 
 class SymbolTable(object):
 
@@ -26,11 +27,13 @@ class SymbolTable(object):
         def __setitem__(self, name, symbol):
             self._table[name] = symbol
 
+        def keys(self):
+            return self._table.keys()
+
         def dump(self):
             print 'SymbolTable'
             for t in self._table.itervalues():
                 print '\t%s' % t
-
 
     __instance = None
 
@@ -79,7 +82,7 @@ class Variable(Symbol):
         self._address = address
         self._array = array
         self._size = size
-
+        
         # register this symbol
         SymbolTable.instance()[name] = self
 
@@ -89,6 +92,9 @@ class Variable(Symbol):
     def set_shared(self, shared):
         self._shared = shared
 
+    def set_array(self, array):
+        self._array = array
+
     def is_array(self):
         return self._array
 
@@ -97,6 +103,12 @@ class Variable(Symbol):
 
     def get_address(self):
         return self._address
+
+    def get_array_size(self):
+        if self._array and self._size:
+            return self._size
+
+        return None
 
     def set_array_size(self, size):
         if self._array:
@@ -116,13 +128,26 @@ class Variable(Symbol):
                 size *= self._size
         return size
 
+    def set_type(self, type_):
+        super(Variable, self).set_type(type_)
+
+        # if it is a typedef type, it can have an array, 
+        # array size, and address
+        if isinstance(type_, TypedefType):
+            self._array = type_.is_array()
+            self._size = type_.get_array_size()
+            self._address = type_.get_address()
+
     def __str__(self):
         s = ''
         if self._shared:
             s += 'shared '
 
         if self.get_type():
-            s += self.get_type().get_name() + ' '
+            if isinstance(self.get_type(), TypedefType):
+                s += self.get_type().get_name() + ' (' + self.get_type().get_type().get_name() + ') '
+            else:
+                s += self.get_type().get_name() + ' '
 
         s += self.get_name() + ' '
 

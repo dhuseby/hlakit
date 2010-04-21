@@ -24,6 +24,9 @@ class TypeRegistry(object):
         def __setitem__(self, name, type):
             self._registry[name] = type
 
+        def keys(self):
+            return self._registry.keys()
+
         def dump(self):
             print 'TypeRegistry:'
             for t in self._registry.itervalues():
@@ -159,19 +162,39 @@ class TypedefType(Type):
     """
     User-defined type alias
     """
-    def __init__(self, alias, _type):
+    def __init__(self, alias, _type, address=None, array=False, array_size=None):
         super(TypedefType, self).__init__(alias, 0)
 
+        # make sure that we have a reference to the type object
         if isinstance(_type, Type):
             self._type = _type
         else:
             self._type = TypeRegistry.instance()[str(_type)]
 
+        # store the address if defined
+        self._address = address
+
+        # store the array and array size if defined
+        self._array = array
+        self._array_size = array_size
+
         # register this type in the registry
         TypeRegistry.instance()[self.get_name()] = self
 
     def get_size(self):
+        if self._array and self._size:
+            return self._size * self._type.get_size()
+
         return self._type.get_size()
+
+    def is_array(self):
+        return self._array
+
+    def get_array_size(self):
+        return self._array_size
+
+    def get_address(self):
+        return self._address
 
     def get_type(self):
         return self._type

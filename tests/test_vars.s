@@ -21,5 +21,5 @@ byte p[2] = { 3, 4 }
 byte q[3]: $D000 = { 5, 6, 7 }
 shared byte r : 0xFFFD = 0, s : 0xFFFE = 1K, t
 shared byte u[2] = { 8, 9 }, v[] = "Baz", w[]: 0x0500 = { 10, 11, 12 }
-typedef byte INT
+typedef byte INT[5] : $C000
 INT x

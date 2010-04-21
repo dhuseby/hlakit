@@ -176,7 +176,11 @@ class Compiler(object):
         typedef_declaration = typedef_.setResultsName('typedef') + \
                               Optional(shared_.setResultsName('shared')) + \
                               type_ + \
-                              name_.setResultsName('alias')
+                              name_.setResultsName('name') + \
+                              Optional(lbracket_ + \
+                                       Optional(size_.setResultsName('size')) + \
+                                       rbracket_).setResultsName('array') + \
+                              Optional(colon_ + address_.setResultsName('address'))
         typedef_declaration.setParseAction(TypedefDeclaration())
 
         # put the expressions in the compiler exprs
@@ -332,7 +336,7 @@ class TypedefDeclaration(ParserNode):
         if 'type' not in tokens.keys():
             raise ParseFatalException('original type missing in typedef')
 
-        if 'alias' not in tokens.keys():
+        if 'name' not in tokens.keys():
             raise ParseFatalException('aliased type missing in typedef')
 
         # is the original type shared?
@@ -341,6 +345,19 @@ class TypedefDeclaration(ParserNode):
         # is this a struct type?
         struct = 'struct' in tokens.keys()
 
+        # is this an array variable?
+        array = 'array' in tokens.keys()
+
+        # get the array size if it exists
+        size = None
+        if array and 'size' in tokens.keys():
+            size = tokens.size
+ 
+        # is there an address for this variable defined?
+        address = None
+        if 'address' in tokens.keys():
+            address = tokens.address
+
         # get the original type name
         type_name = tokens.type
         if struct:
@@ -348,10 +365,15 @@ class TypedefDeclaration(ParserNode):
 
         # check to see if the type is registered
         if TypeRegistry.instance()[type_name] is None:
-            raise ParseFatalException('cannot typedef unknown type %s' % type_name)
+            if struct:
+                # create the new type
+                pass
+            else:
+                # otherwise fail
+                raise ParseFatalException('cannot typedef unknown type %s' % type_name)
 
         # create the typedef, it handles registering the typedef
-        TypedefType(tokens.alias, type_name)
+        TypedefType(tokens.name, type_name, address, array, size)
 
         # return no tokens
         return []
