@@ -28,9 +28,9 @@ class TypeRegistry(object):
             return self._registry.keys()
 
         def dump(self):
-            print 'TypeRegistry:'
+            print '\nTypeRegistry:'
             for t in self._registry.itervalues():
-                print '\t%s' % t
+                print '%s' % t
 
     __instance = None
 
@@ -135,14 +135,22 @@ class StructType(Type):
     User-defined conglomeration of data
     """
     def __init__(self, name):
-        super(StructType, self).__init__('struct ' + name, 0)
+        super(StructType, self).__init__(name, 0)
         self._members = {}
+        self._ordered_members = []
 
         # register this type in the registry
         TypeRegistry.instance()[self.get_name()] = self
 
     def add_member(self, name, type):
         self._members[name] = type
+        self._ordered_members.append(name)
+
+    def get_members(self):
+        members = []
+        for name in self._ordered_members:
+            members.append((name, self._members[name]))
+        return members
 
     def get_size(self):
         """

@@ -30,10 +30,13 @@ class SymbolTable(object):
         def keys(self):
             return self._table.keys()
 
+        def remove(self, name):
+            self._table.pop(name, None)
+
         def dump(self):
-            print 'SymbolTable'
+            print '\nSymbolTable:'
             for t in self._table.itervalues():
-                print '\t%s' % t
+                print '%s' % t
 
     __instance = None
 
@@ -69,7 +72,18 @@ class Symbol(object):
         return self._type
 
     def set_type(self, _type):
-        self._type = _type
+        if isinstance(_type, Type):
+            self._type = _type
+        elif isinstance(_type, str):
+            # check to see if the type is registered
+            if TypeRegistry.instance()[_type] is None:
+                import pdb; pdb.set_trace()
+                raise ParseFatalException('unknown type %s' % _type)
+
+            # look up type
+            self._type = TypeRegistry.instance()[_type]
+        else:
+            raise ParseFatalException('invalid object type for specifying var type')
 
 
 class Variable(Symbol):
@@ -82,9 +96,28 @@ class Variable(Symbol):
         self._address = address
         self._array = array
         self._size = size
+        self._members = {}
+
+        # create the member variables if this is a struct
+        self._init_members()
         
         # register this symbol
         SymbolTable.instance()[name] = self
+
+    def _init_members(self):
+        if not isinstance(self.get_type(), StructType):
+            return
+
+        # clear the dict
+        self._members.clear()
+
+        # get our name
+        name = self.get_name()
+
+        # now create our member variable instances in dot notation
+        for (n, t) in self.get_type().get_members():
+            v = Variable(name + '.' + n, t)
+            self._members[n] = v
 
     def is_shared(self):
         return self._shared
@@ -97,6 +130,9 @@ class Variable(Symbol):
 
     def is_array(self):
         return self._array
+
+    def is_struct(self):
+        return self.get_type() and isinstance(self.get_type(), StructType)
 
     def set_address(self, address):
         self._address = address
@@ -123,9 +159,9 @@ class Variable(Symbol):
 
     def get_size_in_bytes(self):
         size = self.get_type().get_size()
-        if self._array:
-            if self._size:
-                size *= self._size
+        if self.is_array():
+            if self.get_array_size():
+                size *= self.get_array_size()
         return size
 
     def set_type(self, type_):
@@ -138,27 +174,36 @@ class Variable(Symbol):
             self._size = type_.get_array_size()
             self._address = type_.get_address()
 
+        # create the member variables if this is a struct
+        self._init_members()
+
     def __str__(self):
         s = ''
-        if self._shared:
+
+        # start with 'shared' if shared
+        if self.is_shared():
             s += 'shared '
 
+        # add in the type
         if self.get_type():
             if isinstance(self.get_type(), TypedefType):
                 s += self.get_type().get_name() + ' (' + self.get_type().get_type().get_name() + ') '
             else:
                 s += self.get_type().get_name() + ' '
 
-        s += self.get_name() + ' '
+        # add in the name
+        s += self.get_name()
 
-        if self._array:
+        # show array if it is an array
+        if self.is_array():
             s += '['
-            if self._size:
-                s += '%s' % self._size
+            if self.get_array_size():
+                s += '%s' % self.get_array_size()
             s += ']'
 
-        if self._address:
-            s += ': 0x%x' % self._address
+        # show address if assigned to one
+        if self.get_address():
+            s += ': 0x%x' % self.get_address()
 
         return s
 
