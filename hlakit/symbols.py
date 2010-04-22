@@ -90,7 +90,7 @@ class Variable(Symbol):
     """
     encapsulates a variable symbol
     """
-    def __init__(self, name, type=None, shared=False, address=None, array=False, size=None):
+    def __init__(self, name, type=None, shared=False, address=None, array=False, size=None, define=True):
         super(Variable, self).__init__(name, type)
         self._shared = shared
         self._address = address
@@ -102,7 +102,8 @@ class Variable(Symbol):
         self._init_members()
         
         # register this symbol
-        SymbolTable.instance()[name] = self
+        if define:
+            SymbolTable.instance()[name] = self
 
     def _init_members(self):
         if not isinstance(self.get_type(), StructType):
@@ -132,7 +133,7 @@ class Variable(Symbol):
         return self._array
 
     def is_struct(self):
-        return self.get_type() and isinstance(self.get_type(), StructType)
+        return self.get_type() and self.get_type().is_struct()
 
     def set_address(self, address):
         self._address = address
@@ -147,13 +148,17 @@ class Variable(Symbol):
         return None
 
     def set_array_size(self, size):
-        if self._array:
+        if self.is_array():
             if self._size:
                 # make sure the declared size matches the data size
                 if int(self._size) != int(size):
                     raise ParseFatalException('array variable "%s" declaration doesn\'t match data size' % self.get_name())
             else:
                 self._size = size
+        elif self.is_struct():
+            # this gets called on structs as well because there is no
+            # difference between an array value and a struct value
+            return
         else:
             raise ParseFatalException('variable "%s" is not declared as an array' % self.get_name())
 

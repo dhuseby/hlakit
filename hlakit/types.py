@@ -142,6 +142,9 @@ class StructType(Type):
         # register this type in the registry
         TypeRegistry.instance()[self.get_name()] = self
 
+    def is_struct(self):
+        return True
+
     def add_member(self, name, type):
         self._members[name] = type
         self._ordered_members.append(name)
@@ -170,7 +173,7 @@ class TypedefType(Type):
     """
     User-defined type alias
     """
-    def __init__(self, alias, _type, address=None, array=False, array_size=None):
+    def __init__(self, alias, _type, address=None, struct=False, array=False, array_size=None):
         super(TypedefType, self).__init__(alias, 0)
 
         # make sure that we have a reference to the type object
@@ -181,6 +184,9 @@ class TypedefType(Type):
 
         # store the address if defined
         self._address = address
+
+        # store the struct
+        self._struct = struct
 
         # store the array and array size if defined
         self._array = array
@@ -197,6 +203,9 @@ class TypedefType(Type):
 
     def is_array(self):
         return self._array
+    
+    def is_struct(self):
+        return self._struct
 
     def get_array_size(self):
         return self._array_size
@@ -208,7 +217,7 @@ class TypedefType(Type):
         return self._type
 
     def __str__(self):
-        return 'typedef %s -> %s size: %d' % (self.get_name(), self._type.get_name(), self._type.get_size())
+        return '%s -> %s size: %d' % (self.get_name(), self._type.get_name(), self._type.get_size())
 
     __repr__ = __str__
 

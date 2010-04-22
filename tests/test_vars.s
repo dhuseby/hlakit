@@ -30,3 +30,22 @@ struct time
     byte minutes
     byte hours
 }
+struct time y
+typedef struct move_t
+{
+    byte x, y
+    byte amount
+}
+move_t move
+typedef struct time time_t
+time_t the_time = { ticks: 1, second: 2, minute: 3, hours: 4 }
+struct player
+{
+    byte sprite
+    byte joypad
+    move_t move
+    byte anArray[10]
+}
+struct player the_player
+typedef struct player player_t
+player_t z

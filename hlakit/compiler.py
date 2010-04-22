@@ -158,34 +158,61 @@ class Compiler(object):
         variable_initialization = variable_stub.setResultsName('variable') + \
                                   Optional(equal_ + value_.setResultsName('value'))
 
-        # full declaration
-        variable_declaration = Forward()
-
         # defines simple variable decls
-        simple_variable_decl = Optional(typedef_.setResultsName('typedef')) + \
-                               Optional(shared_.setResultsName('shared')) + \
+        simple_variable_decl = Optional(shared_.setResultsName('shared')) + \
                                Optional(struct_.setResultsName('struct')) + \
                                type_.setResultsName('type') + \
                                Group(variable_initialization + \
-                                     ZeroOrMore(Suppress(',') + \
-                                          variable_initialization)).setResultsName('vars')
+                                   ZeroOrMore(Suppress(',') + \
+                                       variable_initialization)).setResultsName('vars')
+
+        # struct member var
+        struct_var_stub = name_.setResultsName('name') + \
+                          Optional(lbracket_ + \
+                                   Optional(size_.setResultsName('size')) + \
+                                   rbracket_).setResultsName('array')
+        struct_var_stub.setParseAction(VariableStub(False))
+
+        # struct members
+        struct_member_decl = Optional(struct_.setResultsName('struct')) + \
+                             type_.setResultsName('type') + \
+                             Group(struct_var_stub + \
+                                 ZeroOrMore(Suppress(',') + \
+                                     struct_var_stub)).setResultsName('vars')
+
         # parses full struct definitions and var decls
-        struct_variable_decl = Optional(typedef_.setResultsName('typedef')) + \
-                               Optional(shared_.setResultsName('shared')) + \
-                               struct_.setResultsName('struct') + \
-                               type_.setResultsName('type') + \
-                               Optional(colon_ + address_.setResultsName('address')) + \
-                               lbrace_ + \
-                               OneOrMore(variable_declaration).setResultsName('members') + \
-                               rbrace_ 
-        # all variable rules
-        variable_declaration << (struct_variable_decl | \
-                                 simple_variable_decl)
-        variable_declaration.setParseAction(VariableDeclaration())
+        struct_type_decl = Optional(typedef_.setResultsName('typedef')) + \
+                           Optional(shared_.setResultsName('shared')) + \
+                           struct_.setResultsName('struct') + \
+                           type_.setResultsName('type') + \
+                           Optional(colon_ + address_.setResultsName('address')) + \
+                           lbrace_ + \
+                           OneOrMore(struct_member_decl).setResultsName('members') + \
+                           rbrace_ 
+        
+        # typedef
+        typedef_declaration = typedef_.setResultsName('typedef') + \
+                              Optional(shared_.setResultsName('shared')) + \
+                              Optional(struct_.setResultsName('struct')) + \
+                              type_.setResultsName('type') + \
+                              name_.setResultsName('name') + \
+                              Optional(lbracket_ + \
+                                       Optional(size_.setResultsName('size')) + \
+                                       rbracket_).setResultsName('array') + \
+                              Optional(colon_ + address_.setResultsName('address'))
+        typedef_declaration.setParseAction(TypedefDeclaration())
+
+        # variable decls
+        simple_variable_decl.setParseAction(VariableDeclaration())
+        struct_type_decl.setParseAction(StructDeclaration())
+        struct_member_decl.setParseAction(StructMemberDeclaration())
 
         # put the expressions in the compiler exprs
+        variable_exprs.append(('struct_var_stub', struct_var_stub))
         variable_exprs.append(('variable_stub', variable_stub))
-        variable_exprs.append(('variable_declaration', variable_declaration))
+        variable_exprs.append(('simple_variable_decl', simple_variable_decl))
+        variable_exprs.append(('struct_declaration', struct_type_decl))
+        variable_exprs.append(('typedef_declaration', typedef_declaration))
 
         return variable_exprs
 
@@ -202,6 +229,9 @@ class VariableStub(ParserNode):
     handles parsing a variable name, it's optional array size, and optinal
     address
     """
+    def __init__(self, define=True):
+        self._define = define
+
     def __call__(self, pstring, location, tokens):
         if 'name' not in tokens.keys():
             raise ParseFatalException('variable declaration missing name')
@@ -220,20 +250,23 @@ class VariableStub(ParserNode):
             address = tokens.address
 
         # check the symbol table to see if the variable is already declared
-        if SymbolTable.instance()[tokens.name] != None:
+        if SymbolTable.instance()[tokens.name] != None and self._define:
             raise ParseFatalException('variable "%s" is already declared' % tokens.name)
 
         # create the variable, leave the type unset for now
-        return Variable(tokens.name, None, False, address, array, size)
+        return Variable(tokens.name, None, False, address, array, size, self._define)
 
-
-class VariableDeclaration(ParserNode):
+class StructDeclaration(ParserNode):
     """
-    handles parsing a basic variable declaration
+    handles parsing struct type declarations
     """
     def __call__(self, pstring, location, tokens):
         if 'type' not in tokens.keys():
             raise ParseFatalException('variable declaration is missing type')
+
+        # is this a struct type?
+        if 'struct' not in tokens.keys():
+            raise ParseFatalException('struct decl missing struct keyword')
 
         # is this a typedef?
         typedef = 'typedef' in tokens.keys()
@@ -241,41 +274,58 @@ class VariableDeclaration(ParserNode):
         # is this a shared variable?
         shared = 'shared' in tokens.keys()
 
+        type_ = None
+        
+        # get address if there is one
+        address = None
+        if 'address' in tokens.keys():
+            address = tokens.address
+
+        # we need to look up/create the struct type
+        t = 'struct ' + tokens.type
+        if TypeRegistry.instance()[t] is not None:
+            raise ParseFatalException('struct type already defined')
+        
+        # create the type
+        type_ = StructType(t)
+
+        # add the members
+        for m in tokens.members:
+            # add the member type to the struct type
+            type_.add_member(m.get_name(), m.get_type())
+
+        # if there is a typedef keyword, then typedef the name
+        # of the struct to 'struct name' so that just the name
+        # can be used in the code
+        if typedef:
+            TypedefType(tokens.type, type_.get_name(), address, True)
+
+        return []
+
+
+class StructMemberDeclaration(ParserNode):
+    """
+    handles parsing struct members
+    """
+    def __call__(self, pstring, location, tokens):
+        if 'type' not in tokens.keys():
+            raise ParseFatalException('variable declaration is missing type')
+
         # is this a struct type?
         struct = 'struct' in tokens.keys()
 
         type_ = None
         if struct:
-            # get address if there is one
-            address = None
-            if 'address' in tokens.keys():
-                address = tokens.address
-
             # we need to look up/create the struct type
             t = 'struct ' + tokens.type
             if TypeRegistry.instance()[t] is None:
-                # create the type
-                type_ = StructType(t)
+                raise ParseFatalException('cannot define new structs when declaring a variable')
+            # look up the type
+            type_ = TypeRegistry.instance()[t]
 
-                # add the members
-                for m in tokens.members:
-                    # make sure that the global symbol of the struct
-                    # member is deleted
-                    SymbolTable.instance().remove(m.get_name())
-
-                    # add the member type to the struct type
-                    type_.add_member(m.get_name(), m.get_type())
-            else:
-                # look up the type
-                type_ = TypeRegistry.instance()[t]
-
-                # make sure there are no members being defined
-                if len(tokens.members):
-                    raise ParseFatalError('trying to redefine struct %s' % name_)
-
-            # DOES THIS GO HERE?
-            #if typedef:
-            #    TypedefType(tokens.type, type_.get_name(), address)
+            # make sure there are no members being defined
+            if len(tokens.members):
+                raise ParseFatalError('trying to redefine struct %s' % name_)
 
         else:
             # process a simple variable decl
@@ -296,7 +346,72 @@ class VariableDeclaration(ParserNode):
         # build the variables if there are any
         ret = []
         for v in tokens.vars:
-            # PROBABLY NEED TO PUT TYPEDEF HERE SOMEWHERE
+            if isinstance(v, Variable):
+                # fill in what we know about the first variable
+                v.set_type(type_)
+
+                # add it to the list of tokens to return
+                ret.append(v)
+            else:
+                raise ParseFatalException('unknown token type in var list declaration')
+
+        # return the tokens list
+        return ret
+
+class VariableDeclaration(ParserNode):
+    """
+    handles parsing a basic variable declaration
+    """
+    def __call__(self, pstring, location, tokens):
+        if 'type' not in tokens.keys():
+            raise ParseFatalException('variable declaration is missing type')
+
+        # is this a typedef?
+        typedef = 'typedef' in tokens.keys()
+        
+        # is this a shared variable?
+        shared = 'shared' in tokens.keys()
+
+        # is this a struct type?
+        struct = 'struct' in tokens.keys()
+
+        type_ = None
+        if struct:
+            # get address if there is one
+            address = None
+            if 'address' in tokens.keys():
+                address = tokens.address
+
+            # we need to look up/create the struct type
+            t = 'struct ' + tokens.type
+            if TypeRegistry.instance()[t] is None:
+                raise ParseFatalException('cannot define new structs when declaring a variable')
+            # look up the type
+            type_ = TypeRegistry.instance()[t]
+
+            # make sure there are no members being defined
+            if len(tokens.members):
+                raise ParseFatalError('trying to redefine struct %s' % name_)
+
+        else:
+            # process a simple variable decl
+            t = tokens.type
+
+            if TypeRegistry.instance()[t] is None:
+                raise ParseFatalException('unknown type: %s' % t)
+
+            # make sure the first variable is declared
+            if len(tokens.vars) == 0:
+                raise ParseFatalException('var decl is missing')
+
+            type_ = TypeRegistry.instance()[t]
+
+        if type_ is None:
+            raise ParseFataException('invalid type in declaration')
+
+        # build the variables if there are any
+        ret = []
+        for v in tokens.vars:
             if isinstance(v, Variable):
                 # fill in what we know about the first variable
                 v.set_type(type_)
@@ -317,5 +432,51 @@ class VariableDeclaration(ParserNode):
         # return the tokens list
         return ret
 
+class TypedefDeclaration(ParserNode):
+    """
+    handles parsing a typedef
+    """
+    def __call__(self, pstring, location, tokens):
+        if 'typedef' not in tokens.keys():
+            raise ParseFatalException('typedef missing keyword')
 
+        if 'type' not in tokens.keys():
+            raise ParseFatalException('original type missing in typedef')
+
+        if 'name' not in tokens.keys():
+            raise ParseFatalException('aliased type missing in typedef')
+
+        # is the original type shared?
+        shared = 'shared' in tokens.keys()
+
+        # is this a struct type?
+        struct = 'struct' in tokens.keys()
+
+        # is this an array variable?
+        array = 'array' in tokens.keys()
+
+        # get the array size if it exists
+        size = None
+        if array and 'size' in tokens.keys():
+            size = tokens.size
+
+        # is there an address for this variable defined?
+        address = None
+        if 'address' in tokens.keys():
+            address = tokens.address
+
+        # get the original type name
+        type_name = tokens.type
+        if struct:
+            type_name = 'struct ' + type_name
+
+        # check to see if the type is registered
+        if TypeRegistry.instance()[type_name] is None:
+            raise ParseFatalException('cannot typedef unknown type %s' % type_name)
+
+        # create the typedef, it handles registering the typedef
+        TypedefType(tokens.name, type_name, address, struct, array, size)
+
+        # return no tokens
+        return []
 
