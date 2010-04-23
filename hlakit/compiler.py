@@ -76,8 +76,7 @@ class Compiler(object):
 
         # add in the expressions for parsing the basic structures of the language
         self._exprs.extend(self._get_variable_exprs())
-        self._exprs.extend(self._get_conditional_exprs())
-        self._exprs.extend(self._get_function_exprs())
+        self._exprs.extend(self._get_code_exprs())
 
         # add in the platform and cpu preprocessor exprs
         self._init_platform_exprs()
@@ -218,7 +217,7 @@ class Compiler(object):
 
         return variable_exprs
 
-    def _get_function_exprs(self):
+    def _get_code_exprs(self):
 
         function_exprs = []
 
@@ -236,6 +235,9 @@ class Compiler(object):
 
         # name
         name_ = Word(alphas, alphanums + '_')
+
+
+        # NOTE: the assembly stuff needs to come from the CPU
 
         # immediate
         immediate_ = Suppress('#') + NumericValue.exprs()
@@ -261,6 +263,9 @@ class Compiler(object):
                                  Optional(Suppress(',') + \
                                           parameter_.setResultsName('second')))
 
+        # this should really be just
+        # assembly_line = elf._cpu.get_code_line_exprs()
+
         # function expression
         function_definition = Or([function_, interrupt_, inline_]).setResultsName('type') + \
                               Optional(noreturn_).setResultsName('noreturn') + \
@@ -277,14 +282,6 @@ class Compiler(object):
         function_exprs.append(('function_defintion', function_definition))
 
         return function_exprs
-
-    def _get_conditional_exprs(self):
-
-        conditional_exprs = []
-
-        return conditional_exprs
-
-
 
 
 class ParserNode(object):
