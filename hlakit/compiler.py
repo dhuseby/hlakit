@@ -76,6 +76,8 @@ class Compiler(object):
 
         # add in the expressions for parsing the basic structures of the language
         self._exprs.extend(self._get_variable_exprs())
+        self._exprs.extend(self._get_conditional_exprs())
+        self._exprs.extend(self._get_function_exprs())
 
         # add in the platform and cpu preprocessor exprs
         self._init_platform_exprs()
@@ -215,6 +217,74 @@ class Compiler(object):
         variable_exprs.append(('typedef_declaration', typedef_declaration))
 
         return variable_exprs
+
+    def _get_function_exprs(self):
+
+        function_exprs = []
+
+        # punctuation
+        lbrace_ = Suppress('{')
+        rbrace_ = Suppress('}')
+        lparen_ = Suppress('(')
+        rparen_ = Suppress(')')
+
+        # keywords
+        function_ = Keyword('function')
+        interrupt_ = Keyword('interrupt')
+        inline_ = Keyword('inline')
+        noreturn_ = Keyword('noreturn')
+
+        # name
+        name_ = Word(alphas, alphanums + '_')
+
+        # immediate
+        immediate_ = Suppress('#') + NumericValue.exprs()
+
+        # register
+        register_ = Or([Keyword('a'),
+                        Keyword('x'),
+                        Keyword('y'),
+                        Keyword('p'),
+                        Keyword('s'),\
+                        Keyword('pc')])
+
+        # opcodes
+        opcode_ = Or([Keyword('ldy'),
+                      Keyword('lda')])
+
+        # parameter
+        parameter_ = Or([immediate_, register_])
+        
+        # assembly
+        assembly_line = opcode_.setResultsName('opcode') + \
+                        Optional(parameter_.setResultsName('first') + \
+                                 Optional(Suppress(',') + \
+                                          parameter_.setResultsName('second')))
+
+        # function expression
+        function_definition = Or([function_, interrupt_, inline_]).setResultsName('type') + \
+                              Optional(noreturn_).setResultsName('noreturn') + \
+                              name_.setResultsName('name') + \
+                              lparen_ + \
+                              Optional(name_ + ZeroOrMore(Suppress(',') + name_)).setResultsName('params') + \
+                              rparen_ + \
+                              lbrace_ + \
+                              ZeroOrMore(assembly_line).setResultsName('code') + \
+                              rbrace_
+        function_definition.setParseAction(FunctionDeclaration())
+
+        # put the expressions in the list
+        function_exprs.append(('function_defintion', function_definition))
+
+        return function_exprs
+
+    def _get_conditional_exprs(self):
+
+        conditional_exprs = []
+
+        return conditional_exprs
+
+
 
 
 class ParserNode(object):
@@ -479,4 +549,37 @@ class TypedefDeclaration(ParserNode):
 
         # return no tokens
         return []
+
+class FunctionDeclaration(ParserNode):
+    """
+    handles parsing function declarations
+    """
+    def __call__(self, pstring, location, tokens):
+        import pdb; pdb.set_trace()
+        return []
+
+        """
+        if 'name' not in tokens.keys():
+            raise ParseFatalException('variable declaration missing name')
+
+        # is this an array variable?
+        array = 'array' in tokens.keys()
+
+        # get the array size if it exists
+        size = None
+        if array and 'size' in tokens.keys():
+            size = tokens.size
+ 
+        # is there an address for this variable defined?
+        address = None
+        if 'address' in tokens.keys():
+            address = tokens.address
+
+        # check the symbol table to see if the variable is already declared
+        if SymbolTable.instance()[tokens.name] != None and self._define:
+            raise ParseFatalException('variable "%s" is already declared' % tokens.name)
+
+        # create the variable, leave the type unset for now
+        return Variable(tokens.name, None, False, address, array, size, self._define)
+        """
 
