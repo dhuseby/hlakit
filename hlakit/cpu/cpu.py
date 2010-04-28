@@ -19,7 +19,7 @@ class CPU(object):
     def get_preprocessor_exprs(self):
         return None
 
-    def get_compiler_exprs(self):
+    def get_assembly_line_expr(self):
         return None
 
     def get_file_writer(self):

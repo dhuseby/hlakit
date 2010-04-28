@@ -86,11 +86,28 @@ class Symbol(object):
             raise ParseFatalException('invalid object type for specifying var type')
 
 
+class Function(Symbol):
+    """
+    encapsulates a function symbol
+    """
+    def __init__(self, name, type=None, noreturn=False, params=[]):
+        super(Variable, self).__init__(name, type)
+        self._noreturn = noreturn
+        self._params = params
+
+    def is_noreturn(self):
+        return self._noreturn
+
+    def get_params(self):
+        return self._params
+
+
 class Variable(Symbol):
     """
     encapsulates a variable symbol
     """
-    def __init__(self, name, type=None, shared=False, address=None, array=False, size=None, define=True):
+    def __init__(self, name, type=None, shared=False, address=None, 
+                 array=False, size=None, define=True):
         super(Variable, self).__init__(name, type)
         self._shared = shared
         self._address = address
@@ -213,3 +230,5 @@ class Variable(Symbol):
         return s
 
     __repr__ = __str__
+
+

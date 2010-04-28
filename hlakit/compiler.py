@@ -236,34 +236,7 @@ class Compiler(object):
         # name
         name_ = Word(alphas, alphanums + '_')
 
-
-        # NOTE: the assembly stuff needs to come from the CPU
-
-        # immediate
-        immediate_ = Suppress('#') + NumericValue.exprs()
-
-        # register
-        register_ = Or([Keyword('a'),
-                        Keyword('x'),
-                        Keyword('y'),
-                        Keyword('p'),
-                        Keyword('s'),\
-                        Keyword('pc')])
-
-        # opcodes
-        opcode_ = Or([Keyword('ldy'),
-                      Keyword('lda')])
-
-        # parameter
-        parameter_ = Or([immediate_, register_])
-        
         # assembly
-        assembly_line = opcode_.setResultsName('opcode') + \
-                        Optional(parameter_.setResultsName('first') + \
-                                 Optional(Suppress(',') + \
-                                          parameter_.setResultsName('second')))
-
-        # this should really be just
         # assembly_line = elf._cpu.get_code_line_exprs()
 
         # function expression

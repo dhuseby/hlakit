@@ -34,6 +34,154 @@ class PointerType(Type):
         TypeRegistry.instance()['pointer'] = klass()
 
 
+class MOS6502Parameter(object):
+    """
+    encapsulates a parameter for an opcode
+    """
+    
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        return []
+
+    @classmethod
+    def parse_variable_address(klass, pstring, location, tokens):
+        # parse out the var and bind it to the subvars portion
+        return []
+
+    @classmethod
+    def exprs(klass):
+
+        # punctuation
+        lbracket_ = Suppress('[')
+        rbracket_ = Suppress(']')
+        hash_ = Suppress('#')
+        dot_ = Suppress('.')
+
+        # immediate value
+        immediate_ = hash_ + NumericValue.exprs()
+
+        # address
+        address_ = NumericValue.exprs()
+
+        # variable address
+        variable_address_ = lbracket_ + \
+                            name_.setResultsName('var') + \
+                            ZeroOrMore(dot_ + name_).setResultsName('subvars') + \
+                            rbracket_
+        variable_address_.setParseAction(klass.parse_variable_address)
+
+        # register
+        register_ = Or([CaselessKeyword('x'),
+                        CaselessKeyword('y')])
+
+        # the full parameter expression
+        parameter_ = Or([immediate_.setResultsName('immediate'),
+                         address_.setResultsName('address'),
+                         variable_address_.setResultsName('variable_address'),
+                         register_.setResultsName('register')])
+        parameter_.setParseAction(klass.parse)
+
+        return parameter_
+
+
+class MOS6502Opcode(object):
+    """
+    6502 opcodes
+    """
+
+    OPCODES = [ 'adc', 'and', 'asl', 'bit', 'bpl', 'bmi', 'bvc', 'bvs', 'bcc',
+                'bcs', 'bre', 'beq', 'brk', 'cmp', 'cpx', 'cpy', 'dec', 'eor',
+                'clc', 'sec', 'cli', 'sei', 'clv', 'cld', 'sed', 'inc', 'jmp',
+                'jsr', 'lda', 'ldx', 'ldy', 'lsr', 'nop', 'ora', 'tax', 'txa',
+                'dex', 'inx', 'tay', 'tya', 'dey', 'iny', 'rol', 'ror', 'rti',
+                'rts', 'sbc', 'sta', 'txs', 'tsx', 'pha', 'pla', 'php', 'plp',
+                'stx', 'sty' ]
+
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        return []
+
+    @classmethod
+    def exprs(klass):
+
+        # opcode
+        opcode_ = Or([CaselessKeyword(op).setResultsName('op') for op in MOS6502Opcode.OPCODES])
+        opcode_.setParseAction(klass.parse)
+
+        return opcode_
+
+
+class MOS6502AssemblyLine(object):
+    """
+    encapsulates a single line of assembly
+    """
+    def __init__(self, opcode, params=[]):
+        self._opcode = opcode
+        self._params = params
+
+    def get_opcode(self):
+        return self._opcode
+
+    def get_params(self):
+        return self._params
+
+    def __str__(self):
+        s = '%s' % self._opcode
+
+        if len(params) == 1:
+            s += '    %s' % self._params[0]
+        elif len(params) == 2:
+            s += '    %s, %s' % (self._params[0], self._params[1])
+
+        return s
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        if 'opcode' not in tokens.keys():
+            raise ParseFatalException('opcode missing from assembly line')
+
+        params = []
+        if 'first' in tokens.keys():
+            params.append(tokens.first)
+            if 'second' in tokens.keys():
+                params.append(tokens.second)
+
+        return MOS6502AssemblyLine(tokens.opcode, params)
+
+    @classmethod
+    def exprs(klass):
+
+        # opcode
+        opcode_ = MOS6502Opcode.exprs()
+
+        # parameter
+        parameter_ = MOS6502Parameter.exprs()
+
+        # assebly line
+        assembly_line_ = opcode_.setResultsName('opcode') + \
+                         Optional(parameter_.setResultsName('first') + \
+                             Optional(Suppress(',') + \
+                                 parameters_.setResultsName('second')))
+        assembly_line_.setParseAction(klass.parse)
+
+        return assembly_line
+
+
+class MOS6502ConditionalTest(option):
+    """
+    6502 conditional tests
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        return []
+
+    @classmethod
+    def exprs(klass):
+        return None
+
+
 class MOS6502(CPU):
 
     def __init__(self, options = None, logger = None):
@@ -51,7 +199,7 @@ class MOS6502(CPU):
         self._preprocessor_exprs = []
 
         # initialize the compiler expressions list
-        self._compiler_exprs = []
+        self._assembly_line_expr = []
 
         # CPU specific values for binary generation
         self._start_symbol = None
@@ -62,13 +210,13 @@ class MOS6502(CPU):
         self._init_preprocessor_exprs()
 
         # build the compiler expressions
-        self._init_compiler_exprs()
+        self._init_assembly_line_expr()
         
     def get_preprocessor_exprs(self):
         return self._preprocessor_exprs
 
-    def get_compiler_exprs(self):
-        return self._compiler_exprs
+    def get_assembly_line_expr(self):
+        return self._assembly_line_expr
 
     def get_file_writer(self):
         # the file writer is the cpu specific binary creator.  
@@ -127,8 +275,11 @@ class MOS6502(CPU):
         self._preprocessor_exprs.append(('irq_line', irq_line))
         self._preprocessor_exprs.append(('irq_line_address', irq_line_address))
 
-    def _init_compiler_exprs(self):
-        pass
+    def _init_assembly_line_expr(self):
+
+
+
+        #self._assembly_line_expr.append((,))
 
     #
     # Parse Action Callbacks
