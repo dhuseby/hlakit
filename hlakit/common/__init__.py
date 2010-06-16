@@ -8,8 +8,5 @@ included LICENSE file or by visiting here:
 <http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>
 """
 
-import cpu
-import platform
-from preprocessor import Preprocessor
-from compiler import Compiler
-from values import *
+import session
+import target
