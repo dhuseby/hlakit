@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -26,4 +26,46 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-import nes
+
+from pyparsing import *
+from hlakit.common.session import Session
+
+class Else(object):
+    """
+    This defines the rules for parsing a #else line in a file
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        # the top of the ignore stack is None if we're nested inside
+        # of an ingnored block of code.  we don't do anything in that case.
+        if pp.ignore_stack_top() == None:
+            return []
+
+        # so we're in an active block of code if we get here so we need
+        # to check to see if we're in a block and if so, flip from active
+        # to innactive.
+        if len(self.get_ignore_stack()) <= 1:
+            raise ParseFatalException("#else outside of #ifdef/#ifndef block")
+
+        # swap states
+        self.ignore_stack_pop()
+        if self.ignore():
+            self.ignore_stack_push(False)
+        else:
+            self.ignore_stack_push(True)
+
+        return []
+
+    @classmethod
+    def exprs(klass):
+        else_ = Keyword('#else')
+
+        expr = Suppress(else_) + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+

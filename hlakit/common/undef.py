@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -26,4 +26,35 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-import nes
+
+from pyparsing import *
+from hlakit.common.session import Session
+
+class Undef(object):
+    """
+    This defines the rules for parsing a #undef <symbol> line in a file
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        pp.delete_symbol(tokens.label)
+
+        return []
+
+    @classmethod
+    def exprs(klass):
+        undef = Keyword('#undef')
+        label = Word(alphas + '_', alphanums + '_').setResultsName('label')
+
+        expr = Suppress(undef) + \
+               label + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+

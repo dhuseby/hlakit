@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -26,4 +26,27 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-import nes
+
+class CodeBlock(object):
+    """
+    This encapsulates a list of CodeLine objects into a cohesive
+    code block that can be translated back into plain text.
+    """
+    def __init__(self):
+        self._lines = []
+
+    def append(self, line):
+        self._lines.append(line)
+
+    def num_lines(self):
+        return len(self._lines)
+
+    def __str__(self):
+        out = "\n"
+        for line in self._lines:
+            out += str(line) + "\n"
+        return out + "\n"
+
+    __repr__ = __str__
+
+

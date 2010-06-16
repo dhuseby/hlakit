@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -26,4 +26,43 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-import nes
+
+from pyparsing import *
+from hlakit.common.session import Session
+
+class Ifndef(object):
+    """
+    This defines the rules for parsing a #ifndef <symbol> line in a file
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        # the top of the ignore stack is None if we're nested inside
+        # of an ignored block of code.  we have to push another None
+        # on the stack to track our nesting
+        if pp.ignore():
+            pp.ignore_stack_push(None)
+            return []
+
+        # check to see if we should turn ignore on
+        if pp.has_symbol(tokens.label):
+            pp.ignore_stack_push(True)
+        else:
+            pp.ignore_stack_push(False)
+
+        return []
+
+    @classmethod
+    def exprs(klass):
+        ifndef = Keyword('#ifndef')
+        label = Word(alphas + '_', alphanums + '_').setResultsName('label')
+
+        expr = Suppress(ifndef) + \
+               label + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+

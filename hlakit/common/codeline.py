@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -26,4 +26,51 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-import nes
+
+from pyparsing import *
+from hlakit.common.session import Session
+
+class CodeLine(object):
+    """
+    This is a wrapper class around a line of code that contains
+    it's origin file and line number before preprocessing.
+    """
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        # merge the tokens back into a single line of text
+        line = ' '.join(tokens)
+
+        # strip whitespace
+        line = line.strip()
+
+        # return an appropriate array of tokens
+        if len(line):
+            # do macro expansion here
+            line = pp.expand_symbols(line)
+            
+            # return a CodeLine object ecapsulating the code 
+            return [klass(line)]
+
+        return []
+
+    @classmethod
+    def exprs(klass):
+        # this matches all lines that don't match any other rules
+        expr = ZeroOrMore(~LineEnd() + Word(printables)) + Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+        return expr
+
+    def __init__(self, code):
+        self._code = code
+
+    def __str__(self):
+        return self._code
+
+    __repr__ = __str__
+
+

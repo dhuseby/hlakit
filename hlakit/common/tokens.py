@@ -63,53 +63,7 @@ class SetAlign(object):
 
     __repr__ = __str__
 
-class CodeLine(object):
-    """
-    This is a wrapper class around a line of code that contains
-    it's origin file and line number before preprocessing.
-    """
-    def __init__(self, code, f, line_no):
-        self._code = code
-        self._f = f
-        self._line_no = line_no
-
-    def get_code(self):
-        return self._code
-
-    def get_file(self):
-        return self._f
-
-    def get_line_no(self):
-        return self._line_no
-
-    def __str__(self):
-        return self._code
-
-    __repr__ = __str__
-
-class CodeBlock(object):
-    """
-    This encapsulates a list of CodeLine objects into a cohesive
-    code block that can be translated back into plain text.
-    """
-    def __init__(self):
-        self._lines = []
-
-    def append(self, line):
-        self._lines.append(line)
-
-    def num_lines(self):
-        return len(self._lines)
-
-    def __str__(self):
-        out = "\n"
-        for line in self._lines:
-            out += str(line) + "\n"
-        return out + "\n"
-
-    __repr__ = __str__
-
-class AssignValue(object):
+lass AssignValue(object):
     """
     encapsulates an assignment AST
     """

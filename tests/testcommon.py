@@ -12,9 +12,9 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> OR
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
@@ -26,7 +26,8 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-
+import os
+import sys
 import unittest
 from hlakit.common.session import Session, CommandLineError
 from hlakit.cpu.mos6502 import MOS6502
@@ -45,7 +46,8 @@ class CommandLineOptionsTester(unittest.TestCase):
     def testNoParameters(self):
         try:
             # make sure this throws 
-            session = Session([])
+            session = Session()
+            session.parse_args([])
             self.assertTrue(False)
         except CommandLineError, e:
             return
@@ -53,7 +55,8 @@ class CommandLineOptionsTester(unittest.TestCase):
 
     def testBogusCPU(self):
         try:
-            session = Session(['--cpu=blah'])
+            session = Session()
+            session.parse_args(['--cpu=blah'])
             self.assertTrue(False)
         except CommandLineError, e:
             return
@@ -61,26 +64,60 @@ class CommandLineOptionsTester(unittest.TestCase):
 
     def testBogusPlatform(self):
         try:
-            session = Session(['--platform=blah'])
+            session = Session()
+            session.parse_args(['--platform=blah'])
             self.assertTrue(False)
         except CommandLineError, e:
             return
         self.assetTrue(False)
 
     def test6502CPU(self):
-        session = Session(['--cpu=6502'])
+        session = Session()
+        session.parse_args(['--cpu=6502'])
         self.assertTrue(isinstance(session._target, MOS6502))
 
     def testNESPlatform(self):
-        session = Session(['--platform=NES'])
+        session = Session()
+        session.parse_args(['--platform=NES'])
         self.assertTrue(isinstance(session._target, NES))
         
     def testNESPlatform2(self):
-        session = Session(['--platform=Nes'])
+        session = Session()
+        session.parse_args(['--platform=Nes'])
         self.assertTrue(isinstance(session._target, NES))
 
     def testSingleFile(self):
-        session = Session(['--cpu=6502', 'foo.s'])
+        session = Session()
+        session.parse_args(['--cpu=6502', 'foo.s'])
         self.assertEquals(session.get_args()[0], 'foo.s')
 
+    def testMultipleFiles(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', 'bar.s', 'foo.s'])
+        self.assertEquals(session.get_args()[0], 'bar.s')
+        self.assertEquals(session.get_args()[1], 'foo.s')
 
+    def testPathResolution(self):
+        absolute_path = os.path.join(os.getcwd(), 'tests', 'dummy.s')
+        session = Session()
+        session.parse_args(['--cpu=6502', 'tests/dummy.s', absolute_path])
+        self.assertEquals(session.get_file_path(session.get_args()[0]), absolute_path)
+        self.assertEquals(session.get_file_path(session.get_args()[1]), absolute_path)
+
+    def testDirResolution(self):
+        absolute_dir = os.path.join(os.getcwd(), 'tests')
+        absolute_path = os.path.join(absolute_dir, 'dummy.s')
+        session = Session()
+        session.parse_args(['--cpu=6502', absolute_path])
+        self.assertEquals(session.get_file_dir(session.get_args()[0]), absolute_dir)
+
+    def testI(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', '-Itests'])
+        self.assertEquals(session.get_include_dirs(), ['tests'])
+
+    def testInclude(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', '--include=tests'])
+        self.assertEquals(session.get_include_dirs(), ['tests'])
+ 

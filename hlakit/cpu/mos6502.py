@@ -12,9 +12,9 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> OR
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
@@ -30,6 +30,22 @@ or implied, of David Huseby.
 import os
 from pyparsing import *
 from hlakit.common.target import Target
+from hlakit.common.preprocessor import Preprocessor
+
+class MOS6502Preprocessor(Preprocessor):
+
+    @classmethod
+    def exprs(klass):
+        # start with the base preprocessor rules 
+        e = Preprocessor.exprs()
+
+        # add in 6502 specific preprocessor parse rules
+
+        return e
+
+    
+
+
 
 '''
 class PointerType(Type):
@@ -205,7 +221,7 @@ class MOS6502(Target):
         super(MOS6502, self).__init__()
 
     def preprocessor(self):
-        return None
+        return MOS6502Preprocessor()
 
     def compiler(self):
         return None

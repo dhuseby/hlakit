@@ -12,9 +12,9 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> OR
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
@@ -89,7 +89,14 @@ class Session(object):
         #}
     }
 
-    def __init__(self, args):
+    _shared_state = {}
+
+    def __new__(cls, *a, **k):
+        obj = object.__new__(cls, *a, **k)
+        obj.__dict__ = cls._shared_state
+        return obj
+
+    def parse_args(self, args=[]):
         self._options = None
         self._args = None
         self._target = None
@@ -149,24 +156,28 @@ class Session(object):
             self._target = cpu_ctor()
 
     def get_include_dirs(self):
-        return self._options.include
-
-    def get_lib_dirs(self):
-        return self._options.lib
-
-    def get_options(self):
-        return self._options
+        options = getattr(self, '_options', None)
+        if options:
+            return options.include
+        return []
 
     def get_args(self):
-        return self._args
+        return getattr(self, '_args', [])
 
-    def get_file_dir(self, f, search_paths = None):
+    def get_file_dir(self, f):
 
         # calculate the correct path to the file 
         if f[0] == '/':
             # if it starts with a '/' then it is an absolute path
             return os.path.dirname(f)
-    
+   
+         # add in the included directories
+        if len(self.get_include_dirs()) > 0:
+            search_paths.extend(self.get_include_dirs())
+
+        # add in cwd as last option
+        search_paths.append(os.getcwd())
+
         # look in the search paths for the file they specified
         for path in search_paths:
             if path[0] == '/':
@@ -180,15 +191,20 @@ class Session(object):
 
         return None
 
-    def get_file_path(self, f, search_paths = []):
+    def get_file_path(self, f):
+        search_paths = []
+
         # calculate the correct path to the file 
         if f[0] == '/':
             # if it starts with a '/' then it is an absolute path
             return f
        
         # add in the included directories
-        if len(self._options.include) > 0:
-            search_paths.extend(self._options.include)
+        if len(self.get_include_dirs()) > 0:
+            search_paths.extend(self.get_include_dirs())
+
+        # add in cwd as last option
+        search_paths.append(os.getcwd())
 
         # look in the search paths for the file they specified
         for path in search_paths:
@@ -204,13 +220,22 @@ class Session(object):
         return None
 
     def preprocessor(self):
-        return self._target.preprocessor()
+        target = getattr(self, '_target', None)
+        if target:
+            return target.preprocessor()
+        return None
 
     def compiler(self):
-        return self._target.compiler()
+        target = getattr(self, '_target', None)
+        if target:
+            return target.compiler()
+        return None
 
     def linker(self):
-        return self._target.linker()
+        target = getattr(self, '_target', None)
+        if target:
+            return target.linker()
+        return None
 
     def build(self):
         pp = self.preprocessor()
