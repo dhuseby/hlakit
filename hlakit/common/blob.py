@@ -27,46 +27,29 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from pyparsing import *
-from hlakit.common.session import Session
-
-class Else(object):
+class Blob(object):
     """
-    This defines the rules for parsing a #else line in a file
+    This is a wrapper class around some binary data included
+    directly into the final binary from the code.
     """
+    def __init__(self, f, label = None):
+        self._name = f
+        inf = open(f, 'r')
+        self._data = inf.read()
+        inf.close()
+        self._label = label
 
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
+    def get_data(self):
+        return self._data
 
-        # the top of the ignore stack is None if we're nested inside
-        # of an ingnored block of code.  we don't do anything in that case.
-        if pp.ignore_stack_top() == None:
-            return []
+    def get_label(self):
+        return self._label
 
-        # so we're in an active block of code if we get here so we need
-        # to check to see if we're in a block and if so, flip from active
-        # to innactive.
-        if len(pp.get_ignore_stack()) <= 1:
-            raise ParseFatalException("#else outside of #ifdef/#ifndef block")
+    def __str__(self):
+        if self._label is None:
+            return "<%s>" % self._name
+        return "<%s: %s>" % (self._label, self._name)
 
-        # swap states
-        ignore = pp.ignore()
-        pp.ignore_stack_pop()
-        if ignore:
-            pp.ignore_stack_push(False)
-        else:
-            pp.ignore_stack_push(True)
+    __repr__ = __str__
 
-        return []
-
-    @classmethod
-    def exprs(klass):
-        else_ = Keyword('#else')
-
-        expr = Suppress(else_) + \
-               Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
-
-        return expr
 

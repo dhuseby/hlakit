@@ -37,6 +37,7 @@ class CodeLine(object):
     """
     @classmethod
     def parse(klass, pstring, location, tokens):
+        print 'codeline: %s' % pstring
         pp = Session().preprocessor()
 
         if pp.ignore():
@@ -61,7 +62,7 @@ class CodeLine(object):
     @classmethod
     def exprs(klass):
         # this matches all lines that don't match any other rules
-        expr = ZeroOrMore(~LineEnd() + Word(printables)) + Suppress(LineEnd())
+        expr = ~LineEnd() + ~Literal('#') + ZeroOrMore(Word(printables)) + Suppress(LineEnd())
         expr.setParseAction(klass.parse)
         return expr
 

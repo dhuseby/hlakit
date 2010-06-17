@@ -170,13 +170,19 @@ class Session(object):
         if f[0] == '/':
             # if it starts with a '/' then it is an absolute path
             return os.path.dirname(f)
-   
-         # add in the included directories
-        if len(self.get_include_dirs()) > 0:
-            search_paths.extend(self.get_include_dirs())
+  
+        # add in the current file dir
+        pp = self.preprocessor()
+        cur = pp.state_stack_top().get_file_path()
+        if cur:
+            search_paths.append(cur)
 
         # add in cwd as last option
         search_paths.append(os.getcwd())
+
+        # add in the included directories
+        if len(self.get_include_dirs()) > 0:
+            search_paths.extend(self.get_include_dirs())
 
         # look in the search paths for the file they specified
         for path in search_paths:
@@ -198,13 +204,19 @@ class Session(object):
         if f[0] == '/':
             # if it starts with a '/' then it is an absolute path
             return f
-       
-        # add in the included directories
-        if len(self.get_include_dirs()) > 0:
-            search_paths.extend(self.get_include_dirs())
+      
+        # add in the current file dir
+        pp = self.preprocessor()
+        cur = pp.state_stack_top().get_file_path()
+        if cur:
+            search_paths.append(cur)
 
         # add in cwd as last option
         search_paths.append(os.getcwd())
+
+        # add in the included directories
+        if len(self.get_include_dirs()) > 0:
+            search_paths.extend(self.get_include_dirs())
 
         # look in the search paths for the file they specified
         for path in search_paths:

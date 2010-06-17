@@ -29,6 +29,7 @@ or implied, of David Huseby.
 import os
 import sys
 import unittest
+from pyparsing import ParseException, ParseFatalException
 from StringIO import StringIO
 from hlakit.common.session import Session, CommandLineError
 from hlakit.cpu.mos6502 import MOS6502Preprocessor
@@ -42,13 +43,21 @@ class PreprocessorTester(unittest.TestCase):
     pp_define = '#define FOO\n'
     pp_define_value = '#define FOO 1\n'
     pp_define_string = '#define FOO "blah blah blah"\n'
+    pp_define_bar = '#define BAR\n'
     pp_undef = '#undef FOO\n'
     pp_ifdef = '#ifdef FOO\n'
-    pp_define_bar = '#define BAR\n'
+    pp_ifndef = '#ifndef FOO\n'
+    pp_else = '#else\n'
     pp_endif = '#endif\n'
+    pp_todo = '#todo %s\n'
+    pp_warning = '#warning %s\n'
+    pp_error = '#error %s\n'
+    pp_include = '#include %s\n'
+    pp_incbin = '#incbin %s\n'
 
     def setUp(self):
-        pass
+        session = Session()
+        session.preprocessor().reset_state()
 
     def tearDown(self):
         pass
@@ -58,57 +67,220 @@ class PreprocessorTester(unittest.TestCase):
         session.parse_args(['--cpu=6502'])
         self.assertTrue(isinstance(session._target.preprocessor(), MOS6502Preprocessor))
 
-    def testPpDefine(self):
+    def testDefine(self):
         session = Session()
         session.parse_args(['--cpu=6502'])
         pp = session.preprocessor()
         pp.parse(StringIO(self.pp_define))
         self.assertTrue(pp.has_symbol('FOO'))
-
-    def testPpDefineValue(self):
+    
+    def testDefineValue(self):
         session = Session()
         session.parse_args(['--cpu=6502'])
         pp = session.preprocessor()
         pp.parse(StringIO(self.pp_define_value))
         self.assertEquals(pp.get_symbol('FOO'), '1')
 
-    def testPpDefineString(self):
+    def testDefineString(self):
         session = Session()
         session.parse_args(['--cpu=6502'])
         pp = session.preprocessor()
         pp.parse(StringIO(self.pp_define_string))
         self.assertEquals(pp.get_symbol('FOO'), '"blah blah blah"')
 
-    def testPpUndef(self):
+    def testUndef(self):
         session = Session()
         session.parse_args(['--cpu=6502'])
         pp = session.preprocessor()
         pp.parse(StringIO(self.pp_define))
         self.assertTrue(pp.has_symbol('FOO'))
         pp.parse(StringIO(self.pp_undef))
-        self.assertFalse(pp.has_symbol('FOO'))
+        self.assertFalse(pp.has_symbol('FOO'), 'FOO shouldn\'t be defined')
 
-    def testPpIfdef(self):
+    def testIfdef(self):
         session = Session()
         session.parse_args(['--cpu=6502'])
         pp = session.preprocessor()
 
-        # #define FOO
+        #define FOO
         pp.parse(StringIO(self.pp_define))
         self.assertTrue(pp.has_symbol('FOO'))
         self.assertEquals(len(pp.get_ignore_stack()), 1)
 
-        # #ifdef FOO
+        #ifdef FOO
         pp.parse(StringIO(self.pp_ifdef))
         self.assertEquals(len(pp.get_ignore_stack()), 2)
-        self.assertEquals(pp.ignore_stack_top(), False)
+        self.assertFalse(pp.ignore_stack_top())
         self.assertFalse(pp.ignore())
 
-        # #define BAR
+        #define BAR
         pp.parse(StringIO(self.pp_define_bar))
         self.assertTrue(pp.has_symbol('BAR'))
 
-        # #endif
+        #endif
         pp.parse(StringIO(self.pp_endif))
         self.assertEquals(len(pp.get_ignore_stack()), 1)
+        
+        self.assertTrue(pp.has_symbol('BAR'))
+
+    def testIfndef(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+        
+        self.assertEquals(len(pp.get_ignore_stack()), 1)
+
+        #ifndef FOO
+        pp.parse(StringIO(self.pp_ifndef))
+        self.assertEquals(len(pp.get_ignore_stack()), 2)
+        self.assertFalse(pp.ignore_stack_top())
+        self.assertFalse(pp.ignore())
+
+        #define BAR
+        pp.parse(StringIO(self.pp_define_bar))
+        self.assertTrue(pp.has_symbol('BAR'))
+
+        #endif
+        pp.parse(StringIO(self.pp_endif))
+        self.assertEquals(len(pp.get_ignore_stack()), 1)
+        
+        self.assertTrue(pp.has_symbol('BAR'))
+
+    def testElse(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        #ifdef FOO
+        pp.parse(StringIO(self.pp_ifdef))
+        self.assertEquals(len(pp.get_ignore_stack()), 2)
+        self.assertTrue(pp.ignore_stack_top())
+        self.assertTrue(pp.ignore())
+
+        #define FOO
+        pp.parse(StringIO(self.pp_define))
+        self.assertFalse(pp.has_symbol('FOO'))
+        self.assertTrue(pp.ignore())
+
+        #else
+        pp.parse(StringIO(self.pp_else))
+        self.assertEquals(len(pp.get_ignore_stack()), 2)
+        self.assertFalse(pp.ignore_stack_top())
+        self.assertFalse(pp.ignore())
+
+        #define BAR
+        pp.parse(StringIO(self.pp_define_bar))
+        self.assertTrue(pp.has_symbol('BAR'))
+
+        #endif
+        pp.parse(StringIO(self.pp_endif))
+        self.assertEquals(len(pp.get_ignore_stack()), 1)
+        
+        self.assertFalse(pp.has_symbol('FOO'))
+        self.assertTrue(pp.has_symbol('BAR'))
+
+    def testBadUndef(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+        
+        #undef FOO 
+        pp.parse(StringIO(self.pp_undef))
+
+    def testTodo(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        #todo "Hello World"
+        pp.parse(StringIO(self.pp_todo % '"Hello World!"'))
+
+
+    def testBadTodo(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        #todo
+        try:
+            pp.parse(StringIO(self.pp_todo))
+            self.assertTrue(False)
+        except ParseException, e:
+            pass
+
+    def testWarning(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        #warning "Hello World"
+        pp.parse(StringIO(self.pp_warning % '"Hello World!"'))
+
+
+    def testBadWarning(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        #warning
+        try:
+            pp.parse(StringIO(self.pp_warning))
+            self.assertTrue(False)
+        except ParseException, e:
+            pass
+
+    def testError(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        #error "Hello World"
+        try:
+            pp.parse(StringIO(self.pp_error % '"Hello World!"'))
+            self.assertTrue(False)
+        except ParseFatalException, e:
+            pass
+
+
+    def testBadError(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        #error
+        try:
+            pp.parse(StringIO(self.pp_error))
+            self.assertTrue(False)
+        except ParseException, e:
+            pass
+
+    def testImpliedInclude(self):
+        pass
+
+    def testLiteralInclude(self):
+        pass
+
+    def testFullPathLiteralInclude(self):
+        pass
+
+    def testBadImpliedInclude(self):
+        pass
+
+    def testBadLiteralInclude(self):
+        pass
+
+    def testImpliedIncbin(self):
+        pass
+
+    def testLiteralIncbin(self):
+        pass
+
+    def testFullPathLiteralIncbin(self):
+        pass
+
+    def testBadImpliedIncbin(self):
+        pass
+
+    def testBadLiteralIncbin(self):
+        pass
 

@@ -29,44 +29,18 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from hlakit.common.session import Session
+from hlakit.common.message import Message
 
-class Else(object):
+class Warning(Message):
     """
-    This defines the rules for parsing a #else line in a file
+    This defines the rules for parsing a #warning <message> line in a file
     """
 
     @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        # the top of the ignore stack is None if we're nested inside
-        # of an ingnored block of code.  we don't do anything in that case.
-        if pp.ignore_stack_top() == None:
-            return []
-
-        # so we're in an active block of code if we get here so we need
-        # to check to see if we're in a block and if so, flip from active
-        # to innactive.
-        if len(pp.get_ignore_stack()) <= 1:
-            raise ParseFatalException("#else outside of #ifdef/#ifndef block")
-
-        # swap states
-        ignore = pp.ignore()
-        pp.ignore_stack_pop()
-        if ignore:
-            pp.ignore_stack_push(False)
-        else:
-            pp.ignore_stack_push(True)
-
-        return []
+    def _get_keyword(klass):
+        return '#warning'
 
     @classmethod
-    def exprs(klass):
-        else_ = Keyword('#else')
-
-        expr = Suppress(else_) + \
-               Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
-
-        return expr
+    def _handle_message(klass, message):
+        print 'WARNING: %s' % message 
 

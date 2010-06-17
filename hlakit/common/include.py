@@ -29,44 +29,33 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from hlakit.common.session import Session
+from hlakit.common.file import File
 
-class Else(object):
+class Include(File):
     """
-    This defines the rules for parsing a #else line in a file
+    This defines the rules for parsing a #include <path> and #include "path" 
+    lines in a file
     """
 
     @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        # the top of the ignore stack is None if we're nested inside
-        # of an ingnored block of code.  we don't do anything in that case.
-        if pp.ignore_stack_top() == None:
-            return []
-
-        # so we're in an active block of code if we get here so we need
-        # to check to see if we're in a block and if so, flip from active
-        # to innactive.
-        if len(pp.get_ignore_stack()) <= 1:
-            raise ParseFatalException("#else outside of #ifdef/#ifndef block")
-
-        # swap states
-        ignore = pp.ignore()
-        pp.ignore_stack_pop()
-        if ignore:
-            pp.ignore_stack_push(False)
-        else:
-            pp.ignore_stack_push(True)
-
-        return []
+    def _get_keyword(klass):
+        return '#include'
 
     @classmethod
-    def exprs(klass):
-        else_ = Keyword('#else')
+    def _handle_file(klass, path, implied=False):
+        if not path or len(path) <= 0:
+            raise ParseFatalException('invalid include file path')
 
-        expr = Suppress(else_) + \
-               Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
+        session = Session()
+        pp = session.preprocessor()
+        file_path = session.get_file_path(pp.state_stack_top().get_file_path())
 
-        return expr
+        if not file_path:
+            raise ParseFatalException('included file does not exist: %s' % file_path)
+
+        inf = open(file_path, 'r')
+        recursive_tokens = pp.parse(inf)
+        inf.close()
+        
+        return recursive_tokens
 

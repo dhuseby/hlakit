@@ -10,29 +10,6 @@ included LICENSE file or by visiting here:
 
 from values import *
 
-class IncBin(object):
-    """
-    This is a wrapper class around some binary data included
-    directly into the final binary from the code.
-    """
-    def __init__(self, f, label = None):
-        self._name = f.name
-        self._data = f.read()
-        self._label = label
-
-    def get_data(self):
-        return self._data
-
-    def get_label(self):
-        return self._label
-
-    def __str__(self):
-        if self._label is None:
-            return "<%s>" % self._name
-        return "<%s: %s>" % (self._label, self._name)
-
-    __repr__ = __str__
-
 class SetPad(object):
     """
     Token for setting the current padding contents

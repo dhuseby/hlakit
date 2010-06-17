@@ -30,41 +30,33 @@ or implied, of David Huseby.
 from pyparsing import *
 from hlakit.common.session import Session
 
-class Else(object):
+class Message(object):
     """
-    This defines the rules for parsing a #else line in a file
+    This is the base class for all message preprocessor directives
     """
 
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
 
-        # the top of the ignore stack is None if we're nested inside
-        # of an ingnored block of code.  we don't do anything in that case.
-        if pp.ignore_stack_top() == None:
+        if pp.ignore():
             return []
 
-        # so we're in an active block of code if we get here so we need
-        # to check to see if we're in a block and if so, flip from active
-        # to innactive.
-        if len(pp.get_ignore_stack()) <= 1:
-            raise ParseFatalException("#else outside of #ifdef/#ifndef block")
-
-        # swap states
-        ignore = pp.ignore()
-        pp.ignore_stack_pop()
-        if ignore:
-            pp.ignore_stack_push(False)
-        else:
-            pp.ignore_stack_push(True)
+        # call polymorphic handle_message function
+        klass._handle_message(getattr(tokens, 'message', ''))
 
         return []
 
     @classmethod
     def exprs(klass):
-        else_ = Keyword('#else')
+        kw = Keyword(klass._get_keyword())
+        message = Word(printables)
+        message_string = quotedString(message)
+        message_string.setParseAction(removeQuotes)
+        message_string = message_string.setResultsName('message')
 
-        expr = Suppress(else_) + \
+        expr = Suppress(kw) + \
+               Optional(message_string) + \
                Suppress(LineEnd())
         expr.setParseAction(klass.parse)
 

@@ -35,6 +35,11 @@ from ifdef import Ifdef
 from ifndef import Ifndef
 from else_ import Else
 from endif import Endif
+from todo import Todo
+from warning import Warning
+from error import Error
+from include import Include
+from incbin import Incbin
 from codeline import CodeLine
 from codeblock import CodeBlock
 
@@ -65,6 +70,9 @@ class Preprocessor(object):
         def parse(self):
             return self._parser.parseFile(self._file, parseAll=True)
 
+        def get_file_path(self):
+            return getattr(self._file, 'path', None)
+
     @classmethod
     def exprs(klass):
         e = []
@@ -74,6 +82,11 @@ class Preprocessor(object):
         e.append(('ifndef', Ifndef.exprs()))
         e.append(('else', Else.exprs()))
         e.append(('endif', Endif.exprs()))
+        e.append(('todo', Todo.exprs()))
+        e.append(('warning', Warning.exprs()))
+        e.append(('error', Error.exprs()))
+        e.append(('include', Include.exprs()))
+        e.append(('incbin', Incbin.exprs()))
         e.append(('codeline', CodeLine.exprs()))
         return e
 
@@ -86,6 +99,12 @@ class Preprocessor(object):
 
     def __init__(self):
         self.set_exprs(Preprocessor.exprs())
+
+    def reset_state(self):
+        self.set_exprs(Preprocessor.exprs())
+        self._symbols = {}
+        self._ignore_stack = [False]
+        self._state_stack = []
 
     def get_exprs(self):
         return getattr(self, '_exprs', [])
@@ -141,7 +160,8 @@ class Preprocessor(object):
         return self.get_ignore_stack()[-1]
 
     def ignore(self):
-        if self.get_ignore_stack()[-1] == True or self.get_ignore_stack()[-1] == None:
+        if self.get_ignore_stack()[-1] == True or \
+           self.get_ignore_stack()[-1] == None:
             return True
         return False
     
@@ -160,7 +180,7 @@ class Preprocessor(object):
 
     def state_stack_top(self):
         return self.get_state_stack()[-1]
-    
+
     def parse(self, f):
         # push our current state if we're recursively parsing
         if self.get_state():
@@ -212,148 +232,8 @@ class Preprocessor(object):
     
 '''
     def _init_preprocessor_exprs(self):
-        self._init_defines_exprs()
-        self._init_messages_exprs()
         self._init_files_exprs()
         self._init_memory_exprs()
-        # add in the platform and cpu preprocessor exprs
-        self._init_platform_exprs()
-        self._init_cpu_exprs()
-        # note that generic exprs must be last
-        self._init_generic_exprs()
-
-    def _init_platform_exprs(self):
-        # this gets all of the preprocessor expressions from the platform
-        # and adds them to the preprocessor expressions list
-        if self._platform:
-            self._exprs.extend(self._platform.get_preprocessor_exprs())
-
-    def _init_cpu_exprs(self):
-        # this gets all of the preprocessor expressions from the cpu
-        # and adds them to the preprocessor expressions list
-        if self._cpu:
-            self._exprs.extend(self._cpu.get_preprocessor_exprs())
-
-    def _init_generic_exprs(self):
-        # this matches all lines that don't match any other rules
-        generic_line = ZeroOrMore(~LineEnd() + Word(printables)) + Suppress(LineEnd())
-        generic_line.setParseAction(self._generic_line)
-
-        # add it to the expressions list
-        self._exprs.append(('generic_line', generic_line))
-
-    def _init_defines_exprs(self):
-        # define the preprocessor conditional compile keywords
-        d_define = Keyword('#define')
-        d_undef = Keyword('#undef')
-        d_ifdef = Keyword('#ifdef')
-        d_ifndef = Keyword('#ifndef')
-        d_else = Keyword('#else')
-        d_endif = Keyword('#endif')
-
-        # define label
-        label = Word(alphas + '_', alphanums + '_').setResultsName('label')
-
-        # define value
-        value = OneOrMore(~LineEnd() + Word(printables)).setResultsName('value')
-
-        # ==> #define label
-        define_line = Suppress(d_define) + \
-                      label + \
-                      Suppress(LineEnd())
-        define_line.setParseAction(self._define_line)
-        
-        # ==> #define label value
-        define_line_value = Suppress(d_define) + \
-                            label + \
-                            value + \
-                            Suppress(LineEnd())
-        define_line_value.setParseAction(self._define_line_value)
-
-        # ==> #undef label
-        undef_line = Suppress(d_undef) + \
-                     label + \
-                     Suppress(LineEnd())
-        undef_line.setParseAction(self._undef_line)
-
-        # ==> #ifdef label
-        ifdef_line = Suppress(d_ifdef) + \
-                     label + \
-                     Suppress(LineEnd())
-        ifdef_line.setParseAction(self._ifdef_line)
-
-        # ==> #ifndef label
-        ifndef_line = Suppress(d_ifndef) + \
-                      label + \
-                      Suppress(LineEnd())
-        ifndef_line.setParseAction(self._ifndef_line)
-
-        # ==> #else
-        else_line = Suppress(d_else) + \
-                    Suppress(LineEnd())
-        else_line.setParseAction(self._else_line)
-
-        # ==> #endif
-        endif_line = Suppress(d_endif) + \
-                     Suppress(LineEnd())
-        endif_line.setParseAction(self._endif_line)
-
-        # put the conditional compile expressions in the top level map
-        self._exprs.append(('define_line', define_line))
-        self._exprs.append(('define_line_value', define_line_value))
-        self._exprs.append(('undef_line', undef_line))
-        self._exprs.append(('ifdef_line', ifdef_line))
-        self._exprs.append(('ifndef_line', ifndef_line))
-        self._exprs.append(('else_line', else_line))
-        self._exprs.append(('endif_line', endif_line))
-
-    def _init_messages_exprs(self):
-        # define message literals
-        todo = Keyword('#todo')
-        warning = Keyword('#warning')
-        error = Keyword('#error')
-        fatal = Keyword('#fatal')
-
-        # define quoted string for the messages
-        message = Word(printables)
-        message_string = quotedString(message)
-        message_string.setParseAction(removeQuotes)
-        message_string = message_string.setResultsName('message')
-
-        # ==> #todo "message"
-        todo_line = Suppress(todo) + Suppress(LineEnd())
-        todo_line.setParseAction(self._todo_message)
-        todo_line_msg = Suppress(todo) + message_string + Suppress(LineEnd())
-        todo_line_msg.setParseAction(self._todo_message)
-        
-        # ==> #warning "message"
-        warning_line = Suppress(warning) + Suppress(LineEnd())
-        warning_line.setParseAction(self._warning_message)
-        warning_line_msg = Suppress(warning) + message_string + Suppress(LineEnd())
-        warning_line_msg.setParseAction(self._warning_message)
-
-        # ==> #error "message"
-        error_line = Suppress(error) + Suppress(LineEnd())
-        error_line.setParseAction(self._error_message)
-        error_line_msg = Suppress(error) + message_string + Suppress(LineEnd())
-        error_line_msg.setParseAction(self._error_message)
-
-        # ==> #fatal "message"
-        # NOTE: I can't see any difference between a fatal message and an error message
-        fatal_line = Suppress(fatal) + Suppress(LineEnd())
-        fatal_line.setParseAction(self._error_message)
-        fatal_line_msg = Suppress(fatal) + message_string + Suppress(LineEnd())
-        fatal_line.setParseAction(self._error_message)
-        
-        # put the message expressions in the top level map
-        self._exprs.append(('todo_line', todo_line))
-        self._exprs.append(('todo_line_msg', todo_line_msg))
-        self._exprs.append(('warning_line', warning_line))
-        self._exprs.append(('warning_line_msg', warning_line_msg))
-        self._exprs.append(('error_line', error_line))
-        self._exprs.append(('error_line_msg', error_line_msg))
-        self._exprs.append(('fatal_line', fatal_line))
-        self._exprs.append(('fatal_line_msg', fatal_line_msg))
 
     def _init_files_exprs(self):
         
@@ -438,233 +318,9 @@ class Preprocessor(object):
         self._exprs.append(('setpad_string_line', setpad_string_line))
         self._exprs.append(('align_line', align_line))
 
-    def _set_symbol(self, label, value = None):
-        self._symbols[label] = value
-
-    def get_symbol(self, label):
-        if self._symbols.has_key(label):
-            return self._symbols[label]
-        return None
-
-    def _has_symbol(self, label):
-        return self._symbols.has_key(label)
-
-    def _delete_symbol(self, label):
-        if self._symbols.haskey(label):
-            self._symbols.pop(label)
-
-    def get_symbols(self):
-        return self._symbols
-
-    def expand_symbols(self, line):
-        expanded_line = line
-        for (symbol, value) in self._symbols.iteritems():
-            if value == None:
-                value = ''
-            expanded_line = expanded_line.replace(symbol, value)
-
-        return expanded_line
-
-    def _ignore(self):
-        if self._ignore_stack[-1] == True or self._ignore_stack[-1] == None:
-            return True
-
-        return False
-
     #
     # Parse Action Callbacks
     #
-
-    def _generic_line(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        # merge the tokens back into a single line of text
-        line = ' '.join(tokens)
-
-        # strip whitespace
-        line = line.strip()
-
-        # return an appropriate array of tokens
-        if not len(line):
-            return []
-        else:
-            # do macro expansion here
-            line = self.expand_symbols(line)
-            
-            # output some nice debug
-            self._log("%s:%s: %s" % (self._state.get_file(), self._state.get_line_no(), line))
-            
-            # return a CodeLine object ecapsulating the code 
-            return [CodeLine(line, self._state.get_file(), self._state.get_line_no())]
-
-    def _define_line(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        # define the symbol
-        self._log('Defining: %s' % tokens.label)
-        self._set_symbol(tokens.label, None)
-
-        # return empty list to eat tokens
-        return []
-
-    def _define_line_value(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        # check to see if there is a value
-        value = None
-        if hasattr(tokens, 'value'):
-            value = ' '.join(tokens.value)
-
-        # do macro expansion here so that we support recursive macros
-        value = self.expand_symbols(value)
-
-        # define the symbol
-        self._log('Defining: %s as %s' % (tokens.label, value))
-        self._set_symbol(tokens.label, value)
-
-        # return empty list to eat tokens
-        return []
-
-    def _undef_line(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        # delete the symbol
-        self._delete_symbol(tokens.label)
-
-        # return empty list to eat tokens
-        return []
-
-    def _ifdef_line(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        # the top of the ignore stack is None if we're nested inside
-        # of an ignored block of code.  we have to push another None
-        # on the stack to track our nesting
-        if self._ignore():
-            self._ignore_stack.append(None)
-            return []
-
-        self._log("Ifdef %s is %s" % (tokens.label, self._has_symbol(tokens.label)))
-        
-        # check to see if we should turn ignore on
-        if not self._has_symbol(tokens.label):
-            self._ignore_stack.append(True)
-        else:
-            self._ignore_stack.append(False)
-
-        return []
-
-    def _ifndef_line(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        # the top of the ignore stack is None if we're nested inside
-        # of an ignored block of code.  we have to push another None
-        # on the stack to track our nesting
-        if self._ignore():
-            self._ignore_stack.append(None)
-            return []
-
-        self._log("Ifndef %s is %s" % (tokens.label, not self._has_symbol(tokens.label)))
-        
-        # check to see if we should turn ignore on
-        if self._has_symbol(tokens.label):
-            self._ignore_stack.append(True)
-        else:
-            self._ignore_stack.append(False)
-
-        return []
-
-    def _else_line(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        self._log("Else")
-
-        # the top of the ignore stack is None if we're nested inside
-        # of an ingnored block of code.  we don't do anything in that case.
-        if self._ignore_stack[-1] == None:
-            return []
-
-        # so we're in an active block of code if we get here so we need
-        # to check to see if we're in a block and if so, flip from active
-        # to innactive.
-        if len(self._ignore_stack) <= 1:
-            raise ParseFatalException("#else outside of #ifdef/#ifndef block")
-
-        # swap states
-        if self._ignore():
-            self._ignore_stack[-1] = False
-        else:
-            self._ignore_stack[-1] = True
-
-        return []
-    
-    def _endif_line(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        self._log("Endif")
-
-        if len(self._ignore_stack) <= 1:
-            raise ParseFatalException("#endif without matching #ifdef/#ifndef")
-
-        # pop the current ignore state off of the stack
-        self._ignore_stack.pop()
-
-        return []
-
-    def _todo_message(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        self._log("%s:%s: TODO: %s" % (self._state.get_file(), self._state.get_line_no(), tokens.message))
-        # return an empty list to that the todo message token
-        # gets deleted from the token stream
-        return []
-
-    def _warning_message(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        self._log("%s:%s: WARNING: %s" % (self._state.get_file(), self._state.get_line_no(), tokens.message))
-        # return an empty list to that the todo message token
-        # gets deleted from the token stream
-        return []
-
-    def _error_message(self, pstring, location, tokens):
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        self._log("%s:%s: ERROR: %s" % (self._state.get_file(), self._state.get_line_no(), tokens.message))
-        # raise a fatal exception to halt parsing
-        raise ParseFatalException(tokens.message)
 
     def _include_literal_file(self, pstring, location, tokens):
         """

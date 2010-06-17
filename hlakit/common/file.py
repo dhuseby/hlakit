@@ -30,41 +30,43 @@ or implied, of David Huseby.
 from pyparsing import *
 from hlakit.common.session import Session
 
-class Else(object):
+class File(object):
     """
-    This defines the rules for parsing a #else line in a file
+    This is the base class for all file preprocessor directives
     """
+    FILE_NAME_CHARS = '0123456789' + \
+                      'abcdefghijklmnopqrstuvwxyz' + \
+                      'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + \
+                      '!"#$%&\\\'()*+,-./:;=?@[]^_`{|}~'
+
 
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
 
-        # the top of the ignore stack is None if we're nested inside
-        # of an ingnored block of code.  we don't do anything in that case.
-        if pp.ignore_stack_top() == None:
+        if pp.ignore():
             return []
 
-        # so we're in an active block of code if we get here so we need
-        # to check to see if we're in a block and if so, flip from active
-        # to innactive.
-        if len(pp.get_ignore_stack()) <= 1:
-            raise ParseFatalException("#else outside of #ifdef/#ifndef block")
-
-        # swap states
-        ignore = pp.ignore()
-        pp.ignore_stack_pop()
-        if ignore:
-            pp.ignore_stack_push(False)
-        else:
-            pp.ignore_stack_push(True)
-
+        path = getattr(tokens, 'literal_path', None)
+        implied = False
+        if not path:
+            path = getattr(tokens, 'implied_path', None)
+            implied = True
+        
+        klass._handle_file(path, implied)
         return []
 
     @classmethod
     def exprs(klass):
-        else_ = Keyword('#else')
-
-        expr = Suppress(else_) + \
+        kw = Keyword(klass._get_keyword())
+        literal_path = quotedString(Word(Preprocessor.FILE_NAME_CHARS))
+        literal_path.setParseAction(removeQuotes)
+        literal_path = literal_file_path.setResultsName('literal_path')
+        implied_path = Suppress(Literal('<')) + \
+                       Word(Preprocessor.FILE_NAME_CHARS).setResultsName('implied_path') + \
+                       Suppress(Literal('>'))
+        expr = Suppress(kw) + \
+               Or([literal_path, implied_path]) + \
                Suppress(LineEnd())
         expr.setParseAction(klass.parse)
 
