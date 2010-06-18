@@ -255,19 +255,61 @@ class PreprocessorTester(unittest.TestCase):
             pass
 
     def testImpliedInclude(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502', '--include=tests'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_include % '<dummy.h>'))
+        self.assertTrue(pp.has_symbol('FOO'))
+
+    def testImpliedDirInclude(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        path = '<%s>' % os.path.join('tests', 'dummy.h')
+        pp.parse(StringIO(self.pp_include % path))
+        self.assertTrue(pp.has_symbol('FOO'))
 
     def testLiteralInclude(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        path = '"%s"' % os.path.join('tests', 'dummy.h')
+        pp.parse(StringIO(self.pp_include % path))
+        self.assertTrue(pp.has_symbol('FOO'))
 
     def testFullPathLiteralInclude(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        full_path = '"%s"' % os.path.join(os.getcwd(), 'tests', 'dummy.h')
+        pp.parse(StringIO(self.pp_include % full_path))
+        self.assertTrue(pp.has_symbol('FOO'))
 
     def testBadImpliedInclude(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_include % '<dummy.h>'))
+            self.assertTrue(False)
+        except ParseFatalException, e:
+            pass
 
     def testBadLiteralInclude(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_include % '"dummy.y"'))
+            self.assertTrue(False)
+        except ParseFatalException, e:
+            pass
 
     def testImpliedIncbin(self):
         pass

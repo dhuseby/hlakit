@@ -49,4 +49,3 @@ class CodeBlock(object):
 
     __repr__ = __str__
 
-

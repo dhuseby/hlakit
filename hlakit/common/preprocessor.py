@@ -112,11 +112,13 @@ class Preprocessor(object):
     def set_exprs(self, value):
         self._exprs = value
 
-    def get_state(self):
-        return getattr(self, '_state', None)
+    def _get_tokens(self):
+        return getattr(self, '_tokens', [])
 
-    def set_state(self, value):
-        self._state = value
+    def _append_tokens(self, tokens):
+        if not hasattr(self, '_tokens'):
+            self._tokens = []
+        self._tokens.append(tokens)
 
     def get_symbols(self):
         return getattr(self, '_symbols', {})
@@ -179,56 +181,50 @@ class Preprocessor(object):
         return self._state_stack.pop()
 
     def state_stack_top(self):
-        return self.get_state_stack()[-1]
+        if len(self.get_state_stack()):
+            return self.get_state_stack()[-1]
+        return None
 
     def parse(self, f):
-        # push our current state if we're recursively parsing
-        if self.get_state():
-            # push our current state on the stack
-            self.state_stack_push(self.get_state())
-
         # set up a new context
-        self.set_state(Preprocessor.StateFrame(f, self.get_exprs()))
+        self.state_stack_push(Preprocessor.StateFrame(f, self.get_exprs()))
 
         # do the parse
-        tokens = self.get_state().parse()
+        self._append_tokens(self.state_stack_top().parse())
 
         # restore previous state if there is one
-        if len(self.get_state_stack()):
-            self.set_state(self.state_stack_pop())
-        else:
-            # when we get here, we're done parsing everything...
-            # it's time to merge un-processed lines into code blocks for
-            # parsing by the compiler pass.
-            pp_tokens = []
-            current_block = CodeBlock()
-            for token in tokens:
-                if type(token) is CodeLine:
-                    current_block.append(token)
-                else:
-                    # if the current code block has lines in it, then
-                    # push it into the pp_tokens list and start a new
-                    # CodeBlock...
-                    if current_block.num_lines() > 0:
-                        pp_tokens.append(current_block)
-                        current_block = CodeBlock()
+        self.state_stack_pop()
 
-                    # append the non-CodeLine token to the pp_tokens list
-                    pp_tokens.append(token)
+    def get_output(self):
+        # get the tokens 
+        tokens = self._get_tokens()
 
-            # make sure we append the last code block
-            if current_block.num_lines() > 0:
-                pp_tokens.append(current_block)
+        # it's time to merge un-processed lines into code blocks for
+        # parsing by the compiler pass.
+        pp_tokens = []
+        current_block = CodeBlock()
+        for token in tokens:
+            if type(token) is CodeLine:
+                current_block.append(token)
+            else:
+                # if the current code block has lines in it, then
+                # push it into the pp_tokens list and start a new
+                # CodeBlock...
+                if current_block.num_lines() > 0:
+                    pp_tokens.append(current_block)
+                    current_block = CodeBlock()
 
-            # make sure we return the pp_tokens
-            tokens = pp_tokens
+                # append the non-CodeLine token to the pp_tokens list
+                pp_tokens.append(token)
+
+        # make sure we append the last code block
+        if current_block.num_lines() > 0:
+            pp_tokens.append(current_block)
 
         # the output here is a list of tokens like CodeBlock, IncBin, CodeBlock etc
         # that way the compiler can translate each CodeBlock into a series of tokens
         # that the linker and code generator can understand.
-
-        return tokens
-
+        return pp_tokens
     
 '''
     def _init_preprocessor_exprs(self):

@@ -173,9 +173,9 @@ class Session(object):
   
         # add in the current file dir
         pp = self.preprocessor()
-        cur = pp.state_stack_top().get_file_path()
-        if cur:
-            search_paths.append(cur)
+        state = pp.state_stack_top()
+        if state and state.get_file_path():
+            search_paths.append(state.get_file_path())
 
         # add in cwd as last option
         search_paths.append(os.getcwd())
@@ -207,9 +207,9 @@ class Session(object):
       
         # add in the current file dir
         pp = self.preprocessor()
-        cur = pp.state_stack_top().get_file_path()
-        if cur:
-            search_paths.append(cur)
+        state = pp.state_stack_top()
+        if state and state.get_file_path():
+            search_paths.append(state.get_file_path())
 
         # add in cwd as last option
         search_paths.append(os.getcwd())

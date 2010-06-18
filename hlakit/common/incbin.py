@@ -49,7 +49,7 @@ class Incbin(File):
 
         session = Session()
         pp = session.preprocessor()
-        file_path = session.get_file_path(pp.state_stack_top().get_file_path())
+        file_path = session.get_file_path(path)
 
         if not file_path:
             raise ParseFatalException('included file does not exist: %s' % file_path)

@@ -40,7 +40,7 @@ class SetAlign(object):
 
     __repr__ = __str__
 
-lass AssignValue(object):
+class AssignValue(object):
     """
     encapsulates an assignment AST
     """

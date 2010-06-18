@@ -59,11 +59,11 @@ class File(object):
     @classmethod
     def exprs(klass):
         kw = Keyword(klass._get_keyword())
-        literal_path = quotedString(Word(Preprocessor.FILE_NAME_CHARS))
+        literal_path = quotedString(Word(klass.FILE_NAME_CHARS))
         literal_path.setParseAction(removeQuotes)
-        literal_path = literal_file_path.setResultsName('literal_path')
+        literal_path = literal_path.setResultsName('literal_path')
         implied_path = Suppress(Literal('<')) + \
-                       Word(Preprocessor.FILE_NAME_CHARS).setResultsName('implied_path') + \
+                       Word(klass.FILE_NAME_CHARS).setResultsName('implied_path') + \
                        Suppress(Literal('>'))
         expr = Suppress(kw) + \
                Or([literal_path, implied_path]) + \

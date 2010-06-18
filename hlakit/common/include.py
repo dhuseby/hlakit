@@ -27,7 +27,8 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from pyparsing import *
+import sys
+from pyparsing import ParseFatalException
 from hlakit.common.session import Session
 from hlakit.common.file import File
 
@@ -48,7 +49,7 @@ class Include(File):
 
         session = Session()
         pp = session.preprocessor()
-        file_path = session.get_file_path(pp.state_stack_top().get_file_path())
+        file_path = session.get_file_path(path)
 
         if not file_path:
             raise ParseFatalException('included file does not exist: %s' % file_path)
