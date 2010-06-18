@@ -34,6 +34,7 @@ from StringIO import StringIO
 from hlakit.common.session import Session, CommandLineError
 from hlakit.cpu.mos6502 import MOS6502Preprocessor
 from hlakit.platform.nes import NES
+from hlakit.common.blob import Blob
 
 class PreprocessorTester(unittest.TestCase):
     """
@@ -312,17 +313,59 @@ class PreprocessorTester(unittest.TestCase):
             pass
 
     def testImpliedIncbin(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502', '--include=tests'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_incbin % '<blob.bin>'))
+        self.assertTrue(isinstance(pp.get_output()[0], Blob))
+
+    def testImpliedDirIncbin(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        path = '<%s>' % os.path.join('tests', 'blob.bin')
+        pp.parse(StringIO(self.pp_incbin % path))
+        self.assertTrue(isinstance(pp.get_output()[0], Blob))
 
     def testLiteralIncbin(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        path = '"%s"' % os.path.join('tests', 'blob.bin')
+        pp.parse(StringIO(self.pp_incbin % path))
+        self.assertTrue(isinstance(pp.get_output()[0], Blob))
 
     def testFullPathLiteralIncbin(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        full_path = '"%s"' % os.path.join(os.getcwd(), 'tests', 'blob.bin')
+        pp.parse(StringIO(self.pp_incbin % full_path))
+        self.assertTrue(isinstance(pp.get_output()[0], Blob))
 
     def testBadImpliedIncbin(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_incbin % '<blob.bin>'))
+            self.assertTrue(False)
+        except ParseFatalException, e:
+            pass
 
     def testBadLiteralIncbin(self):
-        pass
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_include % '"blob.bin"'))
+            self.assertTrue(False)
+        except ParseFatalException, e:
+            pass
 

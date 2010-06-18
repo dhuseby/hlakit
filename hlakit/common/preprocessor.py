@@ -68,10 +68,11 @@ class Preprocessor(object):
             self._parser = ZeroOrMore(expr_or)
 
         def parse(self):
-            return self._parser.parseFile(self._file, parseAll=True)
+            tokens = self._parser.parseFile(self._file, parseAll=True)
+            return tokens
 
         def get_file_path(self):
-            return getattr(self._file, 'path', None)
+            return getattr(self._file, 'name', None)
 
     @classmethod
     def exprs(klass):
@@ -118,7 +119,7 @@ class Preprocessor(object):
     def _append_tokens(self, tokens):
         if not hasattr(self, '_tokens'):
             self._tokens = []
-        self._tokens.append(tokens)
+        self._tokens.extend(tokens)
 
     def get_symbols(self):
         return getattr(self, '_symbols', {})
@@ -190,7 +191,9 @@ class Preprocessor(object):
         self.state_stack_push(Preprocessor.StateFrame(f, self.get_exprs()))
 
         # do the parse
-        self._append_tokens(self.state_stack_top().parse())
+        tokens = self.state_stack_top().parse()
+        if len(tokens):
+            self._append_tokens(tokens)
 
         # restore previous state if there is one
         self.state_stack_pop()

@@ -35,7 +35,8 @@ from hlakit.common.session import Session, CommandLineError
 
 def main():
     try:
-        session = Session(sys.argv[1:])
+        session = Session()
+        session.parse_args(sys.argv[1:])
     except CommandLineError, e:
         print >> sys.stderr, 'ERROR: %s' % e
         return 0

@@ -175,7 +175,7 @@ class Session(object):
         pp = self.preprocessor()
         state = pp.state_stack_top()
         if state and state.get_file_path():
-            search_paths.append(state.get_file_path())
+            search_paths.append(os.path.dirname(state.get_file_path()))
 
         # add in cwd as last option
         search_paths.append(os.getcwd())
@@ -209,7 +209,7 @@ class Session(object):
         pp = self.preprocessor()
         state = pp.state_stack_top()
         if state and state.get_file_path():
-            search_paths.append(state.get_file_path())
+            search_paths.append(os.path.dirname(state.get_file_path()))
 
         # add in cwd as last option
         search_paths.append(os.getcwd())
@@ -263,18 +263,17 @@ class Session(object):
             if fpath is None:
                 continue;
 
-            print 'processing file: %s' % fpath
-
             # open the file
-            #inf = open(fpath, 'r')
+            inf = open(fpath, 'r')
 
-            # parse the file 
-            #pp_tokens = pp.parse(inf)
-            #for t in pp_tokens:
-            #    print "%s: %s" % (type(t), t)
+            # parse the file
+            pp.parse(inf)
+            pp_tokens = pp.get_output()
+            for t in pp_tokens:
+                print "%s: %s" % (type(t), t)
 
             # close the file
-            #inf.close()
+            inf.close()
 
             # compile the tokenstream
             #cc_tokens = cc.compile(pp_tokens)

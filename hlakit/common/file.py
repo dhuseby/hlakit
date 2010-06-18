@@ -53,8 +53,7 @@ class File(object):
             path = getattr(tokens, 'implied_path', None)
             implied = True
         
-        klass._handle_file(path, implied)
-        return []
+        return klass._handle_file(path, implied)
 
     @classmethod
     def exprs(klass):
