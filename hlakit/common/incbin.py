@@ -54,5 +54,26 @@ class Incbin(File):
         if not file_path:
             raise ParseFatalException('included file does not exist: %s' % file_path)
 
-        return Blob(file_path)
+        return klass(file_path)
+
+    def __init__(self, f, label = None):
+        self._name = f
+        inf = open(f, 'r')
+        self._data = inf.read()
+        inf.close()
+        self._label = label
+
+    def get_data(self):
+        return self._data
+
+    def get_label(self):
+        return self._label
+
+    def __str__(self):
+        if self._label is None:
+            return "<%s>" % self._name
+        return "<%s: %s>" % (self._label, self._name)
+
+    __repr__ = __str__
+
 

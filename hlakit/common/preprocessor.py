@@ -40,6 +40,8 @@ from warning import Warning
 from error import Error
 from include import Include
 from incbin import Incbin
+from rom import RomOrg, RomEnd, RomBanksize, RomBank
+from ram import RamOrg, RamEnd
 from codeline import CodeLine
 from codeblock import CodeBlock
 
@@ -88,6 +90,12 @@ class Preprocessor(object):
         e.append(('error', Error.exprs()))
         e.append(('include', Include.exprs()))
         e.append(('incbin', Incbin.exprs()))
+        e.append(('romorg', RomOrg.exprs()))
+        e.append(('romend', RomEnd.exprs()))
+        e.append(('rombanksize', RomBanksize.exprs()))
+        e.append(('rombank', RomBank.exprs()))
+        e.append(('ramorg', RamOrg.exprs()))
+        e.append(('ramend', RamEnd.exprs()))
         e.append(('codeline', CodeLine.exprs()))
         return e
 
@@ -106,6 +114,7 @@ class Preprocessor(object):
         self._symbols = {}
         self._ignore_stack = [False]
         self._state_stack = []
+        self._tokens = []
 
     def get_exprs(self):
         return getattr(self, '_exprs', [])
@@ -229,239 +238,4 @@ class Preprocessor(object):
         # that the linker and code generator can understand.
         return pp_tokens
     
-'''
-    def _init_preprocessor_exprs(self):
-        self._init_files_exprs()
-        self._init_memory_exprs()
-
-    def _init_files_exprs(self):
-        
-        # define label
-        label = Word(alphas + '_', alphanums + '_').setResultsName('label')
-
-        # define include and incbin literals
-        include = Keyword('#include')
-        incbin = Keyword('#incbin')
-
-        # ==> #include "foo.h"
-
-        # define a quoted file path 
-        literal_file_path = quotedString(Word(Preprocessor.FILE_NAME_CHARS))
-        literal_file_path.setParseAction(removeQuotes)
-        literal_file_path = literal_file_path.setResultsName('file_path')
-
-        # define a literal include line
-        literal_include_line = Suppress(include) + literal_file_path + Suppress(LineEnd())
-        literal_include_line.setParseAction(self._include_literal_file)
-
-        # ==> #include <foo.h>
-
-        # define an angle bracketed file path
-        implied_file_path = Suppress(Literal('<')) + \
-                            Word(Preprocessor.FILE_NAME_CHARS).setResultsName('file_path') + \
-                            Suppress(Literal('>'))
-        #implied_file_path = implied_file_path.setResultsName('file_path')
-        
-        # define an implied include line
-        implied_include_line = Suppress(include) + implied_file_path + Suppress(LineEnd())
-        implied_include_line.setParseAction(self._include_implied_file)
-
-        # ==> #incbin "foo.bin"
-        literal_incbin_line = Suppress(incbin) + literal_file_path + Suppress(LineEnd())
-        literal_incbin_line.setParseAction(self._include_literal_incbin)
-
-        # ==> sprite_pal: #incbin "palettes/spr_pal0.pal"
-        symbol_incbin_line = label + \
-                             Suppress(':') + \
-                             Suppress(incbin) + \
-                             literal_file_path + \
-                             Suppress(LineEnd())
-        symbol_incbin_line.setParseAction(self._include_literal_incbin)
-
-        # build the "include" expression in the top level map of expressions
-        self._exprs.append(('literal_include_line', literal_include_line))
-        self._exprs.append(('implied_include_line', implied_include_line))
-        self._exprs.append(('literal_incbin_line', literal_incbin_line))
-        self._exprs.append(('symbol_incbin_line', symbol_incbin_line))
-
-    def _init_memory_exprs(self):
-        
-        # define setpad and align keywords
-        setpad = Keyword('#setpad')
-        align = Keyword('#align')
-
-        # define quoted string for the messages
-        message = Word(printables)
-        message_string = quotedString(message)
-        message_string.setParseAction(removeQuotes)
-        message_string = message_string.setResultsName('message')
-
-        # setpad line
-        setpad_number_line = Suppress(setpad) + \
-                             NumericValue.exprs().setResultsName('value') + \
-                             Suppress(LineEnd())
-        setpad_number_line.setParseAction(self._setpad_line)
-        setpad_string_line = Suppress(setpad) + \
-                             message_string + \
-                             Suppress(LineEnd())
-        setpad_string_line.setParseAction(self._setpad_line)
-
-        # align line
-        align_line = Suppress(align) + \
-                     NumericValue.exprs().setResultsName('value') + \
-                     Suppress(LineEnd())
-        align_line.setParseAction(self._align_line)
-
-        # build the expression map
-        self._exprs.append(('setpad_number_line', setpad_number_line))
-        self._exprs.append(('setpad_string_line', setpad_string_line))
-        self._exprs.append(('align_line', align_line))
-
-    #
-    # Parse Action Callbacks
-    #
-
-    def _include_literal_file(self, pstring, location, tokens):
-        """
-        We want to recursively parse included files so we have to
-        search for the file, open it, and then have the parser
-        recursively parse the included file.  We will return the
-        tokens from the parsed included file so that they get
-        injected into the overall token map of the overall parse.
-        """
-
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        if len(tokens) != 1:
-            raise ParseFatalException ('invalid include file path length')
-
-        # build a list of paths to search
-        search_paths = []
-        search_paths.append(self._get_cur_script_dir())
-
-        # calculate the full path to the included file
-        include_file = self._options.get_file_path(tokens.file_path, search_paths)
-
-        # check for error
-        if not include_file:
-            raise ParseFatalException('included file does not exist: %s [%s]' % (tokens.file_path, search_paths))
-
-        # open the file
-        inf = open(include_file, 'r')
-
-        # output some nice info
-        self._log("%s:%s: including: %s" % (self._state.get_file(), self._state.get_line_no(), os.path.basename(inf.name)))
-        
-        # recursively parse the file
-        recursive_tokens = self.parse(inf)
-
-        # close the file
-        inf.close()
-
-        return recursive_tokens
-
-    def _include_implied_file(self, pstring, location, tokens):
-        """
-        We want to recursively parse included files so we have to
-        search for the file, open it, and then have the parser
-        recursively parse the included file.  We will return the
-        tokens from the parsed included file so that they get
-        injected into the overall token map of the overall parse.
-        """
-
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        if len(tokens) != 1:
-            raise ParseFatalException('invalid include file path length')
-
-        # calculate the path
-        include_paths = self._options.get_include_dirs()
-        if len(include_paths) == 0:
-            raise ParseFatalException('no include directories specified')
-      
-        # search for the file in the include directories
-        search_paths = self._options.get_include_dirs()
-        include_file = self._options.get_file_path(tokens.file_path, search_paths)
-
-        # check for error
-        if not include_file:
-            raise ParseFatalException('included file does not exist: %s [%s]' % (tokens.file_path, search_paths))
-        
-        # open the file
-        inf = open(include_file, 'r')
-
-        # output some nice info
-        self._log("%s:%s: including: %s" % (self._state.get_file(), self._state.get_line_no(), os.path.basename(inf.name)))
-
-        # recursively parse the file
-        recursive_tokens = self.parse(inf)
-
-        # close the file
-        inf.close()
-
-        return recursive_tokens
-
-    def _include_literal_incbin(self, pstring, location, tokens):
-        """
-        We want to load up the binary data into a blob and inject
-        it into the token stream to be included into the final
-        binary.
-        """
-        
-        # increment line number
-        self._state.increment_line_no()
-
-        if self._ignore():
-            return []
-
-        label = None
-        if 'label' in tokens.keys():
-            label = tokens.label
-
-        # build a list of paths to search
-        search_paths = []
-        search_paths.append(self._get_cur_script_dir())
-
-        # calculate the full path to the included file
-        include_file = self._options.get_file_path(tokens.file_path, search_paths)
-
-        # check for error
-        if not include_file:
-            raise ParseFatalException('included file does not exist: %s [%s]' % (tokens.file_path, search_paths))
-
-        # open the file
-        inf = open(include_file, 'rb')
-
-        # create the blob token
-        blob = IncBin(inf, label)
-
-        # close the file
-        inf.close()
-
-        return blob
-
-    def _setpad_line(self, pstring, location, tokens):
-
-        if 'message' in tokens.keys():
-            return SetPad(tokens.message)
-        elif 'value' in tokens.keys():
-            return SetPad(tokens.value)
-
-        raise ParseFatalExpression('invalid padding value')
-
-    def _align_line(self, pstring, location, tokens):
-        
-        if 'value' in tokens.keys():
-            return SetAlign(tokens.value)
-
-        raise ParseFatalExpression('invalid alignment value')
-'''
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 HLAKit
 Copyright (c) 2010 David Huseby. All rights reserved.
@@ -13,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -28,22 +27,34 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-import os
-import sys
-import optparse
-from hlakit.common.session import Session, CommandLineError
+from pyparsing import *
+from hlakit.common.session import Session
+from hlakit.common.numericvalue import NumericValue
+from hlakit.common.arrayvalue import ArrayValue
 
-def main():
-    try:
-        session = Session()
-        session.parse_args(sys.argv[1:])
-    except CommandLineError, e:
-        print >> sys.stderr, 'ERROR: %s' % e
-        return 0
+class Value(object):
+    """
+    value base class
+    """
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
 
-    session.build()
-    return 1
+        if pp.ignore():
+            return []
 
-if __name__ == "__main__":
-    
-    sys.exit(main())
+        if 'number' in tokens.keys():
+            return tokens.number
+        elif 'array' in tokens.keys():
+            return tokens.array
+
+        raise ParseFatalException('unrecognized value expression')
+
+    @classmethod
+    def exprs(klass):
+        expr = NumericValue.exprs().setResultsName('number') | \
+               ArrayValue.exprs().setResultsName('array')
+        expr.setParseAction(klass.parse)
+        return expr
+
+

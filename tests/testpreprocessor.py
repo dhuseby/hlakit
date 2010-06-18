@@ -34,27 +34,13 @@ from StringIO import StringIO
 from hlakit.common.session import Session, CommandLineError
 from hlakit.cpu.mos6502 import MOS6502Preprocessor
 from hlakit.platform.nes import NES
-from hlakit.common.blob import Blob
+from hlakit.common.incbin import Incbin
+from hlakit.common.ram import RamOrg, RamEnd
 
 class PreprocessorTester(unittest.TestCase):
     """
     This class aggregates all of the tests for the preprocessor.
     """
-
-    pp_define = '#define FOO\n'
-    pp_define_value = '#define FOO 1\n'
-    pp_define_string = '#define FOO "blah blah blah"\n'
-    pp_define_bar = '#define BAR\n'
-    pp_undef = '#undef FOO\n'
-    pp_ifdef = '#ifdef FOO\n'
-    pp_ifndef = '#ifndef FOO\n'
-    pp_else = '#else\n'
-    pp_endif = '#endif\n'
-    pp_todo = '#todo %s\n'
-    pp_warning = '#warning %s\n'
-    pp_error = '#error %s\n'
-    pp_include = '#include %s\n'
-    pp_incbin = '#incbin %s\n'
 
     def setUp(self):
         session = Session()
@@ -67,6 +53,12 @@ class PreprocessorTester(unittest.TestCase):
         session = Session()
         session.parse_args(['--cpu=6502'])
         self.assertTrue(isinstance(session._target.preprocessor(), MOS6502Preprocessor))
+
+    pp_define = '#define FOO\n'
+    pp_define_value = '#define FOO 1\n'
+    pp_define_string = '#define FOO "blah blah blah"\n'
+    pp_define_bar = '#define BAR\n'
+    pp_undef = '#undef FOO\n'
 
     def testDefine(self):
         session = Session()
@@ -97,6 +89,12 @@ class PreprocessorTester(unittest.TestCase):
         self.assertTrue(pp.has_symbol('FOO'))
         pp.parse(StringIO(self.pp_undef))
         self.assertFalse(pp.has_symbol('FOO'), 'FOO shouldn\'t be defined')
+
+
+    pp_ifdef = '#ifdef FOO\n'
+    pp_ifndef = '#ifndef FOO\n'
+    pp_else = '#else\n'
+    pp_endif = '#endif\n'
 
     def testIfdef(self):
         session = Session()
@@ -188,6 +186,11 @@ class PreprocessorTester(unittest.TestCase):
         #undef FOO 
         pp.parse(StringIO(self.pp_undef))
 
+
+    pp_todo = '#todo %s\n'
+    pp_warning = '#warning %s\n'
+    pp_error = '#error %s\n'
+    
     def testTodo(self):
         session = Session()
         session.parse_args(['--cpu=6502'])
@@ -242,7 +245,6 @@ class PreprocessorTester(unittest.TestCase):
         except ParseFatalException, e:
             pass
 
-
     def testBadError(self):
         session = Session()
         session.parse_args(['--cpu=6502'])
@@ -254,6 +256,10 @@ class PreprocessorTester(unittest.TestCase):
             self.assertTrue(False)
         except ParseException, e:
             pass
+
+
+    pp_include = '#include %s\n'
+    pp_incbin = '#incbin %s\n'
 
     def testImpliedInclude(self):
         session = Session()
@@ -318,7 +324,7 @@ class PreprocessorTester(unittest.TestCase):
         pp = session.preprocessor()
 
         pp.parse(StringIO(self.pp_incbin % '<blob.bin>'))
-        self.assertTrue(isinstance(pp.get_output()[0], Blob))
+        self.assertTrue(isinstance(pp.get_output()[0], Incbin))
 
     def testImpliedDirIncbin(self):
         session = Session()
@@ -327,7 +333,7 @@ class PreprocessorTester(unittest.TestCase):
 
         path = '<%s>' % os.path.join('tests', 'blob.bin')
         pp.parse(StringIO(self.pp_incbin % path))
-        self.assertTrue(isinstance(pp.get_output()[0], Blob))
+        self.assertTrue(isinstance(pp.get_output()[0], Incbin))
 
     def testLiteralIncbin(self):
         session = Session()
@@ -336,7 +342,7 @@ class PreprocessorTester(unittest.TestCase):
 
         path = '"%s"' % os.path.join('tests', 'blob.bin')
         pp.parse(StringIO(self.pp_incbin % path))
-        self.assertTrue(isinstance(pp.get_output()[0], Blob))
+        self.assertTrue(isinstance(pp.get_output()[0], Incbin))
 
     def testFullPathLiteralIncbin(self):
         session = Session()
@@ -345,7 +351,7 @@ class PreprocessorTester(unittest.TestCase):
 
         full_path = '"%s"' % os.path.join(os.getcwd(), 'tests', 'blob.bin')
         pp.parse(StringIO(self.pp_incbin % full_path))
-        self.assertTrue(isinstance(pp.get_output()[0], Blob))
+        self.assertTrue(isinstance(pp.get_output()[0], Incbin))
 
     def testBadImpliedIncbin(self):
         session = Session()
@@ -367,5 +373,53 @@ class PreprocessorTester(unittest.TestCase):
             pp.parse(StringIO(self.pp_include % '"blob.bin"'))
             self.assertTrue(False)
         except ParseFatalException, e:
+            pass
+
+    pp_ramorg = '#ram.org %s\n'
+    pp_ramend = '#ram.end\n'
+    pp_romorg = '#rom.org %s\n'
+    pp_romend = '#rom.end\n'
+    pp_rombanksize = '#rom.banksize %s\n'
+    pp_rombank = '#rom.bank %s\n'
+
+    def testRamOrg(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_ramorg % '0x0100'))
+        self.assertTrue(isinstance(pp.get_output()[0], RamOrg))
+        self.assertEquals(int(pp.get_output()[0].get_address()), 0x100)
+
+    def testRamOrgMaxsize(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_ramorg % '0x0100, 0x1000'))
+        self.assertTrue(isinstance(pp.get_output()[0], RamOrg))
+        self.assertEquals(int(pp.get_output()[0].get_address()), 0x0100)
+        self.assertEquals(int(pp.get_output()[0].get_maxsize()), 0x1000)
+
+    def testBadRamOrg(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_ramorg % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testBadRamOrgMaxsize(self):
+        session = Session()
+        session.parse_args(['--cpu=6502'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_ramorg % '0x0100,'))
+            self.assertTrue(False)
+        except ParseException:
             pass
 

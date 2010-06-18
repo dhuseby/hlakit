@@ -27,29 +27,31 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-class Blob(object):
-    """
-    This is a wrapper class around some binary data included
-    directly into the final binary from the code.
-    """
-    def __init__(self, f, label = None):
-        self._name = f
-        inf = open(f, 'r')
-        self._data = inf.read()
-        inf.close()
-        self._label = label
+from pyparsing import *
+from hlakit.common.session import Session
 
-    def get_data(self):
-        return self._data
-
-    def get_label(self):
-        return self._label
+class Label(object):
+    """
+    encapsulates a label
+    """
+    def __init__(self, name):
+        self._name = name
 
     def __str__(self):
-        if self._label is None:
-            return "<%s>" % self._name
-        return "<%s: %s>" % (self._label, self._name)
+        return '%s:' % self._name
 
     __repr__ = __str__
 
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        if 'label' not in tokens.keys():
+            raise ParseFatalException('label missing name')
+
+        return klass(tokens.label)
+
+    @classmethod
+    def exprs(klass):
+        expr = Word(alphas, alphanums + '_').setResultsName('label') + Suppress(':')
+        expr.setParseAction(klass.parse)
+        return expr
 
