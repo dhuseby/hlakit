@@ -8,5 +8,15 @@ included LICENSE file or by visiting here:
 <http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>
 """
 
+from preprocessor import Preprocessor
+
 class Target(object):
-    pass
+    def preprocessor(self):
+        return Preprocessor()
+
+    def compiler(self):
+        return None
+
+    def linker(self):
+        return None
+

@@ -29,9 +29,8 @@ or implied, of David Huseby.
 import os
 import sys
 import unittest
+from hlakit.common.target import Target
 from hlakit.common.session import Session, CommandLineError
-from hlakit.cpu.mos6502 import MOS6502
-from hlakit.platform.nes import NES
 
 class CommandLineOptionsTester(unittest.TestCase):
     """
@@ -71,36 +70,26 @@ class CommandLineOptionsTester(unittest.TestCase):
             return
         self.assetTrue(False)
 
-    def test6502CPU(self):
+    def testCPU(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
-        self.assertTrue(isinstance(session._target, MOS6502))
-
-    def testNESPlatform(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        self.assertTrue(isinstance(session._target, NES))
-        
-    def testNESPlatform2(self):
-        session = Session()
-        session.parse_args(['--platform=Nes'])
-        self.assertTrue(isinstance(session._target, NES))
+        session.parse_args(['--cpu=generic'])
+        self.assertTrue(isinstance(session._target, Target))
 
     def testSingleFile(self):
         session = Session()
-        session.parse_args(['--cpu=6502', 'foo.s'])
+        session.parse_args(['--cpu=generic', 'foo.s'])
         self.assertEquals(session.get_args()[0], 'foo.s')
 
     def testMultipleFiles(self):
         session = Session()
-        session.parse_args(['--cpu=6502', 'bar.s', 'foo.s'])
+        session.parse_args(['--cpu=generic', 'bar.s', 'foo.s'])
         self.assertEquals(session.get_args()[0], 'bar.s')
         self.assertEquals(session.get_args()[1], 'foo.s')
 
     def testPathResolution(self):
         absolute_path = os.path.join(os.getcwd(), 'tests', 'dummy.s')
         session = Session()
-        session.parse_args(['--cpu=6502', 'tests/dummy.s', absolute_path])
+        session.parse_args(['--cpu=generic', 'tests/dummy.s', absolute_path])
         self.assertEquals(session.get_file_path(session.get_args()[0]), absolute_path)
         self.assertEquals(session.get_file_path(session.get_args()[1]), absolute_path)
 
@@ -108,16 +97,16 @@ class CommandLineOptionsTester(unittest.TestCase):
         absolute_dir = os.path.join(os.getcwd(), 'tests')
         absolute_path = os.path.join(absolute_dir, 'dummy.s')
         session = Session()
-        session.parse_args(['--cpu=6502', absolute_path])
+        session.parse_args(['--cpu=generic', absolute_path])
         self.assertEquals(session.get_file_dir(session.get_args()[0]), absolute_dir)
 
     def testI(self):
         session = Session()
-        session.parse_args(['--cpu=6502', '-Itests'])
+        session.parse_args(['--cpu=generic', '-Itests'])
         self.assertEquals(session.get_include_dirs(), ['tests'])
 
     def testInclude(self):
         session = Session()
-        session.parse_args(['--cpu=6502', '--include=tests'])
+        session.parse_args(['--cpu=generic', '--include=tests'])
         self.assertEquals(session.get_include_dirs(), ['tests'])
  

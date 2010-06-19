@@ -30,12 +30,15 @@ import os
 import sys
 import unittest
 from pyparsing import ParseException, ParseFatalException
-from StringIO import StringIO
+from cStringIO import StringIO
+from hlakit.common.preprocessor import Preprocessor
 from hlakit.common.session import Session, CommandLineError
-from hlakit.cpu.mos6502 import MOS6502Preprocessor
-from hlakit.platform.nes import NES
+from hlakit.common.tell import TellBank, TellBankOffset, TellBankSize, TellBankFree, TellBankType
 from hlakit.common.incbin import Incbin
 from hlakit.common.ram import RamOrg, RamEnd
+from hlakit.common.rom import RomOrg, RomEnd, RomBanksize, RomBank
+from hlakit.common.setpad import SetPad
+from hlakit.common.align import Align
 
 class PreprocessorTester(unittest.TestCase):
     """
@@ -49,10 +52,10 @@ class PreprocessorTester(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test6502Preprocessor(self):
+    def testPreprocessor(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
-        self.assertTrue(isinstance(session._target.preprocessor(), MOS6502Preprocessor))
+        session.parse_args(['--cpu=generic'])
+        self.assertTrue(isinstance(session._target.preprocessor(), Preprocessor))
 
     pp_define = '#define FOO\n'
     pp_define_value = '#define FOO 1\n'
@@ -62,28 +65,28 @@ class PreprocessorTester(unittest.TestCase):
 
     def testDefine(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
         pp.parse(StringIO(self.pp_define))
         self.assertTrue(pp.has_symbol('FOO'))
     
     def testDefineValue(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
         pp.parse(StringIO(self.pp_define_value))
         self.assertEquals(pp.get_symbol('FOO'), '1')
 
     def testDefineString(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
         pp.parse(StringIO(self.pp_define_string))
         self.assertEquals(pp.get_symbol('FOO'), '"blah blah blah"')
 
     def testUndef(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
         pp.parse(StringIO(self.pp_define))
         self.assertTrue(pp.has_symbol('FOO'))
@@ -98,7 +101,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testIfdef(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         #define FOO
@@ -124,7 +127,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testIfndef(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
         
         self.assertEquals(len(pp.get_ignore_stack()), 1)
@@ -147,7 +150,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testElse(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         #ifdef FOO
@@ -180,7 +183,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadUndef(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
         
         #undef FOO 
@@ -193,7 +196,7 @@ class PreprocessorTester(unittest.TestCase):
     
     def testTodo(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         #todo "Hello World"
@@ -202,7 +205,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadTodo(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         #todo
@@ -214,7 +217,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testWarning(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         #warning "Hello World"
@@ -223,7 +226,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadWarning(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         #warning
@@ -235,7 +238,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testError(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         #error "Hello World"
@@ -247,7 +250,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadError(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         #error
@@ -257,13 +260,59 @@ class PreprocessorTester(unittest.TestCase):
         except ParseException, e:
             pass
 
+    pp_tellbank = '#tell.bank\n'
+    pp_tellbankoffset = '#tell.bankoffset\n'
+    pp_tellbanksize = '#tell.banksize\n'
+    pp_tellbankfree = '#tell.bankfree\n'
+    pp_tellbanktype = '#tell.banktype\n'
+
+    def testTellBank(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_tellbank))
+        self.assertTrue(isinstance(pp.get_output()[0], TellBank))
+
+    def testTellBankOffset(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_tellbankoffset))
+        self.assertTrue(isinstance(pp.get_output()[0], TellBankOffset))
+
+    def testTellBankSize(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_tellbanksize))
+        self.assertTrue(isinstance(pp.get_output()[0], TellBankSize))
+
+    def testTellBankFree(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_tellbankfree))
+        self.assertTrue(isinstance(pp.get_output()[0], TellBankFree))
+
+    def testTellBankType(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_tellbanktype))
+        self.assertTrue(isinstance(pp.get_output()[0], TellBankType))
+
 
     pp_include = '#include %s\n'
     pp_incbin = '#incbin %s\n'
 
     def testImpliedInclude(self):
         session = Session()
-        session.parse_args(['--cpu=6502', '--include=tests'])
+        session.parse_args(['--cpu=generic', '--include=tests'])
         pp = session.preprocessor()
 
         pp.parse(StringIO(self.pp_include % '<dummy.h>'))
@@ -271,7 +320,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testImpliedDirInclude(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         path = '<%s>' % os.path.join('tests', 'dummy.h')
@@ -280,7 +329,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testLiteralInclude(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         path = '"%s"' % os.path.join('tests', 'dummy.h')
@@ -289,7 +338,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testFullPathLiteralInclude(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         full_path = '"%s"' % os.path.join(os.getcwd(), 'tests', 'dummy.h')
@@ -298,7 +347,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadImpliedInclude(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         try:
@@ -309,7 +358,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadLiteralInclude(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         try:
@@ -320,7 +369,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testImpliedIncbin(self):
         session = Session()
-        session.parse_args(['--cpu=6502', '--include=tests'])
+        session.parse_args(['--cpu=generic', '--include=tests'])
         pp = session.preprocessor()
 
         pp.parse(StringIO(self.pp_incbin % '<blob.bin>'))
@@ -328,7 +377,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testImpliedDirIncbin(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         path = '<%s>' % os.path.join('tests', 'blob.bin')
@@ -337,7 +386,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testLiteralIncbin(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         path = '"%s"' % os.path.join('tests', 'blob.bin')
@@ -346,7 +395,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testFullPathLiteralIncbin(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         full_path = '"%s"' % os.path.join(os.getcwd(), 'tests', 'blob.bin')
@@ -355,7 +404,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadImpliedIncbin(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         try:
@@ -366,7 +415,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadLiteralIncbin(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         try:
@@ -384,7 +433,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testRamOrg(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         pp.parse(StringIO(self.pp_ramorg % '0x0100'))
@@ -393,7 +442,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testRamOrgMaxsize(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         pp.parse(StringIO(self.pp_ramorg % '0x0100, 0x1000'))
@@ -403,7 +452,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadRamOrg(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         try:
@@ -414,11 +463,181 @@ class PreprocessorTester(unittest.TestCase):
 
     def testBadRamOrgMaxsize(self):
         session = Session()
-        session.parse_args(['--cpu=6502'])
+        session.parse_args(['--cpu=generic'])
         pp = session.preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_ramorg % '0x0100,'))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testRamEnd(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_ramend))
+        self.assertTrue(isinstance(pp.get_output()[0], RamEnd))
+
+    def testRomOrg(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_romorg % '0x0100'))
+        self.assertTrue(isinstance(pp.get_output()[0], RomOrg))
+        self.assertEquals(int(pp.get_output()[0].get_address()), 0x100)
+
+    def testRomOrgMaxsize(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_romorg % '0x0100, 0x1000'))
+        self.assertTrue(isinstance(pp.get_output()[0], RomOrg))
+        self.assertEquals(int(pp.get_output()[0].get_address()), 0x0100)
+        self.assertEquals(int(pp.get_output()[0].get_maxsize()), 0x1000)
+
+    def testBadRomOrg(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_romorg % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testBadRomOrgMaxsize(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_romorg % '0x0100,'))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testRomEnd(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_romend))
+        self.assertTrue(isinstance(pp.get_output()[0], RomEnd))
+
+    def testRomBanksize(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_rombanksize % '0x4000'))
+        self.assertTrue(isinstance(pp.get_output()[0], RomBanksize))
+        self.assertEquals(int(pp.get_output()[0].get_size()), 0x4000)
+
+    def testBadRomBanksize(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_rombanksize % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testRomBank(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_rombank % '3'))
+        self.assertTrue(isinstance(pp.get_output()[0], RomBank))
+        self.assertEquals(int(pp.get_output()[0].get_number()), 3)
+
+    def testRomBankMaxsize(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_rombank % '3, 0x1000'))
+        self.assertTrue(isinstance(pp.get_output()[0], RomBank))
+        self.assertEquals(int(pp.get_output()[0].get_number()), 3)
+        self.assertEquals(int(pp.get_output()[0].get_maxsize()), 0x1000)
+
+    def testBadRomBank(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_rombank % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testBadRomBankMaxsize(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_rombank % '3,'))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    pp_setpad = '#setpad %s\n'
+    pp_align = '#align %s\n'
+
+    def testSetPadNum(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_setpad % '0xFF'))
+        self.assertTrue(isinstance(pp.get_output()[0], SetPad))
+        self.assertEquals(pp.get_output()[0].get_value(), 0xFF)
+
+    def testSetPadString(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_setpad % '"Foo"'))
+        self.assertTrue(isinstance(pp.get_output()[0], SetPad))
+        self.assertEquals(pp.get_output()[0].get_value(), 'Foo')
+
+    def testBadSetPad(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_setpad % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testAlign(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_align % '1K'))
+        self.assertTrue(isinstance(pp.get_output()[0], Align))
+        self.assertEquals(pp.get_output()[0].get_value(), 1024)
+
+    def testBadAlign(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_align % ''))
             self.assertTrue(False)
         except ParseException:
             pass

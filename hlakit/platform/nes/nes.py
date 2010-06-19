@@ -29,26 +29,56 @@ or implied, of David Huseby.
 
 import os
 from pyparsing import *
-from hlakit.common.target import Target
+from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor
+from ines import iNES, iNESMapper, iNESMirroring
+from chr import ChrBanksize, ChrBank, ChrLink
 
-'''
-from platform import Platform
-from ines import iNES
-from hlakit.preprocessor import Preprocessor
-from hlakit.values import *
-from tokens import *
-'''
+class NESPreprocessor(MOS6502Preprocessor):
 
-class NES(Target):
+    @classmethod
+    def exprs(klass):
+        e = []
+        e.extend(klass.first_exprs())
+        e.extend(klass.last_exprs())
+        return e
+
+    @classmethod
+    def first_exprs(klass):
+        e = []
+
+        # start with the first base preprocessor rules 
+        e.extend(MOS6502Preprocessor.first_exprs())
+
+        # add in NES specific preprocessor parse rules
+        e.append(('chrbanksize', ChrBanksize.exprs()))
+        e.append(('chrbank', ChrBank.exprs()))
+        e.append(('chrlink', ChrLink.exprs()))
+        e.append(('inesmapper', iNESMapper.exprs()))
+        e.append(('inesmirroring', iNESMirroring.exprs()))
+        
+        return e
+
+    @classmethod
+    def last_exprs(klass):
+        e = []
+
+        # end with the last base preprocessor rules
+        e.extend(MOS6502Preprocessor.last_exprs())
+
+        return e
+
+
+class NES(MOS6502):
 
     CPU = 'mos6502'
+
     def __init__(self):
 
         # init the base class 
         super(NES, self).__init__()
 
     def preprocessor(self):
-        return None
+        return NESPreprocessor()
 
     def compiler(self):
         return None

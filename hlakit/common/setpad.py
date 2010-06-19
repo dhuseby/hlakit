@@ -31,62 +31,9 @@ from pyparsing import *
 from hlakit.common.session import Session
 from hlakit.common.numericvalue import NumericValue
 
-class RamOrg(object):
+class SetPad(object):
     """
-    This defines the rules for parsing a #ram.org <blockaddress>[,maxsize] line 
-    in a file
-    """
-
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        if pp.ignore():
-            return []
-
-        if 'address' not in tokens.keys():
-            raise ParseFatalException('#ram.org without an address')
-
-        maxsize = getattr(tokens, 'maxsize', None)
-
-        return klass(tokens.address, maxsize)
-
-    @classmethod
-    def exprs(klass):
-        ramorg = Keyword('#ram.org')
-        address = NumericValue.exprs().setResultsName('address')
-        maxsize = NumericValue.exprs().setResultsName('maxsize')
-
-        expr = Suppress(ramorg) + \
-               address + \
-               Optional(Literal(',') + maxsize) + \
-               Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
-
-        return expr
-
-    def __init__(self, address, maxsize=None):
-        self._address = address
-        self._maxsize = maxsize
-
-    def get_address(self):
-        return self._address
-
-    def get_maxsize(self):
-        return self._maxsize
-
-    def __str__(self):
-        s = "RamOrg <0x%x>" % self._address
-        if self._maxsize:
-            s += ',<0x%x>' % self._maxsize
-        return s
-
-    __repr__ = __str__
-
-
-class RamEnd(object):
-    """
-    This defines the rules for parsing a #ram.end line in a file
+    This defines the rules for parsing a #setpad [pad value] line
     """
 
     @classmethod
@@ -95,20 +42,36 @@ class RamEnd(object):
 
         if pp.ignore():
             return []
-
-        return klass()
+        
+        if 'num' in tokens.keys():
+            return klass(int(tokens.num))
+        elif 'str' in tokens.keys():
+            return klass(str(tokens.str))
+        else:
+            raise ParseFatalException('missing #setpad parameter')
 
     @classmethod
     def exprs(klass):
-        ramorg = Keyword('#ram.end')
-        expr = Suppress(ramorg) + \
+        kw = Keyword('#setpad')
+        message_string = quotedString(Word(printables))
+        message_string.setParseAction(removeQuotes)
+
+        expr = Suppress(kw) + \
+               Or([message_string.setResultsName('str'),
+                   NumericValue.exprs().setResultsName('num')]) + \
                Suppress(LineEnd())
         expr.setParseAction(klass.parse)
 
         return expr
 
+    def __init__(self, value):
+        self._value = value
+
+    def get_value(self):
+        return self._value
+
     def __str__(self):
-        return 'RamEnd'
+        return 'SetPad(%s)' % self._value
 
     __repr__ = __str__
 

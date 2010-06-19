@@ -44,7 +44,7 @@ class RomOrg(object):
         if pp.ignore():
             return []
 
-        if not hasattr(tokens, 'address'):
+        if 'address' not in tokens.keys():
             raise ParseFatalException('#rom.org without an address')
 
         maxsize = getattr(tokens, 'maxsize', None)
@@ -124,7 +124,7 @@ class RomBanksize(object):
         if pp.ignore():
             return []
 
-        if not hasattr(tokens, 'size'):
+        if 'size' not in tokens.keys():
             raise ParseFatalException('#rom.banksize without a size')
 
         return klass(tokens.size)
@@ -165,7 +165,7 @@ class RomBank(object):
         if pp.ignore():
             return []
 
-        if not hasattr(tokens, 'number'):
+        if 'number' not in tokens.keys():
             raise ParseFatalException('#rom.bank without a number')
 
         maxsize = getattr(tokens, 'maxsize', None)
@@ -203,6 +203,4 @@ class RomBank(object):
         return s
 
     __repr__ = __str__
-
-
 

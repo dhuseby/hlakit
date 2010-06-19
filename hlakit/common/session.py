@@ -48,8 +48,13 @@ class Session(object):
 
     # definitions for supported CPU's 
     CPU = {
+        'generic' : {
+            'module': 'common.target',
+            'class': 'Target',
+            'desc': 'Generic Target'
+        },
         '6502': {
-            'file': 'mos6502', 
+            'module': 'cpu.mos6502', 
             'class': 'MOS6502', 
             'desc': 'MOS Technologies 6502 8-bit CPU'
         }
@@ -71,7 +76,7 @@ class Session(object):
     }
     PLATFORM = {
         'nes': {
-            'file': 'nes',
+            'module': 'platform.nes',
             'class': 'NES',
             'cpu': 'mos6502',
             'desc': 'Nintendo Entertainment System'
@@ -132,9 +137,8 @@ class Session(object):
                                        'The supported platform(s) are:\n' \
                                        '\t%s\n' % '\n\t'.join(self.PLATFORM))
 
-            platform_file = self.PLATFORM[platform]['file']
             platform_class = self.PLATFORM[platform]['class']
-            platform_module = '.'.join(['hlakit', 'platform', platform_file])
+            platform_module = 'hlakit.' + self.PLATFORM[platform]['module']
             module_symbols = __import__(platform_module, fromlist=[platform_class])
             platform_ctor = getattr(module_symbols, platform_class)
             self._target = platform_ctor()
@@ -148,9 +152,8 @@ class Session(object):
                                        'The supported CPU(s) are:\n' \
                                        '\t%s\n' % '\n\t'.join(self.CPU))
 
-            cpu_file = self.CPU[cpu]['file']
             cpu_class = self.CPU[cpu]['class']
-            cpu_module = '.'.join(['hlakit', 'cpu', cpu_file])
+            cpu_module = 'hlakit.' + self.CPU[cpu]['module']
             module_symbols = __import__(cpu_module, fromlist=[cpu_class])
             cpu_ctor = getattr(module_symbols, cpu_class)
             self._target = cpu_ctor()

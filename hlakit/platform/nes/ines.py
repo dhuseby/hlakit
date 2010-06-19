@@ -8,6 +8,10 @@ included LICENSE file or by visiting here:
 <http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>
 """
 
+from pyparsing import *
+from hlakit.common.session import Session
+from hlakit.common.numericvalue import NumericValue
+
 class iNES(object):
     """
     This class encapsulates the iNES header that will be written with
@@ -324,4 +328,241 @@ class iNES(object):
     def set_option(self, option):
         if iNES.OPTIONS.has_key(option):
             self._options = iNES.OPTIONS[option]
+
+
+class iNESMapper(object):
+    """
+    This defines the rules for parsing a #ines.mapper "name"|number line 
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        mapper = getattr(tokens, 'name', None)
+        if not mapper:
+            mapper = getattr(tokens, 'number', None)
+        if not mapper:
+            raise ParseFatalException('#ines.mapper missing parameter')
+
+        return klass(mapper)
+
+    @classmethod
+    def exprs(klass):
+        kw = Keyword('#ines.mapper')
+        name = quotedString(OneOrMore(Word(printables)))
+        name.setParseAction(removeQuotes)
+        name = name.setResultsName('name')
+        number = NumericValue.exprs().setResultsName('number')
+
+        expr = Suppress(kw) + \
+               Or([name, number]) + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __init__(self, mapper):
+        self._mapper = mapper
+
+    def get_mapper(self):
+        return self._mapper
+
+    def __str__(self):
+        return 'iNesMapper %s' % self._mapper
+
+    __repr__ = __str__
+
+
+class iNESMirroring(object):
+    """
+    This defines the rules for parsing a #ines.mirroring "vertical"|"horizontal" line 
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        if 'mirroring' not in tokens.keys():
+            raise ParseFatalException('#ines.mirroring missing parameter')
+
+        if tokens.mirroring == 'vertical' or \
+           tokens.mirroring == 'horizontal':
+            return klass(tokens.mirroring)
+
+        raise ParseFatalException('#ines.mirroring invalid parameter')
+
+    @classmethod
+    def exprs(klass):
+        kw = Keyword('#ines.mirroring')
+        mirroring = quotedString(Or([Keyword('vertical'), Keyword('horizontal')]))
+        mirroring.setParseAction(removeQuotes)
+        mirroring = mirroring.setResultsName('mirroring')
+
+        expr = Suppress(kw) + \
+               mirroring + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __init__(self, mirroring):
+        self._mirroring = mirroring
+
+    def get_mirroring(self):
+        return self._mirroring
+
+    def __str__(self):
+        return 'iNesMirroring %s' % self._mirroring
+
+    __repr__ = __str__
+
+
+class iNESFourscreen(object):
+    """
+    This defines the rules for parsing a #ines.fourscreen "yes"|"no" line 
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        if 'value' not in tokens.keys():
+            raise ParseFatalException('#ines.fourscreen missing parameter')
+
+        if tokens.value == 'yes' or \
+           tokens.value == 'no':
+            return klass(tokens.value)
+
+        raise ParseFatalException('#ines.fourscreen invalid parameter')
+
+    @classmethod
+    def exprs(klass):
+        kw = Keyword('#ines.fourscreen')
+        value = quotedString(Or([Keyword('yes'), Keyword('no')]))
+        value.setParseAction(removeQuotes)
+        value = value.setResultsName('value')
+
+        expr = Suppress(kw) + \
+               value + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __init__(self, value):
+        self._value = value
+
+    def get_fourscreen(self):
+        return self._value
+
+    def __str__(self):
+        return 'iNesFourscreen %s' % self._value
+
+    __repr__ = __str__
+
+
+class iNESBattery(object):
+    """
+    This defines the rules for parsing a #ines.battery "yes"|"no" line 
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        if 'value' not in tokens.keys():
+            raise ParseFatalException('#ines.battery missing parameter')
+
+        if tokens.value == 'yes' or \
+           tokens.value == 'no':
+            return klass(tokens.value)
+
+        raise ParseFatalException('#ines.battery invalid parameter')
+
+    @classmethod
+    def exprs(klass):
+        kw = Keyword('#ines.battery')
+        value = quotedString(Or([Keyword('yes'), Keyword('no')]))
+        value.setParseAction(removeQuotes)
+        value = value.setResultsName('value')
+
+        expr = Suppress(kw) + \
+               value + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __init__(self, value):
+        self._value = value
+
+    def get_battery(self):
+        return self._value
+
+    def __str__(self):
+        return 'iNesBattery %s' % self._value
+
+    __repr__ = __str__
+
+
+class iNESTrainer(object):
+    """
+    This defines the rules for parsing a #ines.trainer "yes"|"no" line 
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        if 'value' not in tokens.keys():
+            raise ParseFatalException('#ines.trainer missing parameter')
+
+        if tokens.value == 'yes' or \
+           tokens.value == 'no':
+            return klass(tokens.value)
+
+        raise ParseFatalException('#ines.trainer invalid parameter')
+
+    @classmethod
+    def exprs(klass):
+        kw = Keyword('#ines.trainer')
+        value = quotedString(Or([Keyword('yes'), Keyword('no')]))
+        value.setParseAction(removeQuotes)
+        value = value.setResultsName('value')
+
+        expr = Suppress(kw) + \
+               value + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __init__(self, value):
+        self._value = value
+
+    def get_trainer(self):
+        return self._value
+
+    def __str__(self):
+        return 'iNesTrainer %s' % self._value
+
+    __repr__ = __str__
+
+
 

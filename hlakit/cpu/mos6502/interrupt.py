@@ -29,12 +29,10 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from hlakit.common.session import Session
-from hlakit.common.numericvalue import NumericValue
 
-class RamOrg(object):
+class Interrupt(object):
     """
-    This defines the rules for parsing a #ram.org <blockaddress>[,maxsize] line 
-    in a file
+    This defines the base class for all #interrupt lines
     """
 
     @classmethod
@@ -44,71 +42,61 @@ class RamOrg(object):
         if pp.ignore():
             return []
 
-        if 'address' not in tokens.keys():
-            raise ParseFatalException('#ram.org without an address')
+        if 'fn' not in tokens.keys():
+            raise ParseFatalException('missing #interrupt parameter')
 
-        maxsize = getattr(tokens, 'maxsize', None)
-
-        return klass(tokens.address, maxsize)
+        return klass(tokens.fn)
 
     @classmethod
     def exprs(klass):
-        ramorg = Keyword('#ram.org')
-        address = NumericValue.exprs().setResultsName('address')
-        maxsize = NumericValue.exprs().setResultsName('maxsize')
-
-        expr = Suppress(ramorg) + \
-               address + \
-               Optional(Literal(',') + maxsize) + \
+        kw = Keyword(klass._get_keyword())
+        fn = Word(alphas + '_', alphanums + '_').setResultsName('fn')
+        expr = Suppress(kw) + \
+               fn + \
                Suppress(LineEnd())
         expr.setParseAction(klass.parse)
 
         return expr
 
-    def __init__(self, address, maxsize=None):
-        self._address = address
-        self._maxsize = maxsize
+    def __init__(self, fn):
+        self._fn = fn
 
-    def get_address(self):
-        return self._address
-
-    def get_maxsize(self):
-        return self._maxsize
+    def get_fn(self):
+        return self._fn
 
     def __str__(self):
-        s = "RamOrg <0x%x>" % self._address
-        if self._maxsize:
-            s += ',<0x%x>' % self._maxsize
-        return s
+        return '%s(%s)' % (self.__class__.__name__, self._fn)
 
     __repr__ = __str__
 
 
-class RamEnd(object):
+class InterruptStart(Interrupt):
     """
-    This defines the rules for parsing a #ram.end line in a file
+    This defines the rules for parsing a #interrupt.start <fn name> line
     """
 
     @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
+    def _get_keyword(klass):
+        return '#interrupt.start'
 
-        if pp.ignore():
-            return []
 
-        return klass()
+class InterruptNMI(Interrupt):
+    """
+    This defines the rules for parsing a #interrupt.nmi <fn name> line
+    """
 
     @classmethod
-    def exprs(klass):
-        ramorg = Keyword('#ram.end')
-        expr = Suppress(ramorg) + \
-               Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
+    def _get_keyword(klass):
+        return '#interrupt.nmi'
 
-        return expr
 
-    def __str__(self):
-        return 'RamEnd'
+class InterruptIRQ(Interrupt):
+    """
+    This defines the rules for parsing a #interrupt.irq <fn name> line
+    """
 
-    __repr__ = __str__
+    @classmethod
+    def _get_keyword(klass):
+        return '#interrupt.irq'
+
 

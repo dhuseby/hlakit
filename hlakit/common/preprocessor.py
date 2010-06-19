@@ -38,10 +38,13 @@ from endif import Endif
 from todo import Todo
 from warning import Warning
 from error import Error
+from tell import TellBank, TellBankOffset, TellBankSize, TellBankFree, TellBankType
 from include import Include
 from incbin import Incbin
 from rom import RomOrg, RomEnd, RomBanksize, RomBank
 from ram import RamOrg, RamEnd
+from setpad import SetPad
+from align import Align
 from codeline import CodeLine
 from codeblock import CodeBlock
 
@@ -79,6 +82,13 @@ class Preprocessor(object):
     @classmethod
     def exprs(klass):
         e = []
+        e.extend(klass.first_exprs())
+        e.extend(klass.last_exprs())
+        return e
+
+    @classmethod
+    def first_exprs(klass):
+        e = []
         e.append(('define', Define.exprs()))
         e.append(('undef', Undef.exprs()))
         e.append(('ifdef', Ifdef.exprs()))
@@ -88,6 +98,11 @@ class Preprocessor(object):
         e.append(('todo', Todo.exprs()))
         e.append(('warning', Warning.exprs()))
         e.append(('error', Error.exprs()))
+        e.append(('tellbank', TellBank.exprs()))
+        e.append(('tellbankoffset', TellBankOffset.exprs()))
+        e.append(('tellbanksize', TellBankSize.exprs()))
+        e.append(('tellbankfree', TellBankFree.exprs()))
+        e.append(('tellbanktype', TellBankType.exprs()))
         e.append(('include', Include.exprs()))
         e.append(('incbin', Incbin.exprs()))
         e.append(('romorg', RomOrg.exprs()))
@@ -96,6 +111,13 @@ class Preprocessor(object):
         e.append(('rombank', RomBank.exprs()))
         e.append(('ramorg', RamOrg.exprs()))
         e.append(('ramend', RamEnd.exprs()))
+        e.append(('setpad', SetPad.exprs()))
+        e.append(('align', Align.exprs()))
+        return e
+
+    @classmethod
+    def last_exprs(klass):
+        e = []
         e.append(('codeline', CodeLine.exprs()))
         return e
 
@@ -107,10 +129,10 @@ class Preprocessor(object):
         return obj
 
     def __init__(self):
-        self.set_exprs(Preprocessor.exprs())
+        self.set_exprs(self.__class__.exprs())
 
     def reset_state(self):
-        self.set_exprs(Preprocessor.exprs())
+        self.set_exprs(self.__class__.exprs())
         self._symbols = {}
         self._ignore_stack = [False]
         self._state_stack = []

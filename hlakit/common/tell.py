@@ -31,62 +31,9 @@ from pyparsing import *
 from hlakit.common.session import Session
 from hlakit.common.numericvalue import NumericValue
 
-class RamOrg(object):
+class Tell(object):
     """
-    This defines the rules for parsing a #ram.org <blockaddress>[,maxsize] line 
-    in a file
-    """
-
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        if pp.ignore():
-            return []
-
-        if 'address' not in tokens.keys():
-            raise ParseFatalException('#ram.org without an address')
-
-        maxsize = getattr(tokens, 'maxsize', None)
-
-        return klass(tokens.address, maxsize)
-
-    @classmethod
-    def exprs(klass):
-        ramorg = Keyword('#ram.org')
-        address = NumericValue.exprs().setResultsName('address')
-        maxsize = NumericValue.exprs().setResultsName('maxsize')
-
-        expr = Suppress(ramorg) + \
-               address + \
-               Optional(Literal(',') + maxsize) + \
-               Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
-
-        return expr
-
-    def __init__(self, address, maxsize=None):
-        self._address = address
-        self._maxsize = maxsize
-
-    def get_address(self):
-        return self._address
-
-    def get_maxsize(self):
-        return self._maxsize
-
-    def __str__(self):
-        s = "RamOrg <0x%x>" % self._address
-        if self._maxsize:
-            s += ',<0x%x>' % self._maxsize
-        return s
-
-    __repr__ = __str__
-
-
-class RamEnd(object):
-    """
-    This defines the rules for parsing a #ram.end line in a file
+    This defines the base class for all tell lines
     """
 
     @classmethod
@@ -100,15 +47,66 @@ class RamEnd(object):
 
     @classmethod
     def exprs(klass):
-        ramorg = Keyword('#ram.end')
-        expr = Suppress(ramorg) + \
+        kw = Keyword(klass._get_keyword())
+        expr = Suppress(kw) + \
                Suppress(LineEnd())
         expr.setParseAction(klass.parse)
 
         return expr
 
     def __str__(self):
-        return 'RamEnd'
+        return self.__class__.__name__
 
     __repr__ = __str__
+
+
+class TellBank(Tell):
+    """
+    This defines the rules for parsing a #tell.bank line in a file
+    """
+
+    @classmethod
+    def _get_keyword(klass):
+        return '#tell.bank'
+
+
+class TellBankOffset(Tell):
+    """
+    This defines the rules for parsing a #tell.bankoffset line in a file
+    """
+
+    @classmethod
+    def _get_keyword(klass):
+        return '#tell.bankoffset'
+
+
+class TellBankSize(Tell):
+    """
+    This defines the rules for parsing a #tell.banksize line in a file
+    """
+
+    @classmethod
+    def _get_keyword(klass):
+        return '#tell.banksize'
+
+
+class TellBankFree(Tell):
+    """
+    This defines the rules for parsing a #tell.bankfree line in a file
+    """
+
+    @classmethod
+    def _get_keyword(klass):
+        return '#tell.bankfree'
+
+
+class TellBankType(Tell):
+    """
+    This defines the rules for parsing a #tell.banktype line in a file
+    """
+
+    @classmethod
+    def _get_keyword(klass):
+        return '#tell.banktype'
+
 

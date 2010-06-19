@@ -31,19 +31,39 @@ import os
 from pyparsing import *
 from hlakit.common.target import Target
 from hlakit.common.preprocessor import Preprocessor
+from interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 
 class MOS6502Preprocessor(Preprocessor):
 
     @classmethod
     def exprs(klass):
-        # start with the base preprocessor rules 
-        e = Preprocessor.exprs()
-
-        # add in 6502 specific preprocessor parse rules
-
+        e = []
+        e.extend(klass.first_exprs())
+        e.extend(klass.last_exprs())
         return e
 
-    
+    @classmethod
+    def first_exprs(klass):
+        e = []
+
+        # start with the first base preprocessor rules 
+        e.extend(Preprocessor.first_exprs())
+
+        # add in 6502 specific preprocessor parse rules
+        e.append(('interruptstart', InterruptStart.exprs()))
+        e.append(('interruptnmi', InterruptNMI.exprs()))
+        e.append(('interruptirq', InterruptIRQ.exprs()))
+        
+        return e
+
+    @classmethod
+    def last_exprs(klass):
+        e = []
+
+        # end with the last base preprocessor rules
+        e.extend(Preprocessor.last_exprs())
+
+        return e
 
 
 
