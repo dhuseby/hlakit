@@ -26,4 +26,4 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-from lynx import Lynx, LynxPreprocessor
+from lynx import Lynx, LynxPreprocessor, LynxCompiler

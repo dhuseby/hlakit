@@ -32,7 +32,7 @@ import unittest
 from pyparsing import ParseException, ParseFatalException
 from cStringIO import StringIO
 from hlakit.common.session import Session
-from hlakit.platform.lynx import LynxPreprocessor
+from hlakit.platform.lynx import LynxPreprocessor, LynxCompiler
 from hlakit.platform.lynx.loader import LynxLoader
 from hlakit.platform.lynx.lnx import LnxOff
 
@@ -42,32 +42,25 @@ class LynxPreprocessorTester(unittest.TestCase):
     """
 
     def setUp(self):
-        session = Session()
-        session.preprocessor().reset_state()
+        Session().parse_args(['--platform=Lynx'])
 
     def tearDown(self):
-        pass
+        Session().preprocessor().reset_state()
 
     def testLynxPreprocessor(self):
-        session = Session()
-        session.parse_args(['--platform=Lynx'])
-        self.assertTrue(isinstance(session._target.preprocessor(), LynxPreprocessor))
+        self.assertTrue(isinstance(Session().preprocessor(), LynxPreprocessor))
 
     pp_lynxloader = '#lynx.loader %s\n'
 
     def testLynxLoader(self):
-        session = Session()
-        session.parse_args(['--platform=Lynx'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_lynxloader % 'loader'))
         self.assertTrue(isinstance(pp.get_output()[0], LynxLoader))
         self.assertEquals(pp.get_output()[0].get_fn(), 'loader')
 
     def testBadLynxLoader(self):
-        session = Session()
-        session.parse_args(['--platform=Lynx'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_lynxloader % ''))
@@ -78,11 +71,24 @@ class LynxPreprocessorTester(unittest.TestCase):
     pp_lnxoff = '#lnx.off\n'
 
     def testLnxOff(self):
-        session = Session()
-        session.parse_args(['--platform=Lynx'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_lnxoff))
         self.assertTrue(isinstance(pp.get_output()[0], LnxOff))
+
+
+class LynxCompilerTester(unittest.TestCase):
+    """
+    This class aggregates all of the tests for the Lynx Compiler
+    """
+
+    def setUp(self):
+        Session().parse_args(['--platform=Lynx'])
+
+    def tearDown(self):
+        Session().compiler().reset_state()
+
+    def testLynxPreprocessor(self):
+        self.assertTrue(isinstance(Session().compiler(), LynxCompiler))
 
 

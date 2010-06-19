@@ -32,7 +32,7 @@ import unittest
 from pyparsing import ParseException, ParseFatalException
 from cStringIO import StringIO
 from hlakit.common.session import Session
-from hlakit.platform.nes import NESPreprocessor
+from hlakit.platform.nes import NESPreprocessor, NESCompiler
 from hlakit.platform.nes.chr import ChrBanksize, ChrBank, ChrLink
 from hlakit.platform.nes.ines import iNESMapper, iNESMirroring, iNESFourscreen, iNESBattery, iNESTrainer, iNESPrgRepeat, iNESChrRepeat, iNESOff
 
@@ -42,32 +42,25 @@ class NESPreprocessorTester(unittest.TestCase):
     """
 
     def setUp(self):
-        session = Session()
-        session.preprocessor().reset_state()
+        Session().parse_args(['--platform=NES'])
 
     def tearDown(self):
-        pass
+        Session().preprocessor().reset_state()
 
     def testNESPreprocessor(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        self.assertTrue(isinstance(session._target.preprocessor(), NESPreprocessor))
+        self.assertTrue(isinstance(Session().preprocessor(), NESPreprocessor))
 
     pp_chrbanksize = '#chr.banksize %s\n'
 
     def testChrBanksize(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_chrbanksize % '1K'))
         self.assertTrue(isinstance(pp.get_output()[0], ChrBanksize))
         self.assertEquals(int(pp.get_output()[0].get_size()), 1024)
 
     def testBadChrBanksize(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_chrbanksize % ''))
@@ -85,27 +78,21 @@ class NESPreprocessorTester(unittest.TestCase):
     pp_inesoff = '#ines.off\n'
 
     def testiNESMapperName(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesmapper % '"NROM"'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESMapper))
         self.assertEquals(pp.get_output()[0].get_mapper(), 'NROM')
 
     def testiNESMapperNumber(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesmapper % '0'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESMapper))
         self.assertEquals(int(pp.get_output()[0].get_mapper()), 0)
 
     def testBadiNESMapper(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_inesmapper % ''))
@@ -114,27 +101,21 @@ class NESPreprocessorTester(unittest.TestCase):
             pass
 
     def testiNESMirroringVertical(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesmirroring % '"vertical"'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESMirroring))
         self.assertEquals(pp.get_output()[0].get_mirroring(), 'vertical')
 
     def testiNESMirroringHorizontal(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesmirroring % '"horizontal"'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESMirroring))
         self.assertEquals(pp.get_output()[0].get_mirroring(), 'horizontal')
 
     def testBadiNESMirroring(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_inesmirroring % '"blah"'))
@@ -143,27 +124,21 @@ class NESPreprocessorTester(unittest.TestCase):
             pass
 
     def testiNESFourscreenYes(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesfourscreen % '"yes"'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESFourscreen))
         self.assertEquals(pp.get_output()[0].get_fourscreen(), 'yes')
 
     def testiNESFourscreenNo(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesfourscreen % '"no"'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESFourscreen))
         self.assertEquals(pp.get_output()[0].get_fourscreen(), 'no')
 
     def testBadiNESFourscreen(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_inesfourscreen % '"blah"'))
@@ -172,27 +147,21 @@ class NESPreprocessorTester(unittest.TestCase):
             pass
 
     def testiNESBatterYes(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesbattery % '"yes"'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESBattery))
         self.assertEquals(pp.get_output()[0].get_battery(), 'yes')
 
     def testiNESBatteryNo(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesbattery % '"no"'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESBattery))
         self.assertEquals(pp.get_output()[0].get_battery(), 'no')
 
     def testBadiNESBattery(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_inesbattery % '"blah"'))
@@ -201,27 +170,21 @@ class NESPreprocessorTester(unittest.TestCase):
             pass
 
     def testiNESTrainerYes(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inestrainer % '"yes"'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESTrainer))
         self.assertEquals(pp.get_output()[0].get_trainer(), 'yes')
 
     def testiNESTrainerNo(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inestrainer % '"no"'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESTrainer))
         self.assertEquals(pp.get_output()[0].get_trainer(), 'no')
 
     def testBadiNESTrainer(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_inestrainer % '"blah"'))
@@ -230,18 +193,14 @@ class NESPreprocessorTester(unittest.TestCase):
             pass
 
     def testiNESPrgRepeat(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesprgrepeat % '4'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESPrgRepeat))
         self.assertEquals(int(pp.get_output()[0].get_repeat()), 4)
 
     def testBadiNESPrgRepeat(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_inesprgrepeat % ''))
@@ -250,18 +209,14 @@ class NESPreprocessorTester(unittest.TestCase):
             pass
 
     def testiNESChrRepeat(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_ineschrrepeat % '4'))
         self.assertTrue(isinstance(pp.get_output()[0], iNESChrRepeat))
         self.assertEquals(int(pp.get_output()[0].get_repeat()), 4)
 
     def testBadiNESChrRepeat(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_ineschrrepeat % ''))
@@ -270,11 +225,24 @@ class NESPreprocessorTester(unittest.TestCase):
             pass
 
     def testiNESOff(self):
-        session = Session()
-        session.parse_args(['--platform=NES'])
-        pp = session.preprocessor() 
+        pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_inesoff))
         self.assertTrue(isinstance(pp.get_output()[0], iNESOff))
+
+
+class NESCompilerTester(unittest.TestCase):
+    """
+    This class aggregates all of the tests for the NES Compiler
+    """
+
+    def setUp(self):
+        Session().parse_args(['--platform=NES'])
+
+    def tearDown(self):
+        Session().compiler().reset_state()
+
+    def testNESCompiler(self):
+        self.assertTrue(isinstance(Session().compiler(), NESCompiler))
 
 

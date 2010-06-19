@@ -9,13 +9,14 @@ included LICENSE file or by visiting here:
 """
 
 from preprocessor import Preprocessor
+from compiler import Compiler
 
 class Target(object):
     def preprocessor(self):
         return Preprocessor()
 
     def compiler(self):
-        return None
+        return Compiler()
 
     def linker(self):
         return None

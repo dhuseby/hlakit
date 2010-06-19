@@ -29,18 +29,11 @@ or implied, of David Huseby.
 
 import os
 from pyparsing import *
-from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor
+from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler
 from loader import LynxLoader
 from lnx import Lnx, LnxOff
 
 class LynxPreprocessor(MOS6502Preprocessor):
-
-    @classmethod
-    def exprs(klass):
-        e = []
-        e.extend(klass.first_exprs())
-        e.extend(klass.last_exprs())
-        return e
 
     @classmethod
     def first_exprs(klass):
@@ -55,12 +48,17 @@ class LynxPreprocessor(MOS6502Preprocessor):
         
         return e
 
+
+class LynxCompiler(MOS6502Compiler):
+
     @classmethod
-    def last_exprs(klass):
+    def first_exprs(klass):
         e = []
 
-        # end with the last base preprocessor rules
-        e.extend(MOS6502Preprocessor.last_exprs())
+        # start with the first, base compiler rules
+        e.extend(MOS6502Compiler.first_exprs())
+
+        # add in the Lynx specific compiler parse rules
 
         return e
 
@@ -78,7 +76,7 @@ class Lynx(MOS6502):
         return LynxPreprocessor()
 
     def compiler(self):
-        return None
+        return LynxCompiler()
 
     def linker(self):
         return None

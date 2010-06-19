@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -26,4 +26,55 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-from mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler
+
+import os
+from pyparsing import *
+
+class Compiler(object):
+
+    @classmethod
+    def exprs(klass):
+        e = []
+        e.extend(klass.first_exprs())
+        e.extend(klass.last_exprs())
+        return e
+
+    @classmethod
+    def first_exprs(klass):
+        e = []
+        return e
+
+    @classmethod
+    def last_exprs(klass):
+        e = []
+        return e
+
+    _shared_state = {}
+
+    def __new__(cls, *a, **k):
+        obj = object.__new__(cls, *a, **k)
+        obj.__dict__ = cls._shared_state
+        return obj
+
+    def __init__(self):
+        self.set_exprs(self.__class__.exprs())
+
+    def reset_state(self):
+        self.set_exprs(self.__class__.exprs())
+        self._tokens = []
+
+    def get_exprs(self):
+        return getattr(self, '_exprs', [])
+
+    def set_exprs(self, value):
+        self._exprs = value
+
+    def _get_tokens(self):
+        return getattr(self, '_tokens', [])
+
+    def _append_tokens(self, tokens):
+        if not hasattr(self, '_tokens'):
+            self._tokens = []
+        self._tokens.extend(tokens)
+
+

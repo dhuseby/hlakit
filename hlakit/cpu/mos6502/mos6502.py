@@ -31,16 +31,10 @@ import os
 from pyparsing import *
 from hlakit.common.target import Target
 from hlakit.common.preprocessor import Preprocessor
+from hlakit.common.compiler import Compiler
 from interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 
 class MOS6502Preprocessor(Preprocessor):
-
-    @classmethod
-    def exprs(klass):
-        e = []
-        e.extend(klass.first_exprs())
-        e.extend(klass.last_exprs())
-        return e
 
     @classmethod
     def first_exprs(klass):
@@ -56,15 +50,18 @@ class MOS6502Preprocessor(Preprocessor):
         
         return e
 
+class MOS6502Compiler(Compiler):
+
     @classmethod
-    def last_exprs(klass):
+    def first_exprs(klass):
         e = []
 
-        # end with the last base preprocessor rules
-        e.extend(Preprocessor.last_exprs())
+        # start with the first base compiler rules 
+        e.extend(Compiler.first_exprs())
 
+        # add in 6502 specific compiler parse rules
+        
         return e
-
 
 
 '''
