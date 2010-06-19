@@ -31,6 +31,7 @@ import os
 from pyparsing import *
 from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor
 from loader import LynxLoader
+from lnx import Lnx, LnxOff
 
 class LynxPreprocessor(MOS6502Preprocessor):
 
@@ -50,6 +51,7 @@ class LynxPreprocessor(MOS6502Preprocessor):
 
         # add in Lynx specific preprocessor parse rules
         e.append(('lynxloader', LynxLoader.exprs()))
+        e.append(('lnxoff', LnxOff.exprs()))
         
         return e
 

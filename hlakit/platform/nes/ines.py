@@ -664,7 +664,6 @@ class iNESOff(object):
     @classmethod
     def exprs(klass):
         kw = Keyword('#ines.off')
-        repeat = NumericValue.exprs().setResultsName('repeat')
 
         expr = Suppress(kw) + \
                Suppress(LineEnd())

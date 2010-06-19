@@ -34,6 +34,7 @@ from cStringIO import StringIO
 from hlakit.common.session import Session
 from hlakit.platform.lynx import LynxPreprocessor
 from hlakit.platform.lynx.loader import LynxLoader
+from hlakit.platform.lynx.lnx import LnxOff
 
 class LynxPreprocessorTester(unittest.TestCase):
     """
@@ -73,5 +74,15 @@ class LynxPreprocessorTester(unittest.TestCase):
             self.assertTrue(False)
         except ParseException:
             pass
+
+    pp_lnxoff = '#lnx.off\n'
+
+    def testLnxOff(self):
+        session = Session()
+        session.parse_args(['--platform=Lynx'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_lnxoff))
+        self.assertTrue(isinstance(pp.get_output()[0], LnxOff))
 
 
