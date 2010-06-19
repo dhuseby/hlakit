@@ -35,6 +35,7 @@ from hlakit.common.preprocessor import Preprocessor
 from hlakit.common.session import Session, CommandLineError
 from hlakit.common.tell import TellBank, TellBankOffset, TellBankSize, TellBankFree, TellBankType
 from hlakit.common.incbin import Incbin
+from hlakit.common.usepath import Usepath
 from hlakit.common.ram import RamOrg, RamEnd
 from hlakit.common.rom import RomOrg, RomEnd, RomBanksize, RomBank
 from hlakit.common.setpad import SetPad
@@ -309,6 +310,7 @@ class PreprocessorTester(unittest.TestCase):
 
     pp_include = '#include %s\n'
     pp_incbin = '#incbin %s\n'
+    pp_usepath = '#usepath %s\n'
 
     def testImpliedInclude(self):
         session = Session()
@@ -423,6 +425,22 @@ class PreprocessorTester(unittest.TestCase):
             self.assertTrue(False)
         except ParseFatalException, e:
             pass
+
+    def testImpliedUsepath(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_usepath % '<tests>'))
+        self.assertEquals(session.get_include_dirs()[-1], 'tests')
+
+    def testLiteralUsepath(self):
+        session = Session()
+        session.parse_args(['--cpu=generic'])
+        pp = session.preprocessor()
+
+        pp.parse(StringIO(self.pp_usepath % '"tests"'))
+        self.assertEquals(session.get_include_dirs()[-1], 'tests')
 
     pp_ramorg = '#ram.org %s\n'
     pp_ramend = '#ram.end\n'

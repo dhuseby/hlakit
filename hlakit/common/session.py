@@ -39,6 +39,9 @@ class CommandLineError(Exception):
     def __str__(self):
         return str(self.value)
 
+class DummyOptions(object):
+    pass
+
 class Session(object):
     """
     This encapsulates the global configuration of a given session using hlakit.
@@ -163,6 +166,16 @@ class Session(object):
         if options:
             return options.include
         return []
+
+    def add_include_dir(self, path):
+        """ this is only used by the #usepath preprocessor directive that is
+        deprecated and will be gone in version 1.0 """
+        options = getattr(self, '_optons', None)
+        if options:
+            options.include.append(path)
+        else:
+            self._options = DummyOptions()
+            setattr(self._options, 'include', [ path ])
 
     def get_args(self):
         return getattr(self, '_args', [])

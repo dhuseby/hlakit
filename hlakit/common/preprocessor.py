@@ -41,6 +41,7 @@ from error import Error
 from tell import TellBank, TellBankOffset, TellBankSize, TellBankFree, TellBankType
 from include import Include
 from incbin import Incbin
+from usepath import Usepath
 from rom import RomOrg, RomEnd, RomBanksize, RomBank
 from ram import RamOrg, RamEnd
 from setpad import SetPad
@@ -105,6 +106,7 @@ class Preprocessor(object):
         e.append(('tellbanktype', TellBankType.exprs()))
         e.append(('include', Include.exprs()))
         e.append(('incbin', Incbin.exprs()))
+        e.append(('usepath', Usepath.exprs()))
         e.append(('romorg', RomOrg.exprs()))
         e.append(('romend', RomEnd.exprs()))
         e.append(('rombanksize', RomBanksize.exprs()))
