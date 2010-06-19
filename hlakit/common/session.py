@@ -59,17 +59,17 @@ class Session(object):
             'desc': 'MOS Technologies 6502 8-bit CPU'
         }
         #'z80': {
-        #    'file': 'z80',
+        #    'module': 'cpu.z80',
         #    'class': 'Z80',
         #    'desc': 'Zilog Z80 8-bit CPU'
         #},
         #'LR35902': {
-        #    'file': 'lr35902',
+        #    'module': 'cpu.lr35902',
         #    'class': 'LR35902',
         #    'desc': 'Sharp Z80 Variant in the original Nintendo Game Boy'
         #},
         #'68k': {
-        #    'file': 'motorola68000',
+        #    'module': 'cpu.motorola68000',
         #    'class': 'Motorola68k',
         #    'desc': 'Motorola 68k 32-bit CPU'
         #}
@@ -81,14 +81,14 @@ class Session(object):
             'cpu': 'mos6502',
             'desc': 'Nintendo Entertainment System'
         },
-        #'lynx': {
-        #    'file': 'lynx',
-        #    'class': 'Lynx',
-        #    'cpu': 'mos6502',
-        #    'desc': 'Atari Lynx Portable System'
-        #}
+        'lynx': {
+            'module': 'platform.lynx',
+            'class': 'Lynx',
+            'cpu': 'mos6502',
+            'desc': 'Atari Lynx Portable System'
+        }
         #'gameboy': {
-        #    'file': 'gameboy',
+        #    'module': 'platform.gameboy',
         #    'class': 'GameBoy',
         #    'desc': 'Nintendo GameBoy System'
         #}

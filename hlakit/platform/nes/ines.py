@@ -372,7 +372,7 @@ class iNESMapper(object):
         return self._mapper
 
     def __str__(self):
-        return 'iNesMapper %s' % self._mapper
+        return 'iNESMapper %s' % self._mapper
 
     __repr__ = __str__
 
@@ -419,7 +419,7 @@ class iNESMirroring(object):
         return self._mirroring
 
     def __str__(self):
-        return 'iNesMirroring %s' % self._mirroring
+        return 'iNESMirroring %s' % self._mirroring
 
     __repr__ = __str__
 
@@ -466,7 +466,7 @@ class iNESFourscreen(object):
         return self._value
 
     def __str__(self):
-        return 'iNesFourscreen %s' % self._value
+        return 'iNESFourscreen %s' % self._value
 
     __repr__ = __str__
 
@@ -513,7 +513,7 @@ class iNESBattery(object):
         return self._value
 
     def __str__(self):
-        return 'iNesBattery %s' % self._value
+        return 'iNESBattery %s' % self._value
 
     __repr__ = __str__
 
@@ -560,9 +560,121 @@ class iNESTrainer(object):
         return self._value
 
     def __str__(self):
-        return 'iNesTrainer %s' % self._value
+        return 'iNESTrainer %s' % self._value
 
     __repr__ = __str__
 
+
+class iNESPrgRepeat(object):
+    """
+    This defines the rules for parsing a #ines.prgrepeat <number> line 
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        if 'repeat' not in tokens.keys():
+            raise ParseFatalException('#ines.prgrepeat missing parameter')
+
+        return klass(tokens.repeat)
+
+    @classmethod
+    def exprs(klass):
+        kw = Keyword('#ines.prgrepeat')
+        repeat = NumericValue.exprs().setResultsName('repeat')
+
+        expr = Suppress(kw) + \
+               repeat + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __init__(self, repeat):
+        self._repeat = repeat
+
+    def get_repeat(self):
+        return self._repeat
+
+    def __str__(self):
+        return 'iNESPrgRepeat %s' % self._repeat
+
+    __repr__ = __str__
+
+
+class iNESChrRepeat(object):
+    """
+    This defines the rules for parsing a #ines.chrrepeat <number> line 
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        if 'repeat' not in tokens.keys():
+            raise ParseFatalException('#ines.chrrepeat missing parameter')
+
+        return klass(tokens.repeat)
+
+    @classmethod
+    def exprs(klass):
+        kw = Keyword('#ines.chrrepeat')
+        repeat = NumericValue.exprs().setResultsName('repeat')
+
+        expr = Suppress(kw) + \
+               repeat + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __init__(self, repeat):
+        self._repeat = repeat
+
+    def get_repeat(self):
+        return self._repeat
+
+    def __str__(self):
+        return 'iNESChrRepeat %s' % self._repeat
+
+    __repr__ = __str__
+
+
+class iNESOff(object):
+    """
+    This defines the rules for parsing a #ines.off line 
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        return klass()
+
+    @classmethod
+    def exprs(klass):
+        kw = Keyword('#ines.off')
+        repeat = NumericValue.exprs().setResultsName('repeat')
+
+        expr = Suppress(kw) + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __str__(self):
+        return 'iNESOff'
+
+    __repr__ = __str__
 
 

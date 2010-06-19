@@ -30,7 +30,7 @@ or implied, of David Huseby.
 import os
 from pyparsing import *
 from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor
-from ines import iNES, iNESMapper, iNESMirroring
+from ines import iNES, iNESMapper, iNESMirroring, iNESFourscreen, iNESBattery, iNESTrainer, iNESPrgRepeat, iNESChrRepeat, iNESOff
 from chr import ChrBanksize, ChrBank, ChrLink
 
 class NESPreprocessor(MOS6502Preprocessor):
@@ -55,6 +55,12 @@ class NESPreprocessor(MOS6502Preprocessor):
         e.append(('chrlink', ChrLink.exprs()))
         e.append(('inesmapper', iNESMapper.exprs()))
         e.append(('inesmirroring', iNESMirroring.exprs()))
+        e.append(('inesfourscreen', iNESFourscreen.exprs()))
+        e.append(('inesbattery', iNESBattery.exprs()))
+        e.append(('inestrainer', iNESTrainer.exprs()))
+        e.append(('inesprgrepeat', iNESPrgRepeat.exprs()))
+        e.append(('ineschrrepeat', iNESChrRepeat.exprs()))
+        e.append(('inesoff', iNESOff.exprs()))
         
         return e
 

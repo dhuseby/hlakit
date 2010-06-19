@@ -34,7 +34,7 @@ from cStringIO import StringIO
 from hlakit.common.session import Session
 from hlakit.platform.nes import NESPreprocessor
 from hlakit.platform.nes.chr import ChrBanksize, ChrBank, ChrLink
-from hlakit.platform.nes.ines import iNESMapper, iNESMirroring
+from hlakit.platform.nes.ines import iNESMapper, iNESMirroring, iNESFourscreen, iNESBattery, iNESTrainer, iNESPrgRepeat, iNESChrRepeat, iNESOff
 
 class NESPreprocessorTester(unittest.TestCase):
     """
@@ -66,7 +66,7 @@ class NESPreprocessorTester(unittest.TestCase):
 
     def testBadChrBanksize(self):
         session = Session()
-        session.parse_args(['--cpu=generic'])
+        session.parse_args(['--platform=NES'])
         pp = session.preprocessor()
 
         try:
@@ -77,6 +77,12 @@ class NESPreprocessorTester(unittest.TestCase):
 
     pp_inesmapper = '#ines.mapper %s\n'
     pp_inesmirroring = '#ines.mirroring %s\n'
+    pp_inesfourscreen = '#ines.fourscreen %s\n'
+    pp_inesbattery = '#ines.battery %s\n'
+    pp_inestrainer = '#ines.trainer %s\n'
+    pp_inesprgrepeat = '#ines.prgrepeat %s\n'
+    pp_ineschrrepeat = '#ines.chrrepeat %s\n'
+    pp_inesoff = '#ines.off\n'
 
     def testiNESMapperName(self):
         session = Session()
@@ -136,5 +142,139 @@ class NESPreprocessorTester(unittest.TestCase):
         except ParseFatalException:
             pass
 
+    def testiNESFourscreenYes(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_inesfourscreen % '"yes"'))
+        self.assertTrue(isinstance(pp.get_output()[0], iNESFourscreen))
+        self.assertEquals(pp.get_output()[0].get_fourscreen(), 'yes')
+
+    def testiNESFourscreenNo(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_inesfourscreen % '"no"'))
+        self.assertTrue(isinstance(pp.get_output()[0], iNESFourscreen))
+        self.assertEquals(pp.get_output()[0].get_fourscreen(), 'no')
+
+    def testBadiNESFourscreen(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_inesfourscreen % '"blah"'))
+            self.assertTrue(False)
+        except ParseFatalException:
+            pass
+
+    def testiNESBatterYes(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_inesbattery % '"yes"'))
+        self.assertTrue(isinstance(pp.get_output()[0], iNESBattery))
+        self.assertEquals(pp.get_output()[0].get_battery(), 'yes')
+
+    def testiNESBatteryNo(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_inesbattery % '"no"'))
+        self.assertTrue(isinstance(pp.get_output()[0], iNESBattery))
+        self.assertEquals(pp.get_output()[0].get_battery(), 'no')
+
+    def testBadiNESBattery(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_inesbattery % '"blah"'))
+            self.assertTrue(False)
+        except ParseFatalException:
+            pass
+
+    def testiNESTrainerYes(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_inestrainer % '"yes"'))
+        self.assertTrue(isinstance(pp.get_output()[0], iNESTrainer))
+        self.assertEquals(pp.get_output()[0].get_trainer(), 'yes')
+
+    def testiNESTrainerNo(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_inestrainer % '"no"'))
+        self.assertTrue(isinstance(pp.get_output()[0], iNESTrainer))
+        self.assertEquals(pp.get_output()[0].get_trainer(), 'no')
+
+    def testBadiNESTrainer(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_inestrainer % '"blah"'))
+            self.assertTrue(False)
+        except ParseFatalException:
+            pass
+
+    def testiNESPrgRepeat(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_inesprgrepeat % '4'))
+        self.assertTrue(isinstance(pp.get_output()[0], iNESPrgRepeat))
+        self.assertEquals(int(pp.get_output()[0].get_repeat()), 4)
+
+    def testBadiNESPrgRepeat(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_inesprgrepeat % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testiNESChrRepeat(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_ineschrrepeat % '4'))
+        self.assertTrue(isinstance(pp.get_output()[0], iNESChrRepeat))
+        self.assertEquals(int(pp.get_output()[0].get_repeat()), 4)
+
+    def testBadiNESChrRepeat(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_ineschrrepeat % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testiNESOff(self):
+        session = Session()
+        session.parse_args(['--platform=NES'])
+        pp = session.preprocessor() 
+
+        pp.parse(StringIO(self.pp_inesoff))
+        self.assertTrue(isinstance(pp.get_output()[0], iNESOff))
 
 
