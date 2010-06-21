@@ -46,6 +46,9 @@ class Define(object):
         if 'value' in tokens.keys():
             value = ' '.join(tokens.value)
 
+        if value:
+            value = pp.expand_symbols(value)
+
         pp.set_symbol(tokens.label, value)
 
         return []

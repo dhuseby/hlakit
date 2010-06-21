@@ -56,42 +56,47 @@ class PreprocessorTester(unittest.TestCase):
         session = Session()
         self.assertTrue(isinstance(session._target.preprocessor(), Preprocessor))
 
-    pp_define = '#define FOO\n'
-    pp_define_value = '#define FOO 1\n'
-    pp_define_string = '#define FOO "blah blah blah"\n'
-    pp_define_bar = '#define BAR\n'
-    pp_undef = '#undef FOO\n'
+    pp_define = '#define %s\n'
+    pp_undef = '#undef %s\n'
 
     def testDefine(self):
         pp = Session().preprocessor()
 
-        pp.parse(StringIO(self.pp_define))
+        pp.parse(StringIO(self.pp_define % 'FOO'))
         self.assertTrue(pp.has_symbol('FOO'))
     
     def testDefineValue(self):
         pp = Session().preprocessor()
 
-        pp.parse(StringIO(self.pp_define_value))
-        self.assertEquals(pp.get_symbol('FOO'), '1')
+        pp.parse(StringIO(self.pp_define % 'FOO 1'))
+        self.assertEquals(int(pp.get_symbol('FOO')), 1)
 
     def testDefineString(self):
         pp = Session().preprocessor()
 
-        pp.parse(StringIO(self.pp_define_string))
+        pp.parse(StringIO(self.pp_define % 'FOO "blah blah blah"'))
         self.assertEquals(pp.get_symbol('FOO'), '"blah blah blah"')
 
     def testUndef(self):
         pp = Session().preprocessor()
 
-        pp.parse(StringIO(self.pp_define))
+        pp.parse(StringIO(self.pp_define % 'FOO'))
         self.assertTrue(pp.has_symbol('FOO'))
 
-        pp.parse(StringIO(self.pp_undef))
+        pp.parse(StringIO(self.pp_undef % 'FOO'))
         self.assertFalse(pp.has_symbol('FOO'), 'FOO shouldn\'t be defined')
 
+    def testMacroExpansion(self):
+        pp = Session().preprocessor()
 
-    pp_ifdef = '#ifdef FOO\n'
-    pp_ifndef = '#ifndef FOO\n'
+        pp.parse(StringIO(self.pp_define % 'FOO "Hello World"'))
+        self.assertEquals(pp.get_symbol('FOO'), '"Hello World"')
+
+        pp.parse(StringIO(self.pp_define % 'BAR FOO'))
+        self.assertEquals(pp.get_symbol('BAR'), '"Hello World"')
+
+    pp_ifdef = '#ifdef %s\n'
+    pp_ifndef = '#ifndef %s\n'
     pp_else = '#else\n'
     pp_endif = '#endif\n'
 
@@ -99,18 +104,18 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         #define FOO
-        pp.parse(StringIO(self.pp_define))
+        pp.parse(StringIO(self.pp_define % 'FOO'))
         self.assertTrue(pp.has_symbol('FOO'))
         self.assertEquals(len(pp.get_ignore_stack()), 1)
 
         #ifdef FOO
-        pp.parse(StringIO(self.pp_ifdef))
+        pp.parse(StringIO(self.pp_ifdef % 'FOO'))
         self.assertEquals(len(pp.get_ignore_stack()), 2)
         self.assertFalse(pp.ignore_stack_top())
         self.assertFalse(pp.ignore())
 
         #define BAR
-        pp.parse(StringIO(self.pp_define_bar))
+        pp.parse(StringIO(self.pp_define % 'BAR'))
         self.assertTrue(pp.has_symbol('BAR'))
 
         #endif
@@ -125,13 +130,13 @@ class PreprocessorTester(unittest.TestCase):
         self.assertEquals(len(pp.get_ignore_stack()), 1)
 
         #ifndef FOO
-        pp.parse(StringIO(self.pp_ifndef))
+        pp.parse(StringIO(self.pp_ifndef % 'FOO'))
         self.assertEquals(len(pp.get_ignore_stack()), 2)
         self.assertFalse(pp.ignore_stack_top())
         self.assertFalse(pp.ignore())
 
         #define BAR
-        pp.parse(StringIO(self.pp_define_bar))
+        pp.parse(StringIO(self.pp_define % 'BAR'))
         self.assertTrue(pp.has_symbol('BAR'))
 
         #endif
@@ -144,13 +149,13 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         #ifdef FOO
-        pp.parse(StringIO(self.pp_ifdef))
+        pp.parse(StringIO(self.pp_ifdef % 'FOO'))
         self.assertEquals(len(pp.get_ignore_stack()), 2)
         self.assertTrue(pp.ignore_stack_top())
         self.assertTrue(pp.ignore())
 
         #define FOO
-        pp.parse(StringIO(self.pp_define))
+        pp.parse(StringIO(self.pp_define % 'FOO'))
         self.assertFalse(pp.has_symbol('FOO'))
         self.assertTrue(pp.ignore())
 
@@ -161,7 +166,7 @@ class PreprocessorTester(unittest.TestCase):
         self.assertFalse(pp.ignore())
 
         #define BAR
-        pp.parse(StringIO(self.pp_define_bar))
+        pp.parse(StringIO(self.pp_define % 'BAR'))
         self.assertTrue(pp.has_symbol('BAR'))
 
         #endif
@@ -175,7 +180,7 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
         
         #undef FOO 
-        pp.parse(StringIO(self.pp_undef))
+        pp.parse(StringIO(self.pp_undef % 'FOO'))
 
 
     pp_todo = '#todo %s\n'
