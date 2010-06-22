@@ -27,50 +27,29 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+import os
 from pyparsing import *
-from session import Session
+from type_ import Type
 
-class CodeLine(object):
+class Symbol(object):
     """
-    This is a wrapper class around a line of code that contains
-    it's origin file and line number before preprocessing.
+    encapsulates a declared symbol
     """
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
+    def __init__(self, name, type_=None):
+        self._name = name
+        self._type = type_
 
-        if pp.ignore():
-            return []
+    def get_name(self):
+        return self._name
 
-        # merge the tokens back into a single line of text
-        line = ' '.join(tokens)
+    def get_type(self):
+        return self._type
 
-        # strip whitespace
-        line = line.strip()
+    def set_type(self, type_):
+        if isinstance(type_, Type):
+            self._type = type_.get_name()
+        elif isinstance(type_, str):
+            self._type = type_
 
-        # return an appropriate array of tokens
-        if len(line):
-            # do macro expansion here
-            line = pp.expand_symbols(line)
-            
-            # return a CodeLine object ecapsulating the code 
-            return klass(line)
-
-        return []
-
-    @classmethod
-    def exprs(klass):
-        # this matches all lines that don't match any other rules
-        expr = ~Literal('#') + SkipTo(LineEnd()).setResultsName('line') + Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
-        return expr
-
-    def __init__(self, code):
-        self._code = code
-
-    def __str__(self):
-        return self._code
-
-    __repr__ = __str__
-
+        raise ParseFatalException('setting invalid type on symbol')
 

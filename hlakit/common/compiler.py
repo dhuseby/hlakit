@@ -28,7 +28,11 @@ or implied, of David Huseby.
 """
 
 import os
+from cStringIO import StringIO
 from pyparsing import *
+from type_ import Type
+from structmember import StructMember
+from struct import Struct
 
 class Compiler(object):
 
@@ -42,6 +46,11 @@ class Compiler(object):
     @classmethod
     def first_exprs(klass):
         e = []
+        e.append(('type', Type.exprs()))
+        e.append(('structmember', StructMember.exprs()))
+        e.append(('struct', Struct.exprs()))
+        #e.append(('variable', Variable.exprs()))
+        #e.append(('typedef', Typedef.exprs()))
         return e
 
     @classmethod
@@ -57,11 +66,22 @@ class Compiler(object):
         return obj
 
     def __init__(self):
-        self.set_exprs(self.__class__.exprs())
+        if not hasattr(self, '_exprs'):
+            self.set_exprs(self.__class__.exprs())
+        if not hasattr(self, '_tokens'):
+            self._tokens = []
 
     def reset_state(self):
         self.set_exprs(self.__class__.exprs())
         self._tokens = []
+
+    def basic_types(klass):
+        # these are the basic type identifiers
+        return [ Type('byte'),
+                 Type('char'),
+                 Type('bool'),
+                 Type('word'),
+                 Type('pointer') ]
 
     def get_exprs(self):
         return getattr(self, '_exprs', [])
@@ -77,4 +97,14 @@ class Compiler(object):
             self._tokens = []
         self._tokens.extend(tokens)
 
+    def get_output(self):
+        return self._get_tokens()
+
+    def compile(self, cbs):
+        expr_or = Or([])
+        for e in self.get_exprs():
+            expr_or.append(e[1])
+        parser = ZeroOrMore(expr_or)
+        for cb in cbs:
+            self._tokens = parser.parseFile(StringIO(str(cb)))
 

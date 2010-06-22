@@ -30,11 +30,11 @@ or implied, of David Huseby.
 from pyparsing import *
 from session import Session
 
-class CodeLine(object):
+class Type(object):
     """
-    This is a wrapper class around a line of code that contains
-    it's origin file and line number before preprocessing.
+    The type of a variable
     """
+
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -42,35 +42,28 @@ class CodeLine(object):
         if pp.ignore():
             return []
 
-        # merge the tokens back into a single line of text
-        line = ' '.join(tokens)
-
-        # strip whitespace
-        line = line.strip()
-
-        # return an appropriate array of tokens
-        if len(line):
-            # do macro expansion here
-            line = pp.expand_symbols(line)
-            
-            # return a CodeLine object ecapsulating the code 
-            return klass(line)
-
-        return []
+        if 'type_' in tokens.keys():
+            return klass(tokens.type_)
+        
+        raise ParseFatalException('no type specified')
 
     @classmethod
     def exprs(klass):
-        # this matches all lines that don't match any other rules
-        expr = ~Literal('#') + SkipTo(LineEnd()).setResultsName('line') + Suppress(LineEnd())
+        expr = Word(alphas, alphanums + '_').setResultsName('type_')
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, code):
-        self._code = code
+    def __init__(self, name):
+        self._name = name
+
+    def get_name(self):
+        return self._name
 
     def __str__(self):
-        return self._code
+        return self._name
+
+    def __cmp__(self, t):
+        return cmp(self._name, t)
 
     __repr__ = __str__
-
 

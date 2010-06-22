@@ -131,7 +131,16 @@ class Preprocessor(object):
         return obj
 
     def __init__(self):
-        self.set_exprs(self.__class__.exprs())
+        if not hasattr(self, '_exprs'):
+            self.set_exprs(self.__class__.exprs())
+        if not hasattr(self, '_symbols'):
+            self._symbols = {}
+        if not hasattr(self, '_ignore_stack'):
+            self._ignore_stack = [False]
+        if not hasattr(self, '_state_stack'):
+            self._state_stack = []
+        if not hasattr(self, '_tokens'):
+            self._tokens = []
 
     def reset_state(self):
         self.set_exprs(self.__class__.exprs())
@@ -141,25 +150,21 @@ class Preprocessor(object):
         self._tokens = []
 
     def get_exprs(self):
-        return getattr(self, '_exprs', [])
+        return self._exprs
 
     def set_exprs(self, value):
         self._exprs = value
 
     def _get_tokens(self):
-        return getattr(self, '_tokens', [])
+        return self._tokens
 
     def _append_tokens(self, tokens):
-        if not hasattr(self, '_tokens'):
-            self._tokens = []
         self._tokens.extend(tokens)
 
     def get_symbols(self):
-        return getattr(self, '_symbols', {})
+        return self._symbols
 
     def set_symbol(self, label, value = None):
-        if not hasattr(self, '_symbols'):
-            self._symbols = {}
         self._symbols[label] = value
 
     def get_symbol(self, label):
@@ -180,16 +185,12 @@ class Preprocessor(object):
         return expanded_line
 
     def get_ignore_stack(self):
-        return getattr(self, '_ignore_stack', [False])
+        return self._ignore_stack
 
     def ignore_stack_push(self, value):
-        if not hasattr(self, '_ignore_stack'):
-            self._ignore_stack = [False]
         self._ignore_stack.append(value)
 
     def ignore_stack_pop(self):
-        if not hasattr(self, '_ignore_stack'):
-            self._ignore_stack = [False]
         return self._ignore_stack.pop()
 
     def ignore_stack_top(self):
@@ -202,16 +203,12 @@ class Preprocessor(object):
         return False
     
     def get_state_stack(self):
-        return getattr(self, '_state_stack', [])
+        return self._state_stack
 
     def state_stack_push(self, frame):
-        if not hasattr(self, '_state_stack'):
-            self._state_stack = []
         self._state_stack.append(frame)
 
     def state_stack_pop(self):
-        if not hasattr(self, '_state_stack'):
-            self._state_stack = []
         return self._state_stack.pop()
 
     def state_stack_top(self):
@@ -227,7 +224,7 @@ class Preprocessor(object):
         tokens = self.state_stack_top().parse()
         if len(tokens):
             self._append_tokens(tokens)
-
+ 
         # restore previous state if there is one
         self.state_stack_pop()
 
@@ -238,9 +235,9 @@ class Preprocessor(object):
         # it's time to merge un-processed lines into code blocks for
         # parsing by the compiler pass.
         pp_tokens = []
-        current_block = CodeBlock()
+        current_block = CodeBlock([])
         for token in tokens:
-            if type(token) is CodeLine:
+            if isinstance(token, CodeLine):
                 current_block.append(token)
             else:
                 # if the current code block has lines in it, then
@@ -248,7 +245,7 @@ class Preprocessor(object):
                 # CodeBlock...
                 if current_block.num_lines() > 0:
                     pp_tokens.append(current_block)
-                    current_block = CodeBlock()
+                    current_block = CodeBlock([])
 
                 # append the non-CodeLine token to the pp_tokens list
                 pp_tokens.append(token)

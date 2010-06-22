@@ -32,8 +32,8 @@ class CodeBlock(object):
     This encapsulates a list of CodeLine objects into a cohesive
     code block that can be translated back into plain text.
     """
-    def __init__(self):
-        self._lines = []
+    def __init__(self, lines):
+        self._lines = lines
 
     def append(self, line):
         self._lines.append(line)
@@ -42,10 +42,10 @@ class CodeBlock(object):
         return len(self._lines)
 
     def __str__(self):
-        out = "\n"
+        out = ''
         for line in self._lines:
-            out += str(line) + "\n"
-        return out + "\n"
+            out += '%s\n' % str(line)
+        return out
 
     __repr__ = __str__
 

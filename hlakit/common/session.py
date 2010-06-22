@@ -279,22 +279,19 @@ class Session(object):
             if fpath is None:
                 continue;
 
-            # open the file
-            inf = open(fpath, 'r')
-
             # parse the file
+            inf = open(fpath, 'r')
             pp.parse(inf)
-            pp_tokens = pp.get_output()
-            for t in pp_tokens:
-                print "%s: %s" % (type(t), t)
-
-            # close the file
             inf.close()
 
-            # compile the tokenstream
-            #cc_tokens = cc.compile(pp_tokens)
+            pp_tokens = pp.get_output()
+            #for t in pp_tokens:
+            #    print "%s: %s" % (type(t), t)
 
-            # linke the compiled tokens into a binary
+            # compile the tokenstream
+            cc_tokens = cc.compile(pp_tokens)
+
+            # link the compiled tokens into a binary
             #ll.link(cc_tokens)
 
             # dump the tokens

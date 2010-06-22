@@ -27,50 +27,57 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+import os
 from pyparsing import *
-from session import Session
+from symbol import Symbol
 
-class CodeLine(object):
-    """
-    This is a wrapper class around a line of code that contains
-    it's origin file and line number before preprocessing.
-    """
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
+class SymbolTable(object):
 
-        if pp.ignore():
-            return []
+    _shared_state = {}
 
-        # merge the tokens back into a single line of text
-        line = ' '.join(tokens)
+    def __new__(cls, *a, **k):
+        obj = object.__new__(cls, *a, **k)
+        obj.__dict__ = cls._shared_state
+        return obj
 
-        # strip whitespace
-        line = line.strip()
+    def __init__(self):
+        if not hasattr(self, '_scope_stack'):
+            self._scope_stack = [{}]
 
-        # return an appropriate array of tokens
-        if len(line):
-            # do macro expansion here
-            line = pp.expand_symbols(line)
-            
-            # return a CodeLine object ecapsulating the code 
-            return klass(line)
+    def reset_state(self):
+        self._scope_stack = [{}]
 
-        return []
+    def scope_push(self):
+        self._scope_stack.insert({}, 0)
 
-    @classmethod
-    def exprs(klass):
-        # this matches all lines that don't match any other rules
-        expr = ~Literal('#') + SkipTo(LineEnd()).setResultsName('line') + Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
-        return expr
+    def scope_pop(self):
+        if len(self._scope_stack) <= 1:
+            raise ParseFatalException('can\'t pop scope from empty scope stack')
+        self._scope_stack.pop(0)
 
-    def __init__(self, code):
-        self._code = code
+    def scope_top(self):
+        return self._scope_stack[0]
 
-    def __str__(self):
-        return self._code
+    def scope_global(self):
+        return self._scope_stack[-1]
 
-    __repr__ = __str__
+    def __getitem__(self, name):
+        """ Scan through the scope frames from most local to most global
+        looking for the symbol they client is asking for"""
 
+        for i in range(0, len(self._scope_stack)):
+            if self._scope_stack[i].has_key(name):
+                return self._scope_stack[i][name]
+
+        return None
+
+    def __setitem__(self, name, symbol):
+        # this is for updating an already defined symbol 
+        for i in range(0, len(self._scope_stack)):
+            if self._scope_stack[i].has_key(name):
+                self._scope_stack[i][name] = symbol
+
+    def new_symbol(self, symbol):
+        # This is used to define a new symbol in the current scope
+        self._scope_stack[0][symbol.get_name()] = symbol
 

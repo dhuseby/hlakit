@@ -30,11 +30,11 @@ or implied, of David Huseby.
 from pyparsing import *
 from session import Session
 
-class CodeLine(object):
+class Name(object):
     """
-    This is a wrapper class around a line of code that contains
-    it's origin file and line number before preprocessing.
+    The name of a variable/function
     """
+
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -42,35 +42,31 @@ class CodeLine(object):
         if pp.ignore():
             return []
 
-        # merge the tokens back into a single line of text
-        line = ' '.join(tokens)
+        if 'name' in tokens.keys():
+            return klass(tokens.name)
 
-        # strip whitespace
-        line = line.strip()
-
-        # return an appropriate array of tokens
-        if len(line):
-            # do macro expansion here
-            line = pp.expand_symbols(line)
-            
-            # return a CodeLine object ecapsulating the code 
-            return klass(line)
-
-        return []
+        raise ParseFatalException('no name specified')
 
     @classmethod
     def exprs(klass):
-        # this matches all lines that don't match any other rules
-        expr = ~Literal('#') + SkipTo(LineEnd()).setResultsName('line') + Suppress(LineEnd())
+        expr = Word(alphas, alphanums + '_').setResultsName('name')
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, code):
-        self._code = code
+    def __init__(self, name):
+        self._name = name
+
+    def get_name(self):
+        return self._name
 
     def __str__(self):
-        return self._code
+        return self._name
+
+    def __cmp__(self, name):
+        return cmp(self._name, name)
+
+    def __hash__(self):
+        return hash(self._name)
 
     __repr__ = __str__
-
 

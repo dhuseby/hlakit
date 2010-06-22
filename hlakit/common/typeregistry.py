@@ -27,50 +27,35 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+import os
 from pyparsing import *
 from session import Session
+from type_ import Type
 
-class CodeLine(object):
-    """
-    This is a wrapper class around a line of code that contains
-    it's origin file and line number before preprocessing.
-    """
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
+class TypeRegistry(object):
 
-        if pp.ignore():
-            return []
+    _shared_state = {}
 
-        # merge the tokens back into a single line of text
-        line = ' '.join(tokens)
+    def __new__(cls, *a, **k):
+        obj = object.__new__(cls, *a, **k)
+        obj.__dict__ = cls._shared_state
+        return obj
 
-        # strip whitespace
-        line = line.strip()
+    def __init__(self):
+        if not hasattr(self, '_types'):
+            self.reset_state()
 
-        # return an appropriate array of tokens
-        if len(line):
-            # do macro expansion here
-            line = pp.expand_symbols(line)
-            
-            # return a CodeLine object ecapsulating the code 
-            return klass(line)
+    def reset_state(self):
+        self._types = {}
+        types = Session().compiler().basic_types()
+        for t in types:
+            self._types[t.get_name()] = t
 
-        return []
+    def __getitem__(self, t):
+        if isinstance(t, Type):
+            return self._types.get(t.get_name(), None)
+        return self._types.get(t, None)
 
-    @classmethod
-    def exprs(klass):
-        # this matches all lines that don't match any other rules
-        expr = ~Literal('#') + SkipTo(LineEnd()).setResultsName('line') + Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
-        return expr
-
-    def __init__(self, code):
-        self._code = code
-
-    def __str__(self):
-        return self._code
-
-    __repr__ = __str__
-
+    def __setitem__(self, name, t):
+        self._types[name] = t
 

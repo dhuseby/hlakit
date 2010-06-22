@@ -29,48 +29,39 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
+from typeregistry import TypeRegistry
+from type_ import Type
+from variable import Variable
 
-class CodeLine(object):
+class Typedef(Type):
     """
-    This is a wrapper class around a line of code that contains
-    it's origin file and line number before preprocessing.
+    TypeDef parser/handler
     """
+
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
+        tr = TypeRegistry()
 
         if pp.ignore():
             return []
 
-        # merge the tokens back into a single line of text
-        line = ' '.join(tokens)
+        if 'typedef' not in tokens.keys():
+            raise ParseFatalException('missing typedef')
 
-        # strip whitespace
-        line = line.strip()
+        if 'variable' not in tokens.keys():
+            raise ParseFatalException('typedef missing variable')
 
-        # return an appropriate array of tokens
-        if len(line):
-            # do macro expansion here
-            line = pp.expand_symbols(line)
-            
-            # return a CodeLine object ecapsulating the code 
-            return klass(line)
-
-        return []
+        # register the new type alias
+        v = tokens.variable
+        t = Type(v.get_name(), v.get_type().get_name()) 
+        tr[t.get_name()] = t
 
     @classmethod
     def exprs(klass):
-        # this matches all lines that don't match any other rules
-        expr = ~Literal('#') + SkipTo(LineEnd()).setResultsName('line') + Suppress(LineEnd())
+        expr = Keyword('typedef').setResultsName('typedef') + \
+               Variable.exprs().setResultsName('variable')
         expr.setParseAction(klass.parse)
+        
         return expr
-
-    def __init__(self, code):
-        self._code = code
-
-    def __str__(self):
-        return self._code
-
-    __repr__ = __str__
-
 

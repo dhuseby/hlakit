@@ -40,6 +40,7 @@ from hlakit.common.ram import RamOrg, RamEnd
 from hlakit.common.rom import RomOrg, RomEnd, RomBanksize, RomBank
 from hlakit.common.setpad import SetPad
 from hlakit.common.align import Align
+from hlakit.common.codeblock import CodeBlock
 
 class PreprocessorTester(unittest.TestCase):
     """
@@ -54,7 +55,7 @@ class PreprocessorTester(unittest.TestCase):
 
     def testPreprocessor(self):
         session = Session()
-        self.assertTrue(isinstance(session._target.preprocessor(), Preprocessor))
+        self.assertTrue(isinstance(session.preprocessor(), Preprocessor))
 
     pp_define = '#define %s\n'
     pp_undef = '#undef %s\n'
@@ -561,4 +562,12 @@ class PreprocessorTester(unittest.TestCase):
             self.assertTrue(False)
         except ParseException:
             pass
+
+    pp_code ='byte i = 2\nword j = 0x3423'
+
+    def testCodeOutput(self):
+        pp = Session().preprocessor()
+    
+        pp.parse(StringIO(self.pp_code))
+        self.assertTrue(isinstance(pp.get_output()[0], CodeBlock))
 
