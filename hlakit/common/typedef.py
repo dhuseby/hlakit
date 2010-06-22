@@ -29,9 +29,10 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
-from typeregistry import TypeRegistry
 from type_ import Type
-from variable import Variable
+from name import Name
+from struct import Struct
+from numericvalue import NumericValue
 
 class Typedef(Type):
     """
@@ -41,7 +42,6 @@ class Typedef(Type):
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
-        tr = TypeRegistry()
 
         if pp.ignore():
             return []
@@ -49,19 +49,59 @@ class Typedef(Type):
         if 'typedef' not in tokens.keys():
             raise ParseFatalException('missing typedef')
 
-        if 'variable' not in tokens.keys():
-            raise ParseFatalException('typedef missing variable')
+        if 'type_' not in tokens.keys():
+            raise ParseFatalException('typedef missing type')
 
-        # register the new type alias
-        v = tokens.variable
-        t = Type(v.get_name(), v.get_type().get_name()) 
-        tr[t.get_name()] = t
+        if 'name' not in tokens.keys():
+            raise ParseFatalException('typedef missing alias')
+
+        array_ = 'array_' in tokens.keys()
+        size = None
+        if 'size' in tokens.keys():
+            size = tokens.size
+
+        return klass(tokens.name, tokens.type_, array_, size)    
 
     @classmethod
     def exprs(klass):
+        lbracket = Suppress('[')
+        rbracket = Suppress(']')
         expr = Keyword('typedef').setResultsName('typedef') + \
-               Variable.exprs().setResultsName('variable')
+               Or([Struct.exprs(),
+                   Type.exprs()]).setResultsName('type_') + \
+               Name.exprs().setResultsName('name') + \
+               Optional(lbracket + \
+                        Optional(NumericValue.exprs()).setResultsName('size') + \
+                        rbracket).setResultsName('array_')
         expr.setParseAction(klass.parse)
         
         return expr
+
+    def __init__(self, name, aliased_type, array_=False, size=None):
+        super(Typedef, self).__init__(name)
+        self._aliased_type = aliased_type
+        self._array = array_
+        self._size = size
+
+    def get_aliased_type(self):
+        return self._aliased_type
+
+    def is_array(self):
+        return self._array
+
+    def get_array_size(self):
+        if self._size != None:
+            return int(self._size)
+        return None
+
+    def __str__(self):
+        s = '%s -> %s' % (self.get_name(), self.get_aliased_type())
+        if self.is_array():
+            if self.get_array_size() != None:
+                s += '[%s]' % self.get_array_size()
+            else:
+                s += '[]'
+        return s
+
+    __repr__ = __str__
 

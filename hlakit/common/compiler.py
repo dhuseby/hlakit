@@ -31,8 +31,8 @@ import os
 from cStringIO import StringIO
 from pyparsing import *
 from type_ import Type
-from structmember import StructMember
 from struct import Struct
+from typedef import Typedef
 
 class Compiler(object):
 
@@ -47,10 +47,9 @@ class Compiler(object):
     def first_exprs(klass):
         e = []
         e.append(('type', Type.exprs()))
-        e.append(('structmember', StructMember.exprs()))
         e.append(('struct', Struct.exprs()))
+        e.append(('typedef', Typedef.exprs()))
         #e.append(('variable', Variable.exprs()))
-        #e.append(('typedef', Typedef.exprs()))
         return e
 
     @classmethod

@@ -39,6 +39,7 @@ from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.type_ import Type
 from hlakit.common.struct import Struct
+from hlakit.common.typedef import Typedef
 
 class CompilerTester(unittest.TestCase):
     """
@@ -92,6 +93,17 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_member('i').get_name(), 'i')
         self.assertEquals(cc.get_output()[0].get_member('i').get_type(), 'word')
    
+    def testBadStructType(self):
+        cc = Session().compiler()
+        st = SymbolTable()
+        tr = TypeRegistry()
+
+        try:
+            cc.compile([CodeBlock([CodeLine('struct foo {}')])])
+            self.assertTrue(False)
+        except:
+            pass
+
     def testNestedStructType(self):
         cc = Session().compiler()
         st = SymbolTable()
@@ -102,6 +114,91 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_name(), 'struct bar')
         self.assertTrue(isinstance(cc.get_output()[0].get_member('f'), Struct.Member))
         self.assertTrue(isinstance(cc.get_output()[0].get_member('f').get_member('x'), Struct.Member))
+
+    def testStructArrayMember(self):
+        cc = Session().compiler()
+        st = SymbolTable()
+        tr = TypeRegistry()
+
+        cc.compile([CodeBlock([CodeLine('struct bar { byte f[10]\n }')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Struct))
+        self.assertEquals(cc.get_output()[0].get_name(), 'struct bar')
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('f'), Struct.Member))
+        self.assertTrue(cc.get_output()[0].get_member('f').is_array())
+        self.assertEquals(cc.get_output()[0].get_member('f').get_array_size(), 10)
+
+    def testStructBadArrayMember(self):
+        cc = Session().compiler()
+        st = SymbolTable()
+        tr = TypeRegistry()
+        
+        try:
+            cc.compile([CodeBlock([CodeLine('struct bar { byte f[]\n }')])])
+            self.assertTrue(False)
+        except:
+            pass
+
+    def testStructMemberListWithArrays(self):
+        cc = Session().compiler()
+        st = SymbolTable()
+        tr = TypeRegistry()
+
+        cc.compile([CodeBlock([CodeLine('struct bar { byte a, b[10], c, d[2]\n }')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Struct))
+        self.assertEquals(cc.get_output()[0].get_name(), 'struct bar')
+        self.assertTrue(cc.get_output()[0].get_member('b').is_array())
+        self.assertEquals(cc.get_output()[0].get_member('b').get_array_size(), 10)
+        self.assertTrue(cc.get_output()[0].get_member('d').is_array())
+        self.assertEquals(cc.get_output()[0].get_member('d').get_array_size(), 2)
+
+    def testBasicTypedef(self):
+        cc = Session().compiler()
+        st = SymbolTable()
+        tr = TypeRegistry()
+
+        cc.compile([CodeBlock([CodeLine('typedef byte INT')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Typedef))
+        self.assertEquals(cc.get_output()[0].get_name(), 'INT')
+        self.assertEquals(cc.get_output()[0].get_aliased_type(), 'byte')
+
+    def testBasicTypedefArrayImplicitSize(self):
+        cc = Session().compiler()
+        st = SymbolTable()
+        tr = TypeRegistry()
+
+        cc.compile([CodeBlock([CodeLine('typedef byte INT[]')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Typedef))
+        self.assertEquals(cc.get_output()[0].get_name(), 'INT')
+        self.assertEquals(cc.get_output()[0].get_aliased_type(), 'byte')
+        self.assertTrue(cc.get_output()[0].is_array())
+        self.assertEquals(cc.get_output()[0].get_array_size(), None)
+
+    def testBasicTypedefArrayExplicitSize(self):
+        cc = Session().compiler()
+        st = SymbolTable()
+        tr = TypeRegistry()
+
+        cc.compile([CodeBlock([CodeLine('typedef byte INT[5]')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Typedef))
+        self.assertEquals(cc.get_output()[0].get_name(), 'INT')
+        self.assertEquals(cc.get_output()[0].get_aliased_type(), 'byte')
+        self.assertTrue(cc.get_output()[0].is_array())
+        self.assertEquals(cc.get_output()[0].get_array_size(), 5)
+
+    def testTypedefStructArrayMember(self):
+        cc = Session().compiler()
+        st = SymbolTable()
+        tr = TypeRegistry()
+
+        cc.compile([CodeBlock([CodeLine('typedef struct bar { byte f[10]\n } b')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Typedef))
+        self.assertEquals(cc.get_output()[0].get_name(), 'b')
+        self.assertTrue(isinstance(cc.get_output()[0].get_aliased_type(), Struct))
+        self.assertEquals(cc.get_output()[0].get_aliased_type(), 'struct bar')
+        self.assertTrue(isinstance(cc.get_output()[0].get_aliased_type().get_member('f'), Struct.Member))
+        self.assertTrue(cc.get_output()[0].get_aliased_type().get_member('f').is_array())
+        self.assertEquals(cc.get_output()[0].get_aliased_type().get_member('f').get_array_size(), 10)
+
 
     """
     def testBasicVar(self):

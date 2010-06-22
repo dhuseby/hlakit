@@ -59,18 +59,15 @@ class Struct(Type):
             return m
 
         def __init__(self, name, type_, size=None):
-            self._name = name
+            super(Struct.Member, self).__init__(name)
             self._type = type_
             self._size = size
-
-        def get_name(self):
-            return self._name
 
         def get_type(self):
             return self._type
 
         def is_array(self):
-            return self._size
+            return self._size != None
 
         def is_struct(self):
             return isinstance(self._type, Struct)
@@ -86,12 +83,14 @@ class Struct(Type):
             return self._type.get_member(name)
 
         def get_array_size(self):
-            return self._size
+            if self._size != None:
+                return int(self._size)
+            return None
 
         def __str__(self):
-            s = '%s %s' % (self._type, self._name)
+            s = '%s %s' % (self.get_type(), self.get_name())
             if self.is_array():
-                s += '[%s]' % self._size
+                s += '[%s]' % self.get_array_size()
             return s
 
         __repr__ = __str__
@@ -169,7 +168,7 @@ class Struct(Type):
         return struct
 
     def __init__(self, name):
-        self._name = name
+        super(Struct, self).__init__(name)
         self._members = []
         self._member_vars = {}
 
@@ -180,9 +179,6 @@ class Struct(Type):
         self._members.append(member.get_name())
         self._member_vars[member.get_name()] = member
 
-    def get_name(self):
-        return self._name
-
     def has_member(self, name):
         return self._member_vars.has_key(name)
 
@@ -190,14 +186,11 @@ class Struct(Type):
         return self._member_vars.get(name, None)
 
     def __str__(self):
-        s = '%s\n{\n' % self._name
+        s = '%s\n{\n' % self.get_name()
         for m in self._members:
             s += '\t%s %s\n' % (self.get_member(m).get_type(), self.get_member(m).get_name())
         s += '}'
         return s
-
-    def __cmp__(self, t):
-        return cmp(self._name, t)
 
     __repr__ = __str__
 
