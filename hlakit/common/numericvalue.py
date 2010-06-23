@@ -48,22 +48,6 @@ class NumericValue(object):
 
     """
 
-    def __init__(self, token, value):
-        self._token = token
-        self._value = value
-
-    def __len__(self):
-        return 1
-
-    def __int__(self):
-        return int(self._value)
-
-    def __str__(self):
-        return self._token
-
-    def __repr__(self):
-        return 'Number(%s) == %d' % (self._token, self._value)
-
     @classmethod
     def parse(klass, pstring, location, token):
         pp = Session().preprocessor()
@@ -107,4 +91,19 @@ class NumericValue(object):
         number_.setParseAction(klass.parse)
         return number_
 
+    def __init__(self, token, value):
+        self._token = token
+        self._value = value
+
+    def __len__(self):
+        return 1
+
+    def __int__(self):
+        return int(self._value)
+
+    def __str__(self):
+        return self._token
+
+    def __repr__(self):
+        return 'Number(%s) == %d' % (self._token, self._value)
 

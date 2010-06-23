@@ -33,6 +33,7 @@ from pyparsing import *
 from type_ import Type
 from struct import Struct
 from typedef import Typedef
+from variable import Variable
 
 class Compiler(object):
 
@@ -49,7 +50,7 @@ class Compiler(object):
         e.append(('type', Type.exprs()))
         e.append(('struct', Struct.exprs()))
         e.append(('typedef', Typedef.exprs()))
-        #e.append(('variable', Variable.exprs()))
+        e.append(('variable', Variable.exprs()))
         return e
 
     @classmethod

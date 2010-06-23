@@ -129,9 +129,6 @@ class Struct(Type):
         if 'name' not in tokens.keys():
             raise ParseFatalException('struct declared without name')
 
-        if 'member_list' not in tokens.keys():
-            raise ParseFatalException('struct missing at least one member')
-
         # initialize the Struct type
         t = klass('struct %s' % tokens.name)
         for m in tokens.member_list:

@@ -33,6 +33,7 @@ from typeregistry import TypeRegistry
 from symboltable import SymbolTable
 from symbol import Symbol
 from type_ import Type
+from struct import Struct
 from name import Name
 from numericvalue import NumericValue
 
@@ -51,7 +52,7 @@ class Variable(Symbol):
             return []
 
         shared = 'shared' in tokens.keys()
-        array = 'array' in tokens.keys()
+        array_ = 'array_' in tokens.keys()
 
         if 'type_' not in tokens.keys():
             raise ParseFatalException('variable missing type')
@@ -59,17 +60,18 @@ class Variable(Symbol):
         if 'name' not in tokens.keys():
             raise ParseFatalException('variable has no name')
 
-        if array and 'size' in tokens.keys():
+        size = None
+        if 'size' in tokens.keys():
             size = tokens.size
 
+        address = None
         if 'address' in tokens.keys():
             address = tokens.address
 
-        return klass(tokens.name, tokens.type_, shared, array, size, address)
+        return klass(tokens.name, tokens.type_, shared, array_, size, address)
 
     @classmethod
     def exprs(klass):
-        """
         lbracket = Suppress('[')
         rbracket = Suppress(']')
         colon = Suppress(':')
@@ -77,22 +79,20 @@ class Variable(Symbol):
         address = NumericValue.exprs()
 
         expr = Optional(Keyword('shared').setResultsName('shared')) + \
-               Type.exprs() + \
+               Or([Struct.exprs(), Type.exprs()]).setResultsName('type_') + \
                Name.exprs().setResultsName('name') + \
                Optional(lbracket + \
                         Optional(size.setResultsName('size')) + \
-                        rbracket).setResultsName('array') + \
+                        rbracket).setResultsName('array_') + \
                 Optional(colon + address.setResultsName('address'))
         expr.setParseAction(klass.parse)
         
         return expr
-        """
-        return Or([])
 
-    def __init__(self, name, type_, shared=False, array=False, size=None, address=None):
-        super(self, Variable).__init__(name, type_)
+    def __init__(self, name, type_, shared=False, array_=False, size=None, address=None):
+        super(Variable, self).__init__(name, type_)
         self._shared = shared
-        self._array = array
+        self._array = array_
         self._size = size
         self._address = address
 
@@ -102,8 +102,10 @@ class Variable(Symbol):
     def is_array(self):
         return self._array
 
-    def get_size(self):
-        return self._size
+    def get_array_size(self):
+        if self._size != None:
+            return int(self._size)
+        return None
 
     def get_address(self):
         return self._address
@@ -116,7 +118,7 @@ class Variable(Symbol):
         s += '%s' % self.get_name()
         if self.is_array():
             s += '['
-            if self.get_size():
+            if self.get_array_size():
                 s += '%s' % self.get_size()
             s += ']'
         if self.get_address():
