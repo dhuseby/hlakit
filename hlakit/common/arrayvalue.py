@@ -28,8 +28,9 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
-from hlakit.common.session import Session
-from hlakit.common.numericvalue import NumericValue
+from session import Session
+from label import Label
+from numericvalue import NumericValue
 
 class ArrayItem(object):
     """
@@ -55,57 +56,6 @@ class ArrayValue(object):
     """
     Encapsulates an array value
     """
-    def __init__(self, items=[], is_string=False):
-        self._items = items
-        self._string = is_string
-
-    def __len__(self):
-        l = 0
-        for i in self._items:
-            l += len(i)
-        return l
-    
-    def __str__(self):
-        s = ''
-        if self._string:
-            s += '"'
-            for i in self._items:
-                s += '%s' % i
-            s += '"'
-        else:
-            s += '{ '
-            for i in range(0, len(self._items)):
-                if i > 0:
-                    s += ', '
-                s += '%s' % self._items[i]
-            s += ' }'
-
-        return s
-
-    __repr__ = __str__
-
-    @classmethod
-    def parse_string(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        if pp.ignore():
-            return []
-
-        if 'string' not in tokens.keys():
-            raise ParseFatalException('malformed string value')
-
-        s = removeQuotes(pstring, location, tokens)
-        s = s.decode('string-escape')
-
-        # convert the string to a list of NumericValue ArrayItems
-        items = []
-        for i in range(0, len(s)):
-            items.append(ArrayItem(NumericValue(s[i], ord(s[i]))))
-
-        # zero terminate the string
-        items.append(ArrayItem(NumericValue('\0', 0)))
-
-        return klass(items, True)
 
     @classmethod
     def parse_item(klass, pstring, location, tokens):
@@ -121,11 +71,11 @@ class ArrayValue(object):
         if 'number' in tokens.keys():
             return ArrayItem(tokens.number, labels)
 
-        if 'array' in tokens.keys():
+        if 'array_' in tokens.keys():
             return ArrayItem(tokens.array, labels)
 
-        if 'string' in tokens.keys():
-            return ArrayItem(tokens.string, labels)
+        if 'string_' in tokens.keys():
+            return ArrayItem(tokens.string_, labels)
 
         raise ParseFatalException('array item malformed')
 
@@ -136,10 +86,7 @@ class ArrayValue(object):
         if pp.ignore():
             return []
 
-        if 'value' not in tokens.keys():
-            raise ParseFatalException('array declaration missing at least one value')
-
-        items = [ tokens.value ]
+        items = []
         if 'value_list' in tokens.keys():
             items.extend([v for v in tokens.value_list])
 
@@ -149,23 +96,83 @@ class ArrayValue(object):
     def exprs(klass):
         lbrace_ = Suppress('{')
         rbrace_ = Suppress('}')
-        string_value = quotedString(Word(printables)).setResultsName('string')
-        string_value.setParseAction(klass.parse_string)
         
         array_value = Forward()
         
         label_list = OneOrMore(Label.exprs()).setResultsName('label_list')
         array_item = Optional(label_list) + \
                      (NumericValue.exprs().setResultsName('number') | \
-                     string_value | \
-                     array_value.setResultsName('array'))
+                     StringValue.exprs().setResultsName('string_') | \
+                     array_value.setResultsName('array_'))
         array_item.setParseAction(klass.parse_item)
 
         array_value << lbrace_ + \
-                       array_item.setResultsName('value') + \
-                       ZeroOrMore(Suppress(',') + array_item).setResultsName('value_list') + \
+                       delimitedList(array_item).setResultsName('value_list') + \
                        rbrace_
         array_value.setParseAction(klass.parse)
-        expr = array_value | string_value
+        expr = array_value | StringValue.exprs()
         return expr
+
+    def __init__(self, items=[]):
+        self._items = items
+
+    def __len__(self):
+        l = 0
+        for i in self._items:
+            l += len(i)
+        return l
+    
+    def __str__(self):
+        s = '{ '
+        for i in range(0, len(self._items)):
+            if i > 0:
+                s += ', '
+            s += '%s' % self._items[i]
+        s += ' }'
+        return s
+
+    __repr__ = __str__
+
+
+class StringValue(ArrayValue):
+    """
+    Encapsulates a string value.
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        if 'string_' not in tokens.keys():
+            raise ParseFatalException('malformed string value')
+
+        s = removeQuotes(pstring, location, tokens)
+        s = s.decode('string-escape')
+
+        # convert the string to a list of NumericValue ArrayItems
+        items = []
+        for i in range(0, len(s)):
+            items.append(ArrayItem(NumericValue(s[i], ord(s[i]))))
+
+        return klass(items)
+
+    @classmethod
+    def exprs(klass):
+        expr = quotedString(Word(printables)).setResultsName('string_')
+        expr.setParseAction(klass.parse)
+        return expr
+
+    def __init__(self, value):
+        self._value = value
+
+    def __str__(self):
+        return ''.join([str(item) for item in self._value])
+
+    def __repr__(self):
+        return 'String("%s")' % self._value
+
+
 

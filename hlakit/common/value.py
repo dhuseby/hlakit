@@ -28,9 +28,9 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
-from hlakit.common.session import Session
-from hlakit.common.numericvalue import NumericValue
-from hlakit.common.arrayvalue import ArrayValue
+from session import Session
+from numericvalue import NumericValue
+from arrayvalue import ArrayValue, StringValue
 
 class Value(object):
     """
@@ -45,15 +45,18 @@ class Value(object):
 
         if 'number' in tokens.keys():
             return tokens.number
-        elif 'array' in tokens.keys():
-            return tokens.array
+        elif 'array_' in tokens.keys():
+            return tokens.array_
+        elif 'string_' in tokens.keys():
+            return tokens.string_
 
         raise ParseFatalException('unrecognized value expression')
 
     @classmethod
     def exprs(klass):
         expr = NumericValue.exprs().setResultsName('number') | \
-               ArrayValue.exprs().setResultsName('array')
+               ArrayValue.exprs().setResultsName('array_') | \
+               StringValue.exprs().setResultsName('string_')
         expr.setParseAction(klass.parse)
         return expr
 

@@ -182,12 +182,3 @@ class Struct(Type):
     def get_member(self, name):
         return self._member_vars.get(name, None)
 
-    def __str__(self):
-        s = '%s\n{\n' % self.get_name()
-        for m in self._members:
-            s += '\t%s %s\n' % (self.get_member(m).get_type(), self.get_member(m).get_name())
-        s += '}'
-        return s
-
-    __repr__ = __str__
-

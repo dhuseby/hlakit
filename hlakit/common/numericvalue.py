@@ -27,8 +27,9 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from math import ceil,log
 from pyparsing import *
-from hlakit.common.session import Session
+from session import Session
 
 class NumericValue(object):
     """
@@ -96,7 +97,11 @@ class NumericValue(object):
         self._value = value
 
     def __len__(self):
-        return 1
+        """ return the number of bytes needed to store this value """
+        v = int(self._value)
+        if v == 0:
+            return 1
+        return int(ceil(ceil(log(v) / log(2)) / 8))
 
     def __int__(self):
         return int(self._value)

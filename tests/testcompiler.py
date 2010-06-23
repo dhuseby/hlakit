@@ -37,10 +37,17 @@ from hlakit.common.symboltable import SymbolTable
 from hlakit.common.typeregistry import TypeRegistry
 from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
+from hlakit.common.sizeof import SizeOf, SizeOfParameter
+from hlakit.common.hi import Hi
+from hlakit.common.lo import Lo
+from hlakit.common.maskparameter import MaskParameter
 from hlakit.common.type_ import Type
+from hlakit.common.name import Name
 from hlakit.common.struct import Struct
 from hlakit.common.typedef import Typedef
 from hlakit.common.variable import Variable
+from hlakit.common.numericvalue import NumericValue
+from hlakit.common.arrayvalue import ArrayValue, StringValue
 
 class CompilerTester(unittest.TestCase):
     """
@@ -278,5 +285,95 @@ class CompilerTester(unittest.TestCase):
         self.assertFalse(cc.get_output()[0].is_shared())
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), Type))
         self.assertEquals(cc.get_output()[0].get_type().get_name(), 'struct baz')
+
+    def testSizeOfName(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('sizeof(Foo)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_symbol(), Name))
+        self.assertEquals(cc.get_output()[0].get_param().get_symbol().get_name(), 'Foo')
+
+    def testSizeOfStructRef(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('sizeof(struct bar)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_symbol(), Struct))
+        self.assertEquals(cc.get_output()[0].get_param().get_symbol().get_name(), 'struct bar')
+
+    def testSizeOfFullStruct(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('sizeof(struct baz { byte b[10], c })')])])
+        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_symbol(), Struct))
+        self.assertEquals(cc.get_output()[0].get_param().get_symbol().get_name(), 'struct baz')
+
+    def testSizeOfDottedVarReference(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('sizeof(foo.bar.baz)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_symbol(), Name))
+        self.assertEquals(cc.get_output()[0].get_param().get_symbol().get_name(), 'foo.bar.baz')
+
+    def testNestedSizeOf(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('sizeof(sizeof(foo))')])])
+        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOf))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_param(), SizeOfParameter))
+        self.assertEquals(cc.get_output()[0].get_param().get_param().get_symbol().get_name(), 'foo')
+
+    def testSizeOfImmediate(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('sizeof(0x0012)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_param().get_value()), 0x0012)
+
+    def testSizeOfString(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('sizeof("hello world")')])])
+        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), StringValue))
+        self.assertEquals(str(cc.get_output()[0].get_param().get_value()), 'hello world')
+
+    def testSizeOfArray(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('sizeof({ 1, 2, 3 })')])])
+        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), ArrayValue))
+
+    def testHiOfImmediate(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('hi(0x0012)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Hi))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), MaskParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_param().get_value()), 0x0012)
+        
+    def testLoOfImmediate(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('lo(0x0012)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Lo))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param(), MaskParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_param().get_value()), 0x0012)
+
 
 

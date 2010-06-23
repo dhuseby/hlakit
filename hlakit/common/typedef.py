@@ -94,14 +94,3 @@ class Typedef(Type):
             return int(self._size)
         return None
 
-    def __str__(self):
-        s = '%s -> %s' % (self.get_name(), self.get_aliased_type())
-        if self.is_array():
-            if self.get_array_size() != None:
-                s += '[%s]' % self.get_array_size()
-            else:
-                s += '[]'
-        return s
-
-    __repr__ = __str__
-
