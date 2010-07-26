@@ -42,12 +42,16 @@ class KeywordOperator(object):
 
         if pp.ignore():
             return []
+        
+        kw = None
+        if 'kw' in tokens.keys():
+            kw = tokens.kw
 
         if 'operator_' in tokens.keys():
-            return klass(tokens.operator_)
+            return klass(kw, tokens.operator_)
 
         if 'param' in tokens.keys():
-            return klass(tokens.param)
+            return klass(kw, tokens.param)
             
         ParseFatalException('operator missing parameter')
 
@@ -57,10 +61,11 @@ class KeywordOperator(object):
 
     @classmethod
     def exprs(klass):
-        kw = Keyword(klass._get_keyword())
+        kws_ = klass._get_keywords()
+        kws = oneOf(kws_)
         param = klass._get_param()
         expr = Forward()
-        expr << Suppress(kw) + \
+        expr << kws.setResultsName('kw') + \
                 Suppress('(') + \
                 Or([param.setResultsName('param'),
                     expr.setResultsName('operator_')]) + \
@@ -68,10 +73,14 @@ class KeywordOperator(object):
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, param):
+    def __init__(self, kw, param):
+        self._kw = kw
         self._param = param
 
     def get_param(self):
         return self._param
+
+    def get_kw(self):
+        return self._kw
 
 

@@ -37,10 +37,9 @@ from hlakit.common.symboltable import SymbolTable
 from hlakit.common.typeregistry import TypeRegistry
 from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
-from hlakit.common.sizeof import SizeOf, SizeOfParameter
-from hlakit.common.hi import Hi
-from hlakit.common.lo import Lo
-from hlakit.common.maskparameter import MaskParameter
+from hlakit.common.functiontype import FunctionType
+from hlakit.common.functionparameter import FunctionParameter
+from hlakit.common.function import Function, FunctionCall
 from hlakit.common.type_ import Type
 from hlakit.common.name import Name
 from hlakit.common.struct import Struct
@@ -71,14 +70,7 @@ class CompilerTester(unittest.TestCase):
         types = Session().compiler().basic_types()
         for t in types:
             self.assertTrue(tr[t.get_name()] != None)
-
-    def testSimpleType(self):
-        cc = Session().compiler()
-
-        cc.compile([CodeBlock([CodeLine('byte')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Type))
-        self.assertEquals(cc.get_output()[0].get_name(), 'byte')
-   
+  
     cc_struct = 'struct foo { byte x, y word i }'
 
     def testStructType(self):
@@ -286,94 +278,449 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), Type))
         self.assertEquals(cc.get_output()[0].get_type().get_name(), 'struct baz')
 
+    def testFunctionCall(self):
+        cc = Session().compiler()
+
+        # pre-define the function 'foo'
+        st = SymbolTable()
+        st.reset_state()
+        st.new_symbol(Function(Name('foo'), FunctionType('function')))
+
+        # compile a call to foo()
+        cc.compile([CodeBlock([CodeLine('foo()')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+
+        # reset state
+        st.reset_state()
+
+    def testFunctionFunctionDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('function foo()')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertFalse(cc.get_output()[0].get_noreturn())
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'function')
+
+    def testFunctionInlineDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('inline foo()')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
+
+    def testFunctionInterruptDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('interrupt foo()')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'interrupt')
+
+    def testFunctionInterruptWithNameDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('interrupt.start foo()')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type().get_name(), Name))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'interrupt')
+        self.assertEquals(cc.get_output()[0].get_type().get_name(), 'start')
+
+    def testFunctionBadFunctionDecl(self):
+        cc = Session().compiler()
+        
+        try:
+            cc.compile([CodeBlock([CodeLine('function.foo bar()')])])
+            self.assertTrue(False)
+        except:
+            pass
+
+    def testFunctionBadFunctionDecl2(self):
+        cc = Session().compiler()
+        
+        try:
+            cc.compile([CodeBlock([CodeLine('function bar(foo)')])])
+            self.assertTrue(False)
+        except:
+            pass
+
+    def testFunctionBadInlineDecl(self):
+        cc = Session().compiler()
+        
+        try:
+            cc.compile([CodeBlock([CodeLine('inline.foo bar()')])])
+            self.assertTrue(False)
+        except:
+            pass
+
+    def testFunctionBadInlineDecl2(self):
+        cc = Session().compiler()
+        
+        try:
+            cc.compile([CodeBlock([CodeLine('inline bar(foo)')])])
+            self.assertTrue(False)
+        except:
+            pass
+
+    def testFunctionNoReturnFunctionDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('function noreturn foo()')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(cc.get_output()[0].get_noreturn())
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'function')
+
+    def testFunctionNoReturnInterruptDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('function noreturn foo()')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(cc.get_output()[0].get_noreturn())
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'function')
+
+    def testFunctionBadNoReturnInlineDecl(self):
+        cc = Session().compiler()
+        
+        try:
+            cc.compile([CodeBlock([CodeLine('inline noreturn bar(foo)')])])
+            self.assertTrue(False)
+        except:
+            pass
+
+    def testFunctionInlineWithOneParamDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('inline foo(bar)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar')
+
+    def testFunctionInlineWithMultipleParamDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('inline foo(bar,baz, qux)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 3)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar')
+        self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
+        self.assertEquals(cc.get_output()[0].get_params()[2].get_symbol(), 'qux')
+
+    def testFunctionInlineWithStructRefParamDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('inline foo(bar.baz)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.baz')
+
+    def testFunctionInlineWithMultipleStructRefParamDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('inline foo(bar.food,baz, qux.free)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 3)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.food')
+        self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
+        self.assertEquals(cc.get_output()[0].get_params()[2].get_symbol(), 'qux.free')
+
+    def testFunctionInlineWithOneValueDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('inline foo(0x0400)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
+        self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 0x0400)
+
+    def testFunctionInlineWithMultipleValueDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('inline foo(0x0400,1024,$0400,1K,%10000000000)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 5)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[3], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[4], FunctionParameter))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
+        self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 1024)
+        self.assertEquals(int(cc.get_output()[0].get_params()[1].get_value()), 1024)
+        self.assertEquals(int(cc.get_output()[0].get_params()[2].get_value()), 1024)
+        self.assertEquals(int(cc.get_output()[0].get_params()[3].get_value()), 1024)
+        self.assertEquals(int(cc.get_output()[0].get_params()[4].get_value()), 1024)
+
+    def testFunctionInlineWithMultipleMixedParamDecl(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('inline foo(bar.food,baz, 1K)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 3)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.food')
+        self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
+        self.assertEquals(int(cc.get_output()[0].get_params()[2].get_value()), 1024)
+
+
     def testSizeOfName(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('sizeof(Foo)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_symbol(), Name))
-        self.assertEquals(cc.get_output()[0].get_param().get_symbol().get_name(), 'Foo')
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol().get_name(), 'Foo')
 
     def testSizeOfStructRef(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('sizeof(struct bar)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_symbol(), Struct))
-        self.assertEquals(cc.get_output()[0].get_param().get_symbol().get_name(), 'struct bar')
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Struct))
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol().get_name(), 'struct bar')
 
     def testSizeOfFullStruct(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('sizeof(struct baz { byte b[10], c })')])])
-        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_symbol(), Struct))
-        self.assertEquals(cc.get_output()[0].get_param().get_symbol().get_name(), 'struct baz')
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Struct))
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol().get_name(), 'struct baz')
 
     def testSizeOfDottedVarReference(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('sizeof(foo.bar.baz)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_symbol(), Name))
-        self.assertEquals(cc.get_output()[0].get_param().get_symbol().get_name(), 'foo.bar.baz')
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol().get_name(), 'foo.bar.baz')
 
     def testNestedSizeOf(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('sizeof(sizeof(foo))')])])
-        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOf))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_param(), SizeOfParameter))
-        self.assertEquals(cc.get_output()[0].get_param().get_param().get_symbol().get_name(), 'foo')
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionCall))
+        self.assertTrue(len(cc.get_output()[0].get_params()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_params()[0].get_symbol().get_name(), 'foo')
 
     def testSizeOfImmediate(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('sizeof(0x0012)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), NumericValue))
-        self.assertEquals(int(cc.get_output()[0].get_param().get_value()), 0x0012)
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 0x0012)
 
     def testSizeOfString(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('sizeof("hello world")')])])
-        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), StringValue))
-        self.assertEquals(str(cc.get_output()[0].get_param().get_value()), 'hello world')
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), StringValue))
+        self.assertEquals(str(cc.get_output()[0].get_params()[0].get_value()), 'hello world')
 
     def testSizeOfArray(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('sizeof({ 1, 2, 3 })')])])
-        self.assertTrue(isinstance(cc.get_output()[0], SizeOf))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), SizeOfParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), ArrayValue))
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), ArrayValue))
 
     def testHiOfImmediate(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('hi(0x0012)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Hi))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), MaskParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), NumericValue))
-        self.assertEquals(int(cc.get_output()[0].get_param().get_value()), 0x0012)
-        
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 0x0012)
+
+    def testHiOfVariable(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('hi(foo)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(str(cc.get_output()[0].get_params()[0].get_symbol().get_name()), 'foo')
+
+
+    def testHiOfStructReference(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('hi(foo.bar.baz)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(str(cc.get_output()[0].get_params()[0].get_symbol().get_name()), 'foo.bar.baz')
     def testLoOfImmediate(self):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('lo(0x0012)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Lo))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param(), MaskParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_param().get_value(), NumericValue))
-        self.assertEquals(int(cc.get_output()[0].get_param().get_value()), 0x0012)
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 0x0012)
 
+    def testLoOfVariable(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('lo(foo)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(str(cc.get_output()[0].get_params()[0].get_symbol().get_name()), 'foo')
+
+
+    def testLoOfStructReference(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('lo(foo.bar.baz)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(str(cc.get_output()[0].get_params()[0].get_symbol().get_name()), 'foo.bar.baz')
+    def testNyHiOfImmediate(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('nyhi(0x12)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 0x0012)
+
+    def testNyHiOfVariable(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('nyhi(foo)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(str(cc.get_output()[0].get_params()[0].get_symbol().get_name()), 'foo')
+
+
+    def testNyHiOfStructReference(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('nyhi(foo.bar.baz)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(str(cc.get_output()[0].get_params()[0].get_symbol().get_name()), 'foo.bar.baz')
+    def testNyLoOfImmediate(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('nylo(0x12)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 0x0012)
+
+    def testNyLoOfVariable(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('nylo(foo)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(str(cc.get_output()[0].get_params()[0].get_symbol().get_name()), 'foo')
+
+
+    def testNyLoOfStructReference(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('nylo(foo.bar.baz)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(str(cc.get_output()[0].get_params()[0].get_symbol().get_name()), 'foo.bar.baz')
+    def testHiLoOfVariable(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('hi(lo(foo))')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
+        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionCall))
+        self.assertTrue(len(cc.get_output()[0].get_params()[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_params()[0].get_symbol(), Name))
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_params()[0].get_symbol().get_name(), 'foo')
 
 

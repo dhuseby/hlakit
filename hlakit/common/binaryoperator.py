@@ -46,34 +46,20 @@ class BinaryOperator(object):
         if pp.ignore():
             return []
 
-        if 'struct' in tokens.keys():
-            return klass(symbol=tokens.struct)
-
-        if 'name' in tokens.keys():
-            if len(tokens.name) == 1:
-                return klass(symbol=tokens.name[0])
-            else:
-                return klass(symbol=Name('.'.join([n.get_name() for n in tokens.name])))
-            raise ParseFatalException('invalid parameter for keyword operator')
-
-        if 'operator_' in tokens.keys():
-            return klass(symbol=tokens.operator_)
-
-        if 'value' in tokens.keys():
-            return klass(value=tokens.value)
-        
-        raise ParseFatalException('no parameter specified')
+        raise ParseFatalException('invalid binary operator syntax')
 
     @classmethod
     def exprs(klass):
-        kw = Keyword(klass._get_keyword())
-        variable_ref = Group(Name.exprs() + ZeroOrMore(Suppress('.') + Name.exprs()))
+        op = klass._get_literal()
+        param = klass._get_param()
         expr = Forward()
-        expr << Suppress(kw) + \
-                Or([Struct.exprs().setResultsName('struct'), 
-                    variable_ref.setResultsName('name'),
-                    Value.exprs().setResultsName('value'),
-                    expr.setResultsName('operator_')]) + \
+        expr << Optional('(') + \
+                Or([param.setResultsName('lparam'),
+                    expr.setResultsName('lexpr')]) + \
+                Suppress(op) + \
+                Or([param.setRestulsName('rparam'),
+                    expr.setResultsName('rexpr')]) + \
+                Optional(')')
         expr.setParseAction(klass.parse)
         return expr
 

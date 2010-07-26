@@ -10,8 +10,37 @@ included LICENSE file or by visiting here:
 
 from preprocessor import Preprocessor
 from compiler import Compiler
+from symboltable import SymbolTable
+from name import Name
+from functiontype import FunctionType
+from functionparameter import FunctionParameter
+from function import Function, FunctionCall
 
 class Target(object):
+
+    def __init__(self):
+        # we treat the sizeof, hi, lo, nyhi, and nylo operators just like
+        # regular functions so we need to prime the pump by defining them in
+        # the global symbol table before any files get compiled
+        sizeof_     = Function(Name('sizeof'),  FunctionType('operator'), False, [ FunctionParameter('imm') ])
+        hi_         = Function(Name('hi'),      FunctionType('operator'), False, [ FunctionParameter('imm') ])
+        lo_         = Function(Name('lo'),      FunctionType('operator'), False, [ FunctionParameter('imm') ])
+        nyhi_       = Function(Name('nyhi'),    FunctionType('operator'), False, [ FunctionParameter('imm') ])
+        nylo_       = Function(Name('nylo'),    FunctionType('operator'), False, [ FunctionParameter('imm') ])
+
+        # get a handle to the global symbol table
+        st = SymbolTable()
+
+        # reset its state back to the global scope
+        st.reset_state()
+        
+        # add the functions to the global scope
+        st.new_symbol(sizeof_)
+        st.new_symbol(hi_)
+        st.new_symbol(lo_)
+        st.new_symbol(nyhi_)
+        st.new_symbol(nylo_)
+
     def preprocessor(self):
         return Preprocessor()
 

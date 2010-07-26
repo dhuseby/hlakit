@@ -34,7 +34,7 @@ from type_ import Type
 from struct import Struct
 from value import Value
 
-class OperatorParameter(object):
+class FunctionParameter(object):
     """
     The base class of keyword operators such as sizeof() and lo()
     """
@@ -43,7 +43,6 @@ class OperatorParameter(object):
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
 
-        import pdb; pdb.set_trace()
         if pp.ignore():
             return []
 
@@ -65,8 +64,7 @@ class OperatorParameter(object):
     @classmethod
     def exprs(klass):
         variable_ref = Group(Name.exprs() + ZeroOrMore(Suppress('.') + Name.exprs()))
-        struct_ref = Group(Suppress(Keyword('struct')) + Name.exprs())
-        expr = Or([struct_ref.setResultsName('struct'), 
+        expr = Or([Struct.exprs().setResultsName('struct'), 
                    variable_ref.setResultsName('name'),
                    Value.exprs().setResultsName('value')])
         expr.setParseAction(klass.parse)

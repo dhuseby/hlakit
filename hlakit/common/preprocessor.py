@@ -206,6 +206,7 @@ class Preprocessor(object):
         return self._state_stack
 
     def state_stack_push(self, frame):
+
         self._state_stack.append(frame)
 
     def state_stack_pop(self):

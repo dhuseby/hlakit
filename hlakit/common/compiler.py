@@ -34,9 +34,7 @@ from type_ import Type
 from struct import Struct
 from typedef import Typedef
 from variable import Variable
-from sizeof import SizeOf
-from hi import Hi
-from lo import Lo
+from function import Function
 
 class Compiler(object):
 
@@ -50,13 +48,11 @@ class Compiler(object):
     @classmethod
     def first_exprs(klass):
         e = []
-        e.append(('sizeof', SizeOf.exprs()))
-        e.append(('hi', Hi.exprs()))
-        e.append(('lo', Lo.exprs()))
         e.append(('type', Type.exprs()))
         e.append(('struct', Struct.exprs()))
         e.append(('typedef', Typedef.exprs()))
         e.append(('variable', Variable.exprs()))
+        e.append(('function', Function.exprs()))
         return e
 
     @classmethod

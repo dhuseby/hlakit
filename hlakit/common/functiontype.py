@@ -30,56 +30,68 @@ or implied, of David Huseby.
 from pyparsing import *
 from session import Session
 from name import Name
-from type_ import Type
-from struct import Struct
-from value import Value
 
-class OperatorParameter(object):
+class FunctionType(object):
     """
-    The base class of keyword operators such as sizeof() and lo()
+    The type of a function.  Functions can be one of the following types:
+        function  -- standard subroutine, cannot have parameters
+        inline    -- macros that can have parameters
+        interrupt -- interrupt handler, uses return from interrupt opcode to return
+        operator  -- compile time operator.  used for sizeof, hi, lo, nyhi, nylo on
+                     immediate values.  when parameter is not an immediate, it
+                     devolves to an inline macro
+
     """
 
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
 
-        import pdb; pdb.set_trace()
         if pp.ignore():
             return []
 
-        if 'struct' in tokens.keys():
-            return klass(symbol=tokens.struct)
+        if 'type' not in tokens.keys():
+            raise ParseFatalException('no function type specified')
 
+        name = None
         if 'name' in tokens.keys():
-            if len(tokens.name) == 1:
-                return klass(symbol=tokens.name[0])
-            else:
-                return klass(symbol=Name('.'.join([n.get_name() for n in tokens.name])))
-            raise ParseFatalException('invalid parameter for keyword operator')
-
-        if 'value' in tokens.keys():
-            return klass(value=tokens.value)
+            if tokens.type != 'interrupt':
+                raise ParseFatalException('non-interrupt function has name')
+            name = tokens.name
         
-        raise ParseFatalException('no parameter specified')
+        return klass(tokens.type, name)
 
     @classmethod
     def exprs(klass):
-        variable_ref = Group(Name.exprs() + ZeroOrMore(Suppress('.') + Name.exprs()))
-        struct_ref = Group(Suppress(Keyword('struct')) + Name.exprs())
-        expr = Or([struct_ref.setResultsName('struct'), 
-                   variable_ref.setResultsName('name'),
-                   Value.exprs().setResultsName('value')])
+        intr_with_name = Literal('interrupt') + \
+                         Suppress('.') + \
+                         Name.exprs()
+        expr = Or([Keyword('function'),
+                   Keyword('inline'),
+                   Keyword('interrupt'),
+                   intr_with_name]).setResultsName('type')
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, symbol=None, value=None):
-        self._symbol = symbol
-        self._value = value
+    def __init__(self, type, name=None):
+        self._type = type
+        self._name = name
 
-    def get_symbol(self):
-        return self._symbol
+    def get_type(self):
+        return self._type
 
-    def get_value(self):
-        return self._value
+    def get_name(self):
+        return self._name
 
+    def __str__(self):
+        if self._name:
+            return '%s.%s' % (self._type, self._name)
+        return self._type
+
+    def __hash__(self):
+        if self._name:
+            return hash('%s.%s' % (self._type, self._name))
+        return hash(self._type)
+
+    __repr__ = __str__
 

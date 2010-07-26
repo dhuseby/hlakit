@@ -31,6 +31,11 @@ import os
 from pyparsing import *
 from symbol import Symbol
 
+class Scope(dict):
+
+    def __init__(self, namespace=None):
+        self._namespace = {}
+
 class SymbolTable(object):
 
     _shared_state = {}
@@ -40,15 +45,11 @@ class SymbolTable(object):
         obj.__dict__ = cls._shared_state
         return obj
 
-    def __init__(self):
-        if not hasattr(self, '_scope_stack'):
-            self._scope_stack = [{}]
-
     def reset_state(self):
-        self._scope_stack = [{}]
+        self._scope_stack = [Scope()]
 
-    def scope_push(self):
-        self._scope_stack.insert({}, 0)
+    def scope_push(self, namespace=None):
+        self._scope_stack.insert(Scope(namespace), 0)
 
     def scope_pop(self):
         if len(self._scope_stack) <= 1:
