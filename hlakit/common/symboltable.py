@@ -36,6 +36,9 @@ class Scope(dict):
     def __init__(self, namespace=None):
         self._namespace = {}
 
+    def get_namespace(self):
+        return self._namespace
+
 class SymbolTable(object):
 
     _shared_state = {}

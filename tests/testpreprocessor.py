@@ -252,31 +252,31 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_tellbank))
-        self.assertTrue(isinstance(pp.get_output()[0], TellBank))
+        self.assertTrue(isinstance(pp.get_output()[1], TellBank))
 
     def testTellBankOffset(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_tellbankoffset))
-        self.assertTrue(isinstance(pp.get_output()[0], TellBankOffset))
+        self.assertTrue(isinstance(pp.get_output()[1], TellBankOffset))
 
     def testTellBankSize(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_tellbanksize))
-        self.assertTrue(isinstance(pp.get_output()[0], TellBankSize))
+        self.assertTrue(isinstance(pp.get_output()[1], TellBankSize))
 
     def testTellBankFree(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_tellbankfree))
-        self.assertTrue(isinstance(pp.get_output()[0], TellBankFree))
+        self.assertTrue(isinstance(pp.get_output()[1], TellBankFree))
 
     def testTellBankType(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_tellbanktype))
-        self.assertTrue(isinstance(pp.get_output()[0], TellBankType))
+        self.assertTrue(isinstance(pp.get_output()[1], TellBankType))
 
 
     pp_include = '#include %s\n'
@@ -334,28 +334,28 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_incbin % '<blob.bin>'))
-        self.assertTrue(isinstance(pp.get_output()[0], Incbin))
+        self.assertTrue(isinstance(pp.get_output()[1], Incbin))
 
     def testImpliedDirIncbin(self):
         pp = Session().preprocessor()
 
         path = '<%s>' % os.path.join('tests', 'blob.bin')
         pp.parse(StringIO(self.pp_incbin % path))
-        self.assertTrue(isinstance(pp.get_output()[0], Incbin))
+        self.assertTrue(isinstance(pp.get_output()[1], Incbin))
 
     def testLiteralIncbin(self):
         pp = Session().preprocessor()
 
         path = '"%s"' % os.path.join('tests', 'blob.bin')
         pp.parse(StringIO(self.pp_incbin % path))
-        self.assertTrue(isinstance(pp.get_output()[0], Incbin))
+        self.assertTrue(isinstance(pp.get_output()[1], Incbin))
 
     def testFullPathLiteralIncbin(self):
         pp = Session().preprocessor()
 
         full_path = '"%s"' % os.path.join(os.getcwd(), 'tests', 'blob.bin')
         pp.parse(StringIO(self.pp_incbin % full_path))
-        self.assertTrue(isinstance(pp.get_output()[0], Incbin))
+        self.assertTrue(isinstance(pp.get_output()[1], Incbin))
 
     def testBadImpliedIncbin(self):
         pp = Session().preprocessor()
@@ -398,16 +398,16 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_ramorg % '0x0100'))
-        self.assertTrue(isinstance(pp.get_output()[0], RamOrg))
-        self.assertEquals(int(pp.get_output()[0].get_address()), 0x100)
+        self.assertTrue(isinstance(pp.get_output()[1], RamOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x100)
 
     def testRamOrgMaxsize(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_ramorg % '0x0100, 0x1000'))
-        self.assertTrue(isinstance(pp.get_output()[0], RamOrg))
-        self.assertEquals(int(pp.get_output()[0].get_address()), 0x0100)
-        self.assertEquals(int(pp.get_output()[0].get_maxsize()), 0x1000)
+        self.assertTrue(isinstance(pp.get_output()[1], RamOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x0100)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
 
     def testBadRamOrg(self):
         pp = Session().preprocessor()
@@ -431,22 +431,22 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_ramend))
-        self.assertTrue(isinstance(pp.get_output()[0], RamEnd))
+        self.assertTrue(isinstance(pp.get_output()[1], RamEnd))
 
     def testRomOrg(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_romorg % '0x0100'))
-        self.assertTrue(isinstance(pp.get_output()[0], RomOrg))
-        self.assertEquals(int(pp.get_output()[0].get_address()), 0x100)
+        self.assertTrue(isinstance(pp.get_output()[1], RomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x100)
 
     def testRomOrgMaxsize(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_romorg % '0x0100, 0x1000'))
-        self.assertTrue(isinstance(pp.get_output()[0], RomOrg))
-        self.assertEquals(int(pp.get_output()[0].get_address()), 0x0100)
-        self.assertEquals(int(pp.get_output()[0].get_maxsize()), 0x1000)
+        self.assertTrue(isinstance(pp.get_output()[1], RomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x0100)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
 
     def testBadRomOrg(self):
         pp = Session().preprocessor()
@@ -470,14 +470,14 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_romend))
-        self.assertTrue(isinstance(pp.get_output()[0], RomEnd))
+        self.assertTrue(isinstance(pp.get_output()[1], RomEnd))
 
     def testRomBanksize(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_rombanksize % '0x4000'))
-        self.assertTrue(isinstance(pp.get_output()[0], RomBanksize))
-        self.assertEquals(int(pp.get_output()[0].get_size()), 0x4000)
+        self.assertTrue(isinstance(pp.get_output()[1], RomBanksize))
+        self.assertEquals(int(pp.get_output()[1].get_size()), 0x4000)
 
     def testBadRomBanksize(self):
         pp = Session().preprocessor()
@@ -492,16 +492,16 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_rombank % '3'))
-        self.assertTrue(isinstance(pp.get_output()[0], RomBank))
-        self.assertEquals(int(pp.get_output()[0].get_number()), 3)
+        self.assertTrue(isinstance(pp.get_output()[1], RomBank))
+        self.assertEquals(int(pp.get_output()[1].get_number()), 3)
 
     def testRomBankMaxsize(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_rombank % '3, 0x1000'))
-        self.assertTrue(isinstance(pp.get_output()[0], RomBank))
-        self.assertEquals(int(pp.get_output()[0].get_number()), 3)
-        self.assertEquals(int(pp.get_output()[0].get_maxsize()), 0x1000)
+        self.assertTrue(isinstance(pp.get_output()[1], RomBank))
+        self.assertEquals(int(pp.get_output()[1].get_number()), 3)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
 
     def testBadRomBank(self):
         pp = Session().preprocessor()
@@ -528,15 +528,15 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_setpad % '0xFF'))
-        self.assertTrue(isinstance(pp.get_output()[0], SetPad))
-        self.assertEquals(pp.get_output()[0].get_value(), 0xFF)
+        self.assertTrue(isinstance(pp.get_output()[1], SetPad))
+        self.assertEquals(pp.get_output()[1].get_value(), 0xFF)
 
     def testSetPadString(self):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_setpad % '"Foo"'))
-        self.assertTrue(isinstance(pp.get_output()[0], SetPad))
-        self.assertEquals(pp.get_output()[0].get_value(), 'Foo')
+        self.assertTrue(isinstance(pp.get_output()[1], SetPad))
+        self.assertEquals(pp.get_output()[1].get_value(), 'Foo')
 
     def testBadSetPad(self):
         pp = Session().preprocessor()
@@ -551,8 +551,8 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_align % '1K'))
-        self.assertTrue(isinstance(pp.get_output()[0], Align))
-        self.assertEquals(pp.get_output()[0].get_value(), 1024)
+        self.assertTrue(isinstance(pp.get_output()[1], Align))
+        self.assertEquals(pp.get_output()[1].get_value(), 1024)
 
     def testBadAlign(self):
         pp = Session().preprocessor()
@@ -569,5 +569,5 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
     
         pp.parse(StringIO(self.pp_code))
-        self.assertTrue(isinstance(pp.get_output()[0], CodeBlock))
+        self.assertTrue(isinstance(pp.get_output()[1], CodeBlock))
 

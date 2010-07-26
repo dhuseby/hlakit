@@ -35,6 +35,8 @@ from struct import Struct
 from typedef import Typedef
 from variable import Variable
 from function import Function
+from codeblock import CodeBlock
+from filemarkers import FileBegin, FileEnd
 
 class Compiler(object):
 
@@ -102,11 +104,26 @@ class Compiler(object):
     def get_output(self):
         return self._get_tokens()
 
-    def compile(self, cbs):
+    def compile(self, tokens):
         expr_or = Or([])
         for e in self.get_exprs():
             expr_or.append(e[1])
         parser = ZeroOrMore(expr_or)
-        for cb in cbs:
-            self._tokens = parser.parseFile(StringIO(str(cb)))
 
+        # process the tokens the compiler cares about
+        cc_tokens = []
+        for token in tokens:
+            if isinstance(token, FileBegin):
+                # set up the file scope
+                SymbolTable().scope_push(token.get_name())
+            elif isinstance(token, FileEnd):
+                # take down the file scope
+                SymbolTable().socpe_pop()
+            elif isinstance(token, CodeBlock):
+                # compile the code block
+                cc_tokens.extend(parser.parseFile(StringIO(str(token))))
+            else:
+                # pass the token on
+                cc.tokens.append(token)
+
+        self._tokens = cc_tokens

@@ -62,8 +62,8 @@ class MOS6502PreprocessorTester(unittest.TestCase):
         pp = session.preprocessor()
 
         pp.parse(StringIO(self.pp_intstart % 'start'))
-        self.assertTrue(isinstance(pp.get_output()[0], InterruptStart))
-        self.assertEquals(pp.get_output()[0].get_fn(), 'start')
+        self.assertTrue(isinstance(pp.get_output()[1], InterruptStart))
+        self.assertEquals(pp.get_output()[1].get_fn(), 'start')
 
     def testBadInterruptStart(self):
         session = Session()
@@ -82,8 +82,8 @@ class MOS6502PreprocessorTester(unittest.TestCase):
         pp = session.preprocessor()
 
         pp.parse(StringIO(self.pp_intnmi % 'vblank'))
-        self.assertTrue(isinstance(pp.get_output()[0], InterruptNMI))
-        self.assertEquals(pp.get_output()[0].get_fn(), 'vblank')
+        self.assertTrue(isinstance(pp.get_output()[1], InterruptNMI))
+        self.assertEquals(pp.get_output()[1].get_fn(), 'vblank')
 
     def testBadInterruptNMI(self):
         session = Session()
@@ -102,8 +102,8 @@ class MOS6502PreprocessorTester(unittest.TestCase):
         pp = session.preprocessor()
 
         pp.parse(StringIO(self.pp_intirq % 'timer'))
-        self.assertTrue(isinstance(pp.get_output()[0], InterruptIRQ))
-        self.assertEquals(pp.get_output()[0].get_fn(), 'timer')
+        self.assertTrue(isinstance(pp.get_output()[1], InterruptIRQ))
+        self.assertEquals(pp.get_output()[1].get_fn(), 'timer')
 
     def testBadInterruptStart(self):
         session = Session()

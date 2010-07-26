@@ -56,8 +56,8 @@ class LynxPreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_lynxloader % 'loader'))
-        self.assertTrue(isinstance(pp.get_output()[0], LynxLoader))
-        self.assertEquals(pp.get_output()[0].get_fn(), 'loader')
+        self.assertTrue(isinstance(pp.get_output()[1], LynxLoader))
+        self.assertEquals(pp.get_output()[1].get_fn(), 'loader')
 
     def testBadLynxLoader(self):
         pp = Session().preprocessor()
@@ -74,7 +74,7 @@ class LynxPreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_lnxoff))
-        self.assertTrue(isinstance(pp.get_output()[0], LnxOff))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxOff))
 
 
 class LynxCompilerTester(unittest.TestCase):

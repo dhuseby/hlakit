@@ -48,6 +48,7 @@ from setpad import SetPad
 from align import Align
 from codeline import CodeLine
 from codeblock import CodeBlock
+from filemarkers import FileBegin, FileEnd
 
 class Preprocessor(object):
     
@@ -218,6 +219,10 @@ class Preprocessor(object):
         return None
 
     def parse(self, f):
+        # inject file begin token
+        fname = getattr(f, 'name', 'DummyFile')
+        self._append_tokens([FileBegin(fname)])
+
         # set up a new context
         self.state_stack_push(Preprocessor.StateFrame(f, self.get_exprs()))
 
@@ -228,6 +233,9 @@ class Preprocessor(object):
  
         # restore previous state if there is one
         self.state_stack_pop()
+
+        # inject file begin token
+        self._append_tokens([FileEnd(fname)])
 
     def get_output(self):
         # get the tokens 
