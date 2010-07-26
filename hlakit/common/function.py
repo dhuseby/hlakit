@@ -39,22 +39,6 @@ class FunctionCall(object):
     The class representing a function call
     """
 
-    def __init__(self, name, params=None):
-        self._name = name
-        self._params = params
-
-    def get_name(self):
-        return self._name
-
-    def get_params(self):
-        return self._params
-
-
-class Function(object):
-    """
-    The base class of function definitions
-    """
-
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -70,60 +54,96 @@ class Function(object):
         if 'name' in tokens.keys():
             name = tokens.name
 
-        type_ = None
-        if 'type_' in tokens.keys():
-            # if we get in here, then this is a func decl
-            type_ = tokens.type
-        else:
-            # look up the function decl
-            fn = st[name]
-            if fn is None:
-                raise ParseFatalException('function %s not defined' % name)
-            type_ = fn.get_type()
-
-        noreturn = False
-        if 'noreturn' in tokens.keys():
-            if fn is not None:
-                raise ParseFatalException('noreturn keyword used outside a function decl')
-            if type_.get_type() == 'inline':
-                raise ParseFatalException('noreturn keyword used in inline function decl')
-            noreturn = True
+        # look up the function decl
+        fn = st[name]
+        if fn is None:
+            raise ParseFatalException('function %s not defined' % name)
+        type_ = fn.get_type()
 
         params = None
         if 'params' in tokens.keys():
-            if fn is None:
-                # only inline function decl's can have params
-                if type_.get_type() != 'inline':
-                    raise ParseFatalException('non-inline function decl with params')
-            else:
-                # some built-in functions are "operator" type functions and they can
-                # have parameters because they are a special type of inline macro
-                if type_.get_type() not in ('inline', 'operator'):
-                    raise ParseFatalException('calling non-inline function with params')
+            # some built-in functions are "operator" type functions and they can
+            # have parameters because they are a special type of inline macro
+            if type_.get_type() not in ('inline', 'operator'):
+                raise ParseFatalException('calling non-inline function with params')
             params = [ p for p in tokens.params ]
 
-        if fn is not None:
-            return FunctionCall(name, params)
-
-        return klass(name, type_, noreturn, params)
+        return FunctionCall(name, type_, params)
 
     @classmethod
     def exprs(klass):
         expr = Forward()
-        func = Optional(FunctionType.exprs()).setResultsName('type_') + \
-               Optional(Keyword('noreturn')).setResultsName('noreturn') + \
-               Name.exprs() + \
+        func = Name.exprs() + \
                Suppress('(') + \
                Optional(delimitedList(expr).setResultsName('params')) + \
-               Suppress(')')
+               Suppress(')') 
         expr << (func | FunctionParameter.exprs())
         func.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, name, type=None, noreturn=False, params=None):
+    def __init__(self, name, type_, params=None):
+        self._name = name
+        self._type = type_
+        self._params = params
+
+    def get_name(self):
+        return self._name
+
+    def get_params(self):
+        return self._params
+
+    def get_type(self):
+        return self._type
+
+
+class Function(object):
+    """
+    The base class of function definitions
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        fnname = None
+        if 'fnname' in tokens.keys():
+            fnname = Name(tokens.fnname)
+
+        type_ = None
+        if 'type_' in tokens.keys():
+            # if we get in here, then this is a func decl
+            type_ = tokens.type_
+        else:
+            raise ParseFatalException('function decl missing type')
+
+        params = None
+        if 'params' in tokens.keys():
+            # only inline function decl's can have params
+            if type_.get_type() != 'inline':
+                raise ParseFatalException('non-inline function decl with params')
+            params = [ p for p in tokens.params ]
+
+        return klass(fnname, type_, params)
+
+    @classmethod
+    def exprs(klass):
+        fnname = Word(alphas, alphanums + '_')
+        expr = Optional(FunctionType.exprs().setResultsName('type_')) + \
+               fnname.setResultsName('fnname') + \
+               Suppress('(') + \
+               Optional(delimitedList(Name.exprs()).setResultsName('params')) + \
+               Suppress(')') + \
+               Suppress('{') + \
+               Suppress('}')
+        expr.setParseAction(klass.parse)
+        return expr
+
+    def __init__(self, name, type=None, params=None):
         self._type = type
         self._name = name
-        self._noreturn = noreturn
         self._params = params
 
     def get_type(self):
@@ -133,7 +153,7 @@ class Function(object):
         return self._name
 
     def get_noreturn(self):
-        return self._noreturn
+        return self.get_type().get_noreturn()
 
     def get_params(self):
         return self._params
@@ -141,9 +161,7 @@ class Function(object):
     def __str__(self):
         s = ''
         if self._type:
-            s += self._type + ' '
-        if self._noreturn:
-            s += 'noreturn '
+            s += str(self._type) + ' '
         s += self._name
         s += '('
         if self._params:
@@ -153,4 +171,6 @@ class Function(object):
                 s += ' ' + str(self._params[i])
             s += ' '
         s += ')'
+        s += ' { }'
+        return s
 

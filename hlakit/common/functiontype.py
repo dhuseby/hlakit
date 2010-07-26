@@ -50,16 +50,23 @@ class FunctionType(object):
         if pp.ignore():
             return []
 
-        if 'type' not in tokens.keys():
+        type_ = None
+        if 'type_' in tokens.keys():
+            type_ = tokens.type_[0]
+        else:
             raise ParseFatalException('no function type specified')
 
         name = None
         if 'name' in tokens.keys():
-            if tokens.type != 'interrupt':
+            if type_ != 'interrupt':
                 raise ParseFatalException('non-interrupt function has name')
             name = tokens.name
+
+        noreturn = False
+        if 'noreturn' in tokens.keys():
+            noreturn = True
         
-        return klass(tokens.type, name)
+        return klass(type_, name, noreturn)
 
     @classmethod
     def exprs(klass):
@@ -69,13 +76,15 @@ class FunctionType(object):
         expr = Or([Keyword('function'),
                    Keyword('inline'),
                    Keyword('interrupt'),
-                   intr_with_name]).setResultsName('type')
+                   intr_with_name]).setResultsName('type_') + \
+               Optional(Keyword('noreturn')).setResultsName('noreturn')
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, type, name=None):
+    def __init__(self, type, name=None, noreturn=False):
         self._type = type
         self._name = name
+        self._noreturn = noreturn
 
     def get_type(self):
         return self._type
@@ -83,15 +92,19 @@ class FunctionType(object):
     def get_name(self):
         return self._name
 
+    def get_noreturn(self):
+        return self._noreturn
+
     def __str__(self):
+        s = '%s' % self._type
         if self._name:
-            return '%s.%s' % (self._type, self._name)
-        return self._type
+            s += '.%s' % self._name
+        if self._noreturn:
+            s += ' noreturn'
+        return s
 
     def __hash__(self):
-        if self._name:
-            return hash('%s.%s' % (self._type, self._name))
-        return hash(self._type)
+        return hash(self.__str__())
 
     __repr__ = __str__
 

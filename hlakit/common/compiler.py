@@ -34,7 +34,7 @@ from type_ import Type
 from struct import Struct
 from typedef import Typedef
 from variable import Variable
-from function import Function
+from function import Function, FunctionCall
 from codeblock import CodeBlock
 from filemarkers import FileBegin, FileEnd
 
@@ -55,6 +55,7 @@ class Compiler(object):
         e.append(('typedef', Typedef.exprs()))
         e.append(('variable', Variable.exprs()))
         e.append(('function', Function.exprs()))
+        e.append(('functioncall', FunctionCall.exprs()))
         return e
 
     @classmethod

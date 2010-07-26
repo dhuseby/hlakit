@@ -22,11 +22,21 @@ class Target(object):
         # we treat the sizeof, hi, lo, nyhi, and nylo operators just like
         # regular functions so we need to prime the pump by defining them in
         # the global symbol table before any files get compiled
-        sizeof_     = Function(Name('sizeof'),  FunctionType('operator'), False, [ FunctionParameter('imm') ])
-        hi_         = Function(Name('hi'),      FunctionType('operator'), False, [ FunctionParameter('imm') ])
-        lo_         = Function(Name('lo'),      FunctionType('operator'), False, [ FunctionParameter('imm') ])
-        nyhi_       = Function(Name('nyhi'),    FunctionType('operator'), False, [ FunctionParameter('imm') ])
-        nylo_       = Function(Name('nylo'),    FunctionType('operator'), False, [ FunctionParameter('imm') ])
+        sizeof_     = Function(Name('sizeof'),  
+                               FunctionType('operator'), 
+                               [ FunctionParameter('imm') ])
+        hi_         = Function(Name('hi'),
+                               FunctionType('operator'),
+                               [ FunctionParameter('imm') ])
+        lo_         = Function(Name('lo'),
+                               FunctionType('operator'),
+                               [ FunctionParameter('imm') ])
+        nyhi_       = Function(Name('nyhi'),
+                               FunctionType('operator'),
+                               [ FunctionParameter('imm') ])
+        nylo_       = Function(Name('nylo'),
+                               FunctionType('operator'),
+                               [ FunctionParameter('imm') ])
 
         # get a handle to the global symbol table
         st = SymbolTable()

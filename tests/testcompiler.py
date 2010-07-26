@@ -298,7 +298,7 @@ class CompilerTester(unittest.TestCase):
     def testFunctionFunctionDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('function foo()')])])
+        cc.compile([CodeBlock([CodeLine('function foo() { }')])])
         self.assertTrue(isinstance(cc.get_output()[0], Function))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
@@ -309,7 +309,7 @@ class CompilerTester(unittest.TestCase):
     def testFunctionInlineDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('inline foo()')])])
+        cc.compile([CodeBlock([CodeLine('inline foo() { }')])])
         self.assertTrue(isinstance(cc.get_output()[0], Function))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
@@ -319,7 +319,7 @@ class CompilerTester(unittest.TestCase):
     def testFunctionInterruptDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('interrupt foo()')])])
+        cc.compile([CodeBlock([CodeLine('interrupt foo() { }')])])
         self.assertTrue(isinstance(cc.get_output()[0], Function))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
@@ -329,7 +329,7 @@ class CompilerTester(unittest.TestCase):
     def testFunctionInterruptWithNameDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('interrupt.start foo()')])])
+        cc.compile([CodeBlock([CodeLine('interrupt.start foo() { }')])])
         self.assertTrue(isinstance(cc.get_output()[0], Function))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
@@ -342,7 +342,7 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
         
         try:
-            cc.compile([CodeBlock([CodeLine('function.foo bar()')])])
+            cc.compile([CodeBlock([CodeLine('function.foo bar() { }')])])
             self.assertTrue(False)
         except:
             pass
@@ -351,7 +351,7 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
         
         try:
-            cc.compile([CodeBlock([CodeLine('function bar(foo)')])])
+            cc.compile([CodeBlock([CodeLine('function bar(foo) { }')])])
             self.assertTrue(False)
         except:
             pass
@@ -360,7 +360,7 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
         
         try:
-            cc.compile([CodeBlock([CodeLine('inline.foo bar()')])])
+            cc.compile([CodeBlock([CodeLine('inline.foo bar() { }')])])
             self.assertTrue(False)
         except:
             pass
@@ -369,7 +369,7 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
         
         try:
-            cc.compile([CodeBlock([CodeLine('inline bar(foo)')])])
+            cc.compile([CodeBlock([CodeLine('inline bar(foo) { }')])])
             self.assertTrue(False)
         except:
             pass
@@ -377,7 +377,7 @@ class CompilerTester(unittest.TestCase):
     def testFunctionNoReturnFunctionDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('function noreturn foo()')])])
+        cc.compile([CodeBlock([CodeLine('function noreturn foo() { }')])])
         self.assertTrue(isinstance(cc.get_output()[0], Function))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
@@ -388,19 +388,19 @@ class CompilerTester(unittest.TestCase):
     def testFunctionNoReturnInterruptDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('function noreturn foo()')])])
+        cc.compile([CodeBlock([CodeLine('interrupt noreturn foo() { }')])])
         self.assertTrue(isinstance(cc.get_output()[0], Function))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(cc.get_output()[0].get_noreturn())
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'function')
+        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'interrupt')
 
     def testFunctionBadNoReturnInlineDecl(self):
         cc = Session().compiler()
         
         try:
-            cc.compile([CodeBlock([CodeLine('inline noreturn bar(foo)')])])
+            cc.compile([CodeBlock([CodeLine('inline noreturn bar(foo) { }')])])
             self.assertTrue(False)
         except:
             pass
@@ -408,40 +408,46 @@ class CompilerTester(unittest.TestCase):
     def testFunctionInlineWithOneParamDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('inline foo(bar)')])])
+        cc.compile([CodeBlock([CodeLine('inline foo(bar) { }')])])
         self.assertTrue(isinstance(cc.get_output()[0], Function))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
         self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], Name))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
         self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
-        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar')
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_name(), 'bar')
 
     def testFunctionInlineWithMultipleParamDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('inline foo(bar,baz, qux)')])])
+        cc.compile([CodeBlock([CodeLine('inline foo(bar,baz, qux) { }')])])
         self.assertTrue(isinstance(cc.get_output()[0], Function))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
         self.assertTrue(len(cc.get_output()[0].get_params()) == 3)
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], Name))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
         self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
-        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar')
-        self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
-        self.assertEquals(cc.get_output()[0].get_params()[2].get_symbol(), 'qux')
+        self.assertEquals(cc.get_output()[0].get_params()[0].get_name(), 'bar')
+        self.assertEquals(cc.get_output()[0].get_params()[1].get_name(), 'baz')
+        self.assertEquals(cc.get_output()[0].get_params()[2].get_name(), 'qux')
 
     def testFunctionInlineWithStructRefParamDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('inline foo(bar.baz)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        # pre-define the function 'foo'
+        st = SymbolTable()
+        st.reset_state()
+        st.new_symbol(Function(Name('foo'), FunctionType('inline'), 
+                      [FunctionParameter('one')]))
+
+        cc.compile([CodeBlock([CodeLine('foo(bar.baz)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
@@ -451,11 +457,20 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
         self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.baz')
 
+        # reset state
+        st.reset_state()
+
     def testFunctionInlineWithMultipleStructRefParamDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('inline foo(bar.food,baz, qux.free)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        # pre-define the function 'foo'
+        st = SymbolTable()
+        st.reset_state()
+        st.new_symbol(Function(Name('foo'), FunctionType('inline'),
+                      [FunctionParameter('one'), FunctionParameter('two'), FunctionParameter('three')]))
+
+        cc.compile([CodeBlock([CodeLine('foo(bar.food,baz, qux.free)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
@@ -469,11 +484,20 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
         self.assertEquals(cc.get_output()[0].get_params()[2].get_symbol(), 'qux.free')
 
+        # reset state
+        st.reset_state()
+
     def testFunctionInlineWithOneValueDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('inline foo(0x0400)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        # pre-define the function 'foo'
+        st = SymbolTable()
+        st.reset_state()
+        st.new_symbol(Function(Name('foo'), FunctionType('inline'), 
+                      [FunctionParameter('one')]))
+
+        cc.compile([CodeBlock([CodeLine('foo(0x0400)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
@@ -483,11 +507,22 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
         self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 0x0400)
 
+        # reset state
+        st.reset_state()
+
     def testFunctionInlineWithMultipleValueDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('inline foo(0x0400,1024,$0400,1K,%10000000000)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        # pre-define the function 'foo'
+        st = SymbolTable()
+        st.reset_state()
+        st.new_symbol(Function(Name('foo'), FunctionType('inline'),
+                      [FunctionParameter('one'), FunctionParameter('two'), 
+                       FunctionParameter('three'), FunctionParameter('four'),
+                       FunctionParameter('five')]))
+
+        cc.compile([CodeBlock([CodeLine('foo(0x0400,1024,$0400,1K,%10000000000)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
@@ -505,11 +540,20 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(int(cc.get_output()[0].get_params()[3].get_value()), 1024)
         self.assertEquals(int(cc.get_output()[0].get_params()[4].get_value()), 1024)
 
+        # reset state
+        st.reset_state()
+
     def testFunctionInlineWithMultipleMixedParamDecl(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('inline foo(bar.food,baz, 1K)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        # pre-define the function 'foo'
+        st = SymbolTable()
+        st.reset_state()
+        st.new_symbol(Function(Name('foo'), FunctionType('inline'),
+                      [FunctionParameter('one'), FunctionParameter('two'), FunctionParameter('three')]))
+
+        cc.compile([CodeBlock([CodeLine('foo(bar.food,baz, 1K)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
@@ -523,6 +567,8 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
         self.assertEquals(int(cc.get_output()[0].get_params()[2].get_value()), 1024)
 
+        # reset state
+        st.reset_state()
 
     def testSizeOfName(self):
         cc = Session().compiler()
