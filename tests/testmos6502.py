@@ -32,8 +32,13 @@ import unittest
 from pyparsing import ParseException, ParseFatalException
 from cStringIO import StringIO
 from hlakit.common.session import Session
-from hlakit.cpu.mos6502 import MOS6502Preprocessor
+from hlakit.common.symboltable import SymbolTable
+from hlakit.common.typeregistry import TypeRegistry
+from hlakit.common.codeblock import CodeBlock
+from hlakit.common.codeline import CodeLine
+from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
 from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
+from hlakit.cpu.mos6502.register import Register
 
 class MOS6502PreprocessorTester(unittest.TestCase):
     """
@@ -41,11 +46,10 @@ class MOS6502PreprocessorTester(unittest.TestCase):
     """
 
     def setUp(self):
-        session = Session()
-        session.preprocessor().reset_state()
+        Session().parse_args(['--cpu=6502'])
 
     def tearDown(self):
-        pass
+        Session().preprocessor().reset_state()
 
     def test6502Preprocessor(self):
         session = Session()
@@ -57,18 +61,14 @@ class MOS6502PreprocessorTester(unittest.TestCase):
     pp_intirq = '#interrupt.irq %s\n'
 
     def testInterruptStart(self):
-        session = Session()
-        session.parse_args(['--cpu=6502'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_intstart % 'start'))
         self.assertTrue(isinstance(pp.get_output()[1], InterruptStart))
         self.assertEquals(pp.get_output()[1].get_fn(), 'start')
 
     def testBadInterruptStart(self):
-        session = Session()
-        session.parse_args(['--cpu=6502'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_intstart % ''))
@@ -77,18 +77,14 @@ class MOS6502PreprocessorTester(unittest.TestCase):
             pass
 
     def testInterruptNMI(self):
-        session = Session()
-        session.parse_args(['--cpu=6502'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_intnmi % 'vblank'))
         self.assertTrue(isinstance(pp.get_output()[1], InterruptNMI))
         self.assertEquals(pp.get_output()[1].get_fn(), 'vblank')
 
     def testBadInterruptNMI(self):
-        session = Session()
-        session.parse_args(['--cpu=6502'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_intnmi % ''))
@@ -97,22 +93,51 @@ class MOS6502PreprocessorTester(unittest.TestCase):
             pass
 
     def testInterruptIRQ(self):
-        session = Session()
-        session.parse_args(['--cpu=6502'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_intirq % 'timer'))
         self.assertTrue(isinstance(pp.get_output()[1], InterruptIRQ))
         self.assertEquals(pp.get_output()[1].get_fn(), 'timer')
 
     def testBadInterruptStart(self):
-        session = Session()
-        session.parse_args(['--cpu=6502'])
-        pp = session.preprocessor()
+        pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_intirq % ''))
             self.assertTrue(False)
         except ParseException:
             pass
+
+
+class MOS6502CompilerTester(unittest.TestCase):
+    """
+    This class aggregates all of the tests for the MOS6502 CPU compiler.
+    """
+
+    def setUp(self):
+        Session().parse_args(['--cpu=6502'])
+
+    def tearDown(self):
+        Session().compiler().reset_state()
+        TypeRegistry().reset_state()
+        SymbolTable().reset_state()
+
+    def testCompiler(self):
+        session = Session()
+        self.assertTrue(isinstance(session.compiler(), MOS6502Compiler))
+
+    def testRegisterRef(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('reg.x')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Register))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'x')
+
+    def testRegisterRef2(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('REG.Y')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Register))
+        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'y')
+
 

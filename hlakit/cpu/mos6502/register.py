@@ -28,48 +28,45 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
-from session import Session
-from name import Name
-from value import Value
-from struct import Struct
-from operatorparameter import OperatorParameter
-from keywordoperator import KeywordOperator
+from hlakit.common.session import Session
+from hlakit.common.name import Name
 
-class SizeOfParameter(OperatorParameter):
-    """ encapsulates the parameter for a sizeof() operator """
+class Register(object):
+    """
+    This encapsulates a register.
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        if 'regname' not in tokens.keys():
+            raise ParseFatalException('register reference missing register name')
+       
+        return klass(tokens.regname)
 
     @classmethod
     def exprs(klass):
-        variable_ref = Group(Name.exprs() + ZeroOrMore(Suppress('.') + Name.exprs()))
-        # sizeof() takes the normal params as well as full struct declarations
-        expr = Or([Struct.exprs().setResultsName('struct'), 
-                   variable_ref.setResultsName('name'),
-                   Value.exprs().setResultsName('value')])
+        expr = Suppress(CaselessLiteral('REG')) + \
+               Suppress('.') + \
+               oneOf('a x y', True).setResultsName('regname')
         expr.setParseAction(klass.parse)
         return expr
 
-class SizeOf(KeywordOperator):
-    """
-    The sizeof() keyword operator
-    """
+    def __init__(self, name=None):
+        self._name = Name(name.lower())
 
-    @classmethod
-    def _get_keyword(klass):
-        return 'sizeof'
-
-    @classmethod
-    def _get_param(klass):
-        return SizeOfParameter.exprs()
-
-    def __len__(self):
-        if self.get_value():
-            return len(self.get_value())
-
-        # TODO: look up the type or the variable from the symbol and get its size
-        return 0
+    def get_name(self):
+        return self._name
 
     def __str__(self):
-        return 'sizeof(%s)' % self.get_symbol() or self.get_value()
+        return 'reg.%s' % self._name.lower()
+
+    def __hash__(self):
+        return hash(self.__str__())
 
     __repr__ = __str__
 

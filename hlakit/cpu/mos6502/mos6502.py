@@ -33,6 +33,7 @@ from hlakit.common.target import Target
 from hlakit.common.preprocessor import Preprocessor
 from hlakit.common.compiler import Compiler
 from interrupt import InterruptStart, InterruptNMI, InterruptIRQ
+from register import Register
 
 class MOS6502Preprocessor(Preprocessor):
 
@@ -56,12 +57,29 @@ class MOS6502Compiler(Compiler):
     def first_exprs(klass):
         e = []
 
+        # add in 6502 specific compiler parse rules
+        e.append(('register', Register.exprs()))
+
         # start with the first base compiler rules 
         e.extend(Compiler.first_exprs())
-
-        # add in 6502 specific compiler parse rules
-        
+       
         return e
+
+class MOS6502(Target):
+
+    def __init__(self):
+
+        # init the base class 
+        super(MOS6502, self).__init__()
+
+    def preprocessor(self):
+        return MOS6502Preprocessor()
+
+    def compiler(self):
+        return MOS6502Compiler()
+
+    def linker(self):
+        return None
 
 
 '''
@@ -229,22 +247,6 @@ class MOS6502ConditionalTest(option):
     def exprs(klass):
         return None
 '''
-
-class MOS6502(Target):
-
-    def __init__(self):
-
-        # init the base class 
-        super(MOS6502, self).__init__()
-
-    def preprocessor(self):
-        return MOS6502Preprocessor()
-
-    def compiler(self):
-        return None
-
-    def linker(self):
-        return None
 
 
 
