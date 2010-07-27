@@ -39,6 +39,9 @@ from hlakit.common.codeline import CodeLine
 from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
 from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from hlakit.cpu.mos6502.register import Register
+from hlakit.cpu.mos6502.opcode import Opcode
+from hlakit.cpu.mos6502.operand import Operand
+from hlakit.cpu.mos6502.instructionline import InstructionLine
 
 class MOS6502PreprocessorTester(unittest.TestCase):
     """
@@ -126,18 +129,62 @@ class MOS6502CompilerTester(unittest.TestCase):
         session = Session()
         self.assertTrue(isinstance(session.compiler(), MOS6502Compiler))
 
-    def testRegisterRef(self):
+    def testLineAddr(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('reg.x')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Register))
-        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'x')
+        cc.compile([CodeBlock([CodeLine('ldx $D010')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'ldx')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ADDR)
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0xD010)
 
-    def testRegisterRef2(self):
+    def testLineImm(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('REG.Y')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Register))
-        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'y')
+        cc.compile([CodeBlock([CodeLine('ldx #$22')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'ldx')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 0x22)
+
+    def testLineIndexed(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('adc $2200,x')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.INDEXED)
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0x2200)
+        self.assertEquals(str(cc.get_output()[0].get_operand().get_reg()), 'x')
+
+    def testLineIndexedIndirect(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('jmp ($2200,x)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'jmp')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IDX_IND)
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0x2200)
+        self.assertEquals(str(cc.get_output()[0].get_operand().get_reg()), 'x')
+
+    def testLineZPIndexedIndirect(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('lsr ($22),y')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'lsr')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ZP_IND)
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0x22)
+        self.assertEquals(str(cc.get_output()[0].get_operand().get_reg()), 'y')
 
 

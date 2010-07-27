@@ -28,12 +28,17 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
-from hlakit.common.session import Session
-from hlakit.common.name import Name
+from session import Session
+from name import Name
 
-class Register(object):
+class Conditional(object):
     """
-    This encapsulates a register.
+    This encapsulates the conditional blocks.  Conditionals can be:
+        if () { } else { }
+        while () { }
+        do { } while ()
+        forever { }
+        switch () { case immedate ... case immediate ...  default ... }
     """
 
     @classmethod
@@ -43,27 +48,62 @@ class Register(object):
         if pp.ignore():
             return []
 
-        if 'regname' not in tokens.keys():
-            raise ParseFatalException('register reference missing register name')
-       
-        return klass(tokens.regname)
+        type_ = None
+        if 'type_' in tokens.keys():
+            type_ = tokens.type_[0]
+        else:
+            raise ParseFatalException('no function type specified')
+
+        name = None
+        if 'name' in tokens.keys():
+            if type_ != 'interrupt':
+                raise ParseFatalException('non-interrupt function has name')
+            name = tokens.name
+
+        noreturn = False
+        if 'noreturn' in tokens.keys():
+            noreturn = True
+        
+        return klass(type_, name, noreturn)
 
     @classmethod
     def exprs(klass):
-        expr = Suppress(CaselessLiteral('REG')) + \
-               Suppress('.') + \
-               oneOf('a x y', True).setResultsName('regname')
+        
+
+
+
+        intr_with_name = Literal('interrupt') + \
+                         Suppress('.') + \
+                         Name.exprs()
+        expr = Or([Keyword('function'),
+                   Keyword('inline'),
+                   Keyword('interrupt'),
+                   intr_with_name]).setResultsName('type_') + \
+               Optional(Keyword('noreturn')).setResultsName('noreturn')
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, name=None):
-        self._name = Name(name.lower())
+    def __init__(self, type, name=None, noreturn=False):
+        self._type = type
+        self._name = name
+        self._noreturn = noreturn
+
+    def get_type(self):
+        return self._type
 
     def get_name(self):
         return self._name
 
+    def get_noreturn(self):
+        return self._noreturn
+
     def __str__(self):
-        return 'reg.%s' % self._name.get_name()
+        s = '%s' % self._type
+        if self._name:
+            s += '.%s' % self._name
+        if self._noreturn:
+            s += ' noreturn'
+        return s
 
     def __hash__(self):
         return hash(self.__str__())

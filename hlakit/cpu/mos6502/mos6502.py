@@ -33,7 +33,7 @@ from hlakit.common.target import Target
 from hlakit.common.preprocessor import Preprocessor
 from hlakit.common.compiler import Compiler
 from interrupt import InterruptStart, InterruptNMI, InterruptIRQ
-from register import Register
+from instructionline import InstructionLine
 
 class MOS6502Preprocessor(Preprocessor):
 
@@ -58,7 +58,7 @@ class MOS6502Compiler(Compiler):
         e = []
 
         # add in 6502 specific compiler parse rules
-        e.append(('register', Register.exprs()))
+        e.append(('instructionline', InstructionLine.exprs()))
 
         # start with the first base compiler rules 
         e.extend(Compiler.first_exprs())

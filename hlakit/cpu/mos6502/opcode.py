@@ -31,10 +31,18 @@ from pyparsing import *
 from hlakit.common.session import Session
 from hlakit.common.name import Name
 
-class Register(object):
+class Opcode(object):
     """
-    This encapsulates a register.
+    This encapsulates a 6502 opcode
     """
+    OPCODES = [ 'adc', 'and', 'asl', 'bcc', 'bcs', 'beq', 'bit', 'bmi', 
+                'bne', 'bpl', 'brk', 'bvc', 'bvs', 'clc', 'cld', 'cli', 
+                'clv', 'cmp', 'cpx', 'cpy', 'dec', 'dex', 'dey', 'eor', 
+                'inc', 'inx', 'iny', 'jmp', 'jsr', 'lda', 'ldx', 'ldy', 
+                'lsr', 'nop', 'ora', 'pha', 'php', 'pla', 'plp', 'rol', 
+                'ror', 'rti', 'rts', 'sbc', 'sec', 'sed', 'sei', 'sta', 
+                'stx', 'sty', 'tax', 'tay', 'tsx', 'txa', 'txs', 'tya']
+
 
     @classmethod
     def parse(klass, pstring, location, tokens):
@@ -43,27 +51,25 @@ class Register(object):
         if pp.ignore():
             return []
 
-        if 'regname' not in tokens.keys():
-            raise ParseFatalException('register reference missing register name')
+        if 'op' not in tokens.keys():
+            raise ParseFatalException('opcode missing')
        
-        return klass(tokens.regname)
+        return klass(tokens.op)
 
     @classmethod
     def exprs(klass):
-        expr = Suppress(CaselessLiteral('REG')) + \
-               Suppress('.') + \
-               oneOf('a x y', True).setResultsName('regname')
+        expr = Or([CaselessKeyword(op).setResultsName('op') for op in Opcode.OPCODES])
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, name=None):
-        self._name = Name(name.lower())
+    def __init__(self, op=None):
+        self._op = op.lower()
 
-    def get_name(self):
-        return self._name
+    def get_op(self):
+        return self._op
 
     def __str__(self):
-        return 'reg.%s' % self._name.get_name()
+        return '%s' % self._op
 
     def __hash__(self):
         return hash(self.__str__())

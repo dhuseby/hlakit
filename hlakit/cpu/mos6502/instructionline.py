@@ -29,11 +29,12 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from hlakit.common.session import Session
-from hlakit.common.name import Name
+from opcode import Opcode
+from operand import Operand
 
-class Register(object):
+class InstructionLine(object):
     """
-    This encapsulates a register.
+    This encapsulates a single line of assembly code
     """
 
     @classmethod
@@ -43,30 +44,37 @@ class Register(object):
         if pp.ignore():
             return []
 
-        if 'regname' not in tokens.keys():
-            raise ParseFatalException('register reference missing register name')
-       
-        return klass(tokens.regname)
+        if 'opcode' not in tokens.keys():
+            raise ParseFatalException('instruction line missing opcode')
+        operand = None
+        if 'operand' in tokens.keys():
+            operand = tokens.operand
+
+        return klass(tokens.opcode, operand)
 
     @classmethod
     def exprs(klass):
-        expr = Suppress(CaselessLiteral('REG')) + \
-               Suppress('.') + \
-               oneOf('a x y', True).setResultsName('regname')
+      
+        expr = Opcode.exprs().setResultsName('opcode') + \
+               Optional(Operand.exprs()).setResultsName('operand')
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, name=None):
-        self._name = Name(name.lower())
+    def __init__(self, opcode, operand=None):
+        self._opcode = opcode
+        self._operand = operand
 
-    def get_name(self):
-        return self._name
+    def get_opcode(self):
+        return self._opcode
+
+    def get_operand(self):
+        return self._operand
 
     def __str__(self):
-        return 'reg.%s' % self._name.get_name()
-
-    def __hash__(self):
-        return hash(self.__str__())
+        s = str(self._opcode)
+        if self._operand:
+            s += ' %s' % self._operand
+        return s
 
     __repr__ = __str__
 
