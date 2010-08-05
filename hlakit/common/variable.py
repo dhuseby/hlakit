@@ -80,11 +80,13 @@ class Variable(Symbol):
 
         expr = Optional(Keyword('shared').setResultsName('shared')) + \
                Or([Struct.exprs(), Type.exprs()]).setResultsName('type_') + \
+               Suppress(~LineEnd()) + \
                Name.exprs().setResultsName('name') + \
                Optional(lbracket + \
                         Optional(size.setResultsName('size')) + \
                         rbracket).setResultsName('array_') + \
-                Optional(colon + address.setResultsName('address'))
+               Optional(colon + address.setResultsName('address')) + \
+               Suppress(LineEnd()) 
         expr.setParseAction(klass.parse)
         
         return expr

@@ -34,7 +34,8 @@ from type_ import Type
 from struct import Struct
 from typedef import Typedef
 from variable import Variable
-from function import Function, FunctionCall
+from function import Function
+from functioncall import FunctionCall
 from codeblock import CodeBlock
 from filemarkers import FileBegin, FileEnd
 

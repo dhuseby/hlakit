@@ -28,9 +28,12 @@ or implied, of David Huseby.
 """
 import os
 import sys
+from types import NoneType
 import unittest
 from pyparsing import ParseException, ParseFatalException
 from cStringIO import StringIO
+from tests.utils import build_code_block 
+from hlakit.common.name import Name
 from hlakit.common.session import Session
 from hlakit.common.symboltable import SymbolTable
 from hlakit.common.typeregistry import TypeRegistry
@@ -42,6 +45,10 @@ from hlakit.cpu.mos6502.register import Register
 from hlakit.cpu.mos6502.opcode import Opcode
 from hlakit.cpu.mos6502.operand import Operand
 from hlakit.cpu.mos6502.instructionline import InstructionLine
+from hlakit.common.functiontype import FunctionType
+from hlakit.common.functionparameter import FunctionParameter
+from hlakit.common.function import Function
+from hlakit.common.functioncall import FunctionCall
 
 class MOS6502PreprocessorTester(unittest.TestCase):
     """
@@ -129,6 +136,30 @@ class MOS6502CompilerTester(unittest.TestCase):
         session = Session()
         self.assertTrue(isinstance(session.compiler(), MOS6502Compiler))
 
+    def testLineNoOperand(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('clc')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), NoneType))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'clc')
+
+    def testTwoLinesNoOperand(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('clc'), CodeLine('cli')])])
+        self.assertEquals(len(cc.get_output()), 2)
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), NoneType))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'clc')
+        self.assertTrue(isinstance(cc.get_output()[1], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[1].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[1].get_operand(), NoneType))
+        self.assertEquals(str(cc.get_output()[1].get_opcode().get_op()), 'cli')
+
+
     def testLineAddr(self):
         cc = Session().compiler()
 
@@ -187,4 +218,71 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0x22)
         self.assertEquals(str(cc.get_output()[0].get_operand().get_reg()), 'y')
 
+    def testLineFunctionCallImm(self):
+        cc = Session().compiler()
 
+        cc.compile([CodeBlock([CodeLine('adc #sizeof(foo)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_params(), list))
+        self.assertTrue(len(cc.get_output()[0].get_operand().get_value().get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_params()[0], FunctionParameter))
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_name().get_name(), 'sizeof')
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type().get_type(), 'operator')
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_params()[0].get_symbol(), 'foo')
+
+    def testLineFunctionCallImm2(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('lda #hi(bar)')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'lda')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), FunctionCall))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_type(), FunctionType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_name(), Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_params(), list))
+        self.assertTrue(len(cc.get_output()[0].get_operand().get_value().get_params()) == 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_params()[0], FunctionParameter))
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_name().get_name(), 'hi')
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type().get_type(), 'operator')
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_params()[0].get_symbol(), 'bar')
+
+    def testBlockOfCode(self):
+        code = """
+               clc
+               adc #sizeof(SPR_OBJ)
+               lda #lo(pproc)
+               ora #hi(pproc)
+               assign_16i(_jsrind_temp, pproc)
+               jsrind_f()
+               """
+        types = [ InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  FunctionCall,
+                  FunctionCall ]
+
+        cc = Session().compiler()
+
+        st = SymbolTable()
+        # pre-define the function 'jsrind_f'
+        st.new_symbol(Function(Name('jsrind_f'), FunctionType('function'), []))
+        # pre-define the macro 'assign_16i'
+        st.new_symbol(Function(Name('assign_16i'), FunctionType('inline'), 
+                               [FunctionParameter('one'), FunctionParameter('two')]))
+
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertTrue(len(cc.get_output()) == 6)
+        for i in range(0,6):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))

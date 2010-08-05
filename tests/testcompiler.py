@@ -39,7 +39,8 @@ from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
-from hlakit.common.function import Function, FunctionCall
+from hlakit.common.function import Function
+from hlakit.common.functioncall import FunctionCall
 from hlakit.common.type_ import Type
 from hlakit.common.name import Name
 from hlakit.common.struct import Struct

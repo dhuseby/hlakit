@@ -49,7 +49,7 @@ class Name(object):
 
     @classmethod
     def exprs(klass):
-        expr = Word(alphas, alphanums + '_').setResultsName('name')
+        expr = Word(alphas + '_', alphanums + '_').setResultsName('name')
         expr.setParseAction(klass.parse)
         return expr
 

@@ -31,13 +31,11 @@ from pyparsing import *
 from session import Session
 from symboltable import SymbolTable
 from name import Name
-from functiontype import FunctionType
 from functionparameter import FunctionParameter
 
-
-class Function(object):
+class FunctionCall(object):
     """
-    The base class of function definitions
+    The class representing a function call
     """
 
     @classmethod
@@ -47,67 +45,53 @@ class Function(object):
         if pp.ignore():
             return []
 
-        fnname = None
-        if 'fnname' in tokens.keys():
-            fnname = Name(tokens.fnname)
+        fn = None
+        # get a reference to the symbol table
+        st = SymbolTable()
 
-        type_ = None
-        if 'type_' in tokens.keys():
-            # if we get in here, then this is a func decl
-            type_ = tokens.type_
-        else:
-            raise ParseFatalException('function decl missing type')
+        name = None
+        if 'name' in tokens.keys():
+            name = tokens.name
+
+        # look up the function decl
+        fn = st[name]
+        if fn is None:
+            raise ParseFatalException('function %s not defined' % name)
+        type_ = fn.get_type()
 
         params = None
         if 'params' in tokens.keys():
-            # only inline function decl's can have params
-            if type_.get_type() != 'inline':
-                raise ParseFatalException('non-inline function decl with params')
+            # some built-in functions are "operator" type functions and they can
+            # have parameters because they are a special type of inline macro
+            if type_.get_type() not in ('inline', 'operator'):
+                raise ParseFatalException('calling non-inline function with params')
             params = [ p for p in tokens.params ]
 
-        return klass(fnname, type_, params)
+        return FunctionCall(name, type_, params)
 
     @classmethod
     def exprs(klass):
-        fnname = Word(alphas, alphanums + '_')
-        expr = FunctionType.exprs().setResultsName('type_') + \
-               fnname.setResultsName('fnname') + \
+        expr = Forward()
+        func = Name.exprs() + \
                Suppress('(') + \
-               Optional(delimitedList(Name.exprs()).setResultsName('params')) + \
-               Suppress(')')
-        expr.setParseAction(klass.parse)
-        return expr
+               Optional(delimitedList(expr).setResultsName('params')) + \
+               Suppress(')') 
+        expr << (func | FunctionParameter.exprs())
+        func.setParseAction(klass.parse)
+        return func
 
-    def __init__(self, name, type=None, params=None):
-        self._type = type
+    def __init__(self, name, type_, params=None):
         self._name = name
+        self._type = type_
         self._params = params
-
-    def get_type(self):
-        return self._type
 
     def get_name(self):
         return self._name
 
-    def get_noreturn(self):
-        return self.get_type().get_noreturn()
-
     def get_params(self):
         return self._params
 
-    def __str__(self):
-        s = ''
-        if self._type:
-            s += str(self._type) + ' '
-        s += self._name
-        s += '('
-        if self._params:
-            for i in range(0, len(self._params)):
-                if i > 0:
-                    s += ','
-                s += ' ' + str(self._params[i])
-            s += ' '
-        s += ')'
-        s += ' { }'
-        return s
+    def get_type(self):
+        return self._type
+
 

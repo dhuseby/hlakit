@@ -30,7 +30,7 @@ or implied, of David Huseby.
 from pyparsing import *
 from hlakit.common.session import Session
 from hlakit.common.name import Name
-from hlakit.common.function import FunctionCall
+from hlakit.common.functioncall import FunctionCall
 from hlakit.common.numericvalue import NumericValue
 
 class Operand(object):

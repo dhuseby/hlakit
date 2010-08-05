@@ -1,5 +1,5 @@
 """
-HLAKit
+HLAKit Tests
 Copyright (c) 2010 David Huseby. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
@@ -26,41 +26,20 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
+import os
+import sys
+from cStringIO import StringIO
+from hlakit.common.codeblock import CodeBlock
+from hlakit.common.codeline import CodeLine
 
-class CodeBlock(object):
-    """
-    This encapsulates a list of CodeLine objects into a cohesive
-    code block that can be translated back into plain text.
-    """
-    def __init__(self, lines=[]):
-        self._lines = lines
+def build_code_block(code):
+    io = StringIO(code)
+    lines = io.readlines()
+    io.close()
+    cb = CodeBlock()
+    for line in lines:
+        if len(line.strip()) > 0:
+            cb.append(CodeLine(line.strip()))
 
-    def append(self, line):
-        self._lines.append(line)
-
-    def num_lines(self):
-        return len(self._lines)
-
-    def __len__(self):
-        return self._lines.__len__()
-
-    def __getitem__(self, key):
-        return self._lines.__getitem__(key)
-
-    def __setitem__(self, key, value):
-        return self._lines.__setitem(key, value)
-
-    def __delitem__(self, key):
-        return self._lines.__delitem(key)
-
-    def __iter__(self):
-        return self._lines.__iter__()
-
-    def __str__(self):
-        out = ''
-        for line in self._lines:
-            out += '%s\n' % str(line)
-        return out
-
-    __repr__ = __str__
+    return cb
 

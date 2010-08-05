@@ -56,7 +56,8 @@ class InstructionLine(object):
     def exprs(klass):
       
         expr = Opcode.exprs().setResultsName('opcode') + \
-               Optional(Operand.exprs()).setResultsName('operand')
+               Optional(Operand.exprs()).setResultsName('operand') + \
+               Suppress(LineEnd())
         expr.setParseAction(klass.parse)
         return expr
 
