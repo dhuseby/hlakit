@@ -50,7 +50,7 @@ class Operand(object):
         if 'addr' in tokens.keys():
             return klass(Operand.ADDR, addr=tokens.addr[0])
         elif 'imm' in tokens.keys():
-            return klass(Operand.IMM, value=tokens.imm[1])
+            return klass(Operand.IMM, value=tokens.imm[0])
         elif 'indexed' in tokens.keys():
             return klass(Operand.INDEXED, addr=tokens.indexed[0], reg=tokens.indexed[1])
         elif 'idx_ind' in tokens.keys():
@@ -65,7 +65,7 @@ class Operand(object):
        
         # TODO: add variable name support to all addressing modes where makes sense
         addr = Group(NumericValue.exprs()).setResultsName('addr')
-        imm  = Group(Literal('#') + \
+        imm  = Group(Suppress('#') + \
                      Or([NumericValue.exprs(),
                          FunctionCall.exprs(),
                          Name.exprs()])).setResultsName('imm')

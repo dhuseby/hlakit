@@ -39,12 +39,14 @@ from hlakit.common.symboltable import SymbolTable
 from hlakit.common.typeregistry import TypeRegistry
 from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
+from hlakit.common.numericvalue import NumericValue
 from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
 from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from hlakit.cpu.mos6502.register import Register
 from hlakit.cpu.mos6502.opcode import Opcode
 from hlakit.cpu.mos6502.operand import Operand
 from hlakit.cpu.mos6502.instructionline import InstructionLine
+from hlakit.cpu.mos6502.conditional import Conditional
 from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
 from hlakit.common.function import Function
@@ -343,3 +345,375 @@ class MOS6502CompilerTester(unittest.TestCase):
         for i in range(0,len(types)):
             self.assertTrue(isinstance(cc.get_output()[i], types[i]))
 
+    def testIfConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('if(set)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.IF)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.SET)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testIfNegatedConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('if(not 1)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.IF)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.ONE)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NEGATED)
+
+    def testIfFarConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('if(far carry)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.IF)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.CARRY)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.FAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testIfFarNegatedConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('if(far not overflow)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.IF)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.OVERFLOW)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.FAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NEGATED)
+        
+    def testElseConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('else')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.ELSE)
+        self.assertEquals(cc.get_output()[0].get_condition(), None)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testIfElseConditional(self):
+        code = """
+               if (set)
+               {
+                   inx
+               }
+               else
+               {
+                   dex
+               }
+               """
+        types = [ Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  ScopeEnd,
+                  Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testWhileConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('while(true)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.WHILE)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.TRUE)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testWhileNegatedConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('while (not 0)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.WHILE)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.ZERO)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NEGATED)
+
+    def testWhileFarConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('while(far unset)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.WHILE)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.UNSET)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.FAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testWhileFarNegatedConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('while(far not clear)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.WHILE)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.CLEAR)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.FAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NEGATED)
+
+    def testWhileBlockConditional(self):
+        code = """
+               while (plus)
+               {
+                   inx
+                   dex
+               }
+               """
+        types = [ Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  InstructionLine,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testDoConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('do')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.DO)
+        self.assertEquals(cc.get_output()[0].get_condition(), None)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testDoWhileBlockConditional(self):
+        code = """
+               do
+               {
+                   inx
+                   dex
+               }
+               while (positive)
+               """
+        types = [ Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  InstructionLine,
+                  ScopeEnd,
+                  Conditional ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testForeverConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('forever')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.FOREVER)
+        self.assertEquals(cc.get_output()[0].get_condition(), None)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testSwitchConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('switch(x)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.SWITCH)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.X)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testSwitchCapitalConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('switch(A)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.SWITCH)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.A)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testSwitchRegDotConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('switch(reg.y)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.SWITCH)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.Y)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testSwitchRegDotCapitalConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('switch(REG.X)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.SWITCH)
+        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.X)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testCaseDecimalConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('case #32')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.CASE)
+        self.assertEquals(int(cc.get_output()[0].get_condition()), 32)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testCaseFunctionCallConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('case #sizeof(foo)')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.CASE)
+        self.assertTrue(isinstance(cc.get_output()[0].get_condition(), FunctionCall))
+        self.assertEquals(cc.get_output()[0].get_condition().get_name(), 'sizeof')
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testCaseVariableConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('case #bar')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.CASE)
+        self.assertTrue(isinstance(cc.get_output()[0].get_condition(), Name))
+        self.assertEquals(str(cc.get_output()[0].get_condition()), 'bar')
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testDefaultConditional(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('default')])])
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
+        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.DEFAULT)
+        self.assertEquals(cc.get_output()[0].get_condition(), None)
+        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
+        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+
+    def testSwitchCaseDefaultConditional(self):
+        code = """
+               switch(X)
+               {
+                   case #sizeof(bar)
+                   {
+                       inx
+                   }
+                   case #0x0200
+                       dex
+                   default
+                   {
+                       lda  $0300
+                   }
+               }
+               """
+        types = [ Conditional,
+                  ScopeBegin,
+                  Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  ScopeEnd,
+                  Conditional,
+                  InstructionLine,
+                  Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  ScopeEnd,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testFunctionRunloopDecl(self):
+        code = """
+               interrupt main()
+               {
+                   forever
+                   {
+                       cpx #$44
+                       if(not equal)
+                       {
+                           lda  0x0200,x
+                           inx
+                           ora  0x0200,x
+                           inx
+                       }
+                       else
+                       {
+                           switch(REG.Y)
+                           {
+                               case #1K
+                               {
+                                   cpy  1024
+                                   if(equal)
+                                   {
+                                       dec $4400,X
+                                   }
+                               }
+                               default
+                                   dec 0x4400
+                           }
+                       }
+                   }
+               }
+               """
+        types = [ Function,
+                  ScopeBegin,
+                  Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  ScopeEnd,
+                  Conditional,
+                  ScopeBegin,
+                  Conditional,
+                  ScopeBegin,
+                  Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  ScopeEnd,
+                  ScopeEnd,
+                  Conditional,
+                  InstructionLine,
+                  ScopeEnd,
+                  ScopeEnd,
+                  ScopeEnd,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+ 

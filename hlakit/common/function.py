@@ -108,6 +108,5 @@ class Function(object):
                 s += ' ' + str(self._params[i])
             s += ' '
         s += ')'
-        s += ' { }'
         return s
 
