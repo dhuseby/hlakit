@@ -38,6 +38,7 @@ from function import Function
 from functioncall import FunctionCall
 from codeblock import CodeBlock
 from filemarkers import FileBegin, FileEnd
+from scopemarkers import ScopeBegin, ScopeEnd
 
 class Compiler(object):
 
@@ -57,6 +58,8 @@ class Compiler(object):
         e.append(('variable', Variable.exprs()))
         e.append(('function', Function.exprs()))
         e.append(('functioncall', FunctionCall.exprs()))
+        e.append(('scopebegin', ScopeBegin.exprs()))
+        e.append(('scopeend', ScopeEnd.exprs()))
         return e
 
     @classmethod

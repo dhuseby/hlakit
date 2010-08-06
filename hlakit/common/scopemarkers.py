@@ -1,5 +1,5 @@
 """
-HLAKit Tests
+HLAKit
 Copyright (c) 2010 David Huseby. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
@@ -26,20 +26,47 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-import os
-import sys
-from cStringIO import StringIO
-from hlakit.common.codeblock import CodeBlock
-from hlakit.common.codeline import CodeLine
 
-def build_code_block(code):
-    io = StringIO(code)
-    lines = io.readlines()
-    io.close()
-    cb = CodeBlock([])
-    for line in lines:
-        if len(line.strip()) > 0:
-            cb.append(CodeLine(line.strip()))
+from pyparsing import *
+from session import Session
+from symboltable import SymbolTable
+from name import Name
+from functionparameter import FunctionParameter
 
-    return cb
+class ScopeBegin(object):
+    """
+    The class representing the beginning of a scope block {
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        return klass()
+
+    @classmethod
+    def exprs(klass):
+        return Suppress(Literal('{')).setParseAction(klass.parse)
+
+
+class ScopeEnd(object):
+    """
+    The class representing the ending of a scope block }
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        return klass()
+
+    @classmethod
+    def exprs(klass):
+        return Suppress(Literal('}')).setParseAction(klass.parse)
 

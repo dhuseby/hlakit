@@ -49,6 +49,7 @@ from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
 from hlakit.common.function import Function
 from hlakit.common.functioncall import FunctionCall
+from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 
 class MOS6502PreprocessorTester(unittest.TestCase):
     """
@@ -283,6 +284,62 @@ class MOS6502CompilerTester(unittest.TestCase):
 
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertTrue(len(cc.get_output()) == 6)
+        self.assertEquals(len(cc.get_output()), len(types))
         for i in range(0,6):
             self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testSimpleCompleteFunctionDecl(self):
+        code = """
+               function foo()
+               {
+                   lda  0x0200,x
+                   inx
+                   ora  0x0200,x
+                   inx
+               }
+               """
+        types = [ Function,
+                  ScopeBegin,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testSimpleCompleteMacroDecl(self):
+        code = """
+               inline foo(addr)
+               {
+                   lda  addr,x
+                   inx
+                   ora  addr,x
+                   jsrind_f()
+                   inx
+               }
+               """
+        types = [ Function,
+                  ScopeBegin,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  FunctionCall,
+                  InstructionLine,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        st = SymbolTable()
+        # pre-define the function 'jsrind_f'
+        st.new_symbol(Function(Name('jsrind_f'), FunctionType('function'), []))
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+

@@ -48,6 +48,7 @@ from hlakit.common.typedef import Typedef
 from hlakit.common.variable import Variable
 from hlakit.common.numericvalue import NumericValue
 from hlakit.common.arrayvalue import ArrayValue, StringValue
+from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 
 class CompilerTester(unittest.TestCase):
     """
@@ -300,7 +301,10 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('function foo() { }')])])
+        self.assertEquals(len(cc.get_output()), 3)
         self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
+        self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertFalse(cc.get_output()[0].get_noreturn())
@@ -311,7 +315,10 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('inline foo() { }')])])
+        self.assertEquals(len(cc.get_output()), 3)
         self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
+        self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
@@ -321,7 +328,10 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('interrupt foo() { }')])])
+        self.assertEquals(len(cc.get_output()), 3)
         self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
+        self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
@@ -331,7 +341,10 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('interrupt.start foo() { }')])])
+        self.assertEquals(len(cc.get_output()), 3)
         self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
+        self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_type().get_name(), Name))
@@ -379,7 +392,10 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('function noreturn foo() { }')])])
+        self.assertEquals(len(cc.get_output()), 3)
         self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
+        self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(cc.get_output()[0].get_noreturn())
@@ -390,7 +406,10 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('interrupt noreturn foo() { }')])])
+        self.assertEquals(len(cc.get_output()), 3)
         self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
+        self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(cc.get_output()[0].get_noreturn())
@@ -410,7 +429,10 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('inline foo(bar) { }')])])
+        self.assertEquals(len(cc.get_output()), 3)
         self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
+        self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
@@ -424,7 +446,10 @@ class CompilerTester(unittest.TestCase):
         cc = Session().compiler()
 
         cc.compile([CodeBlock([CodeLine('inline foo(bar,baz, qux) { }')])])
+        self.assertEquals(len(cc.get_output()), 3)
         self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
+        self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))

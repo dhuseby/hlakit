@@ -63,20 +63,25 @@ class Operand(object):
     @classmethod
     def exprs(klass):
        
+        # TODO: add variable name support to all addressing modes where makes sense
         addr = Group(NumericValue.exprs()).setResultsName('addr')
         imm  = Group(Literal('#') + \
                      Or([NumericValue.exprs(),
-                         FunctionCall.exprs()])).setResultsName('imm')
-        indexed = Group(NumericValue.exprs() + \
+                         FunctionCall.exprs(),
+                         Name.exprs()])).setResultsName('imm')
+        indexed = Group(Or([NumericValue.exprs(),
+                            Name.exprs()]) + \
                         Suppress(',') + \
                         oneOf('x y', True)).setResultsName('indexed')
         idx_ind = Group(Suppress('(') + \
-                        NumericValue.exprs() + \
+                        Or([NumericValue.exprs(),
+                            Name.exprs()])+ \
                         Suppress(',') + \
                         CaselessLiteral('x') + \
                         Suppress(')')).setResultsName('idx_ind')
         zp_ind = Group(Suppress('(') + \
-                       NumericValue.exprs() + \
+                       Or([NumericValue.exprs(),
+                           Name.exprs()])+ \
                        Suppress(')') + \
                        Suppress(',') + \
                        CaselessLiteral('y')).setResultsName('zp_ind')
