@@ -33,6 +33,7 @@ from symboltable import SymbolTable
 from name import Name
 from functioncall import FunctionCall
 from numericvalue import NumericValue
+from immediate import Immediate
 
 class Conditional(object):
     """
@@ -62,9 +63,7 @@ class Conditional(object):
                             Suppress(')')).setResultsName('switch_')
         case_ = Group(Suppress('case') + \
                           Suppress('#') + \
-                          Or([NumericValue.exprs(),
-                              FunctionCall.exprs(),
-                              Name.exprs()])).setResultsName('case_')
+                          Immediate.exprs()).setResultsName('case_')
         default_ = Group(Suppress('default')).setResultsName('default_')
 
         expr = Or([if_, else_, while_, do_, forever_, switch_, case_, default_])

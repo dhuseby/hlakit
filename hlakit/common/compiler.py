@@ -33,6 +33,7 @@ from pyparsing import *
 from type_ import Type
 from struct import Struct
 from typedef import Typedef
+from immediate import Immediate
 from variable import Variable
 from function import Function
 from functioncall import FunctionCall

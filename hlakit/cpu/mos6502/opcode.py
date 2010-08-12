@@ -43,7 +43,6 @@ class Opcode(object):
                 'ror', 'rti', 'rts', 'sbc', 'sec', 'sed', 'sei', 'sta', 
                 'stx', 'sty', 'tax', 'tay', 'tsx', 'txa', 'txs', 'tya']
 
-
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -58,7 +57,7 @@ class Opcode(object):
 
     @classmethod
     def exprs(klass):
-        expr = Or([CaselessKeyword(op).setResultsName('op') for op in Opcode.OPCODES])
+        expr = MatchFirst([CaselessKeyword(op).setResultsName('op') for op in Opcode.OPCODES])
         expr.setParseAction(klass.parse)
         return expr
 

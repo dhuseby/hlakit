@@ -54,6 +54,7 @@ class Value(object):
 
     @classmethod
     def exprs(klass):
+        # TODO: put immediate in here instead of numeric and array values
         expr = NumericValue.exprs().setResultsName('number') | \
                ArrayValue.exprs().setResultsName('array_') | \
                StringValue.exprs().setResultsName('string_')

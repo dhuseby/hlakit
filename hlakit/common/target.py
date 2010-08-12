@@ -20,6 +20,7 @@ from functioncall import FunctionCall
 class Target(object):
 
     def __init__(self):
+        """
         # we treat the sizeof, hi, lo, nyhi, and nylo operators just like
         # regular functions so we need to prime the pump by defining them in
         # the global symbol table before any files get compiled
@@ -51,6 +52,7 @@ class Target(object):
         st.new_symbol(lo_)
         st.new_symbol(nyhi_)
         st.new_symbol(nylo_)
+        """
 
     def preprocessor(self):
         return Preprocessor()

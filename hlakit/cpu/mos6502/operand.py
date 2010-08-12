@@ -32,6 +32,7 @@ from hlakit.common.session import Session
 from hlakit.common.name import Name
 from hlakit.common.functioncall import FunctionCall
 from hlakit.common.numericvalue import NumericValue
+from hlakit.common.immediate import Immediate
 
 class Operand(object):
     """
@@ -66,9 +67,7 @@ class Operand(object):
         # TODO: add variable name support to all addressing modes where makes sense
         addr = Group(NumericValue.exprs()).setResultsName('addr')
         imm  = Group(Suppress('#') + \
-                     Or([NumericValue.exprs(),
-                         FunctionCall.exprs(),
-                         Name.exprs()])).setResultsName('imm')
+                     Immediate.exprs()).setResultsName('imm')
         indexed = Group(Or([NumericValue.exprs(),
                             Name.exprs()]) + \
                         Suppress(',') + \
