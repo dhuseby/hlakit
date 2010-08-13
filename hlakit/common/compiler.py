@@ -40,6 +40,7 @@ from functioncall import FunctionCall
 from codeblock import CodeBlock
 from filemarkers import FileBegin, FileEnd
 from scopemarkers import ScopeBegin, ScopeEnd
+from symboltable import SymbolTable
 
 class Compiler(object):
 
@@ -115,6 +116,7 @@ class Compiler(object):
         for e in self.get_exprs():
             expr_or.append(e[1])
         parser = ZeroOrMore(expr_or)
+        parser.ignore(cStyleComment)
 
         # process the tokens the compiler cares about
         cc_tokens = []
@@ -124,12 +126,12 @@ class Compiler(object):
                 SymbolTable().scope_push(token.get_name())
             elif isinstance(token, FileEnd):
                 # take down the file scope
-                SymbolTable().socpe_pop()
+                SymbolTable().scope_pop()
             elif isinstance(token, CodeBlock):
                 # compile the code block
                 cc_tokens.extend(parser.parseFile(StringIO(str(token))))
             else:
                 # pass the token on
-                cc.tokens.append(token)
+                cc_tokens.append(token)
 
         self._tokens = cc_tokens

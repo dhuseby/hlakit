@@ -64,8 +64,7 @@ class Else(object):
     def exprs(klass):
         else_ = Keyword('#else')
 
-        expr = Suppress(else_) + \
-               Suppress(LineEnd())
+        expr = Suppress(else_)
         expr.setParseAction(klass.parse)
 
         return expr

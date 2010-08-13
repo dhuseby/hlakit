@@ -33,7 +33,7 @@ from pyparsing import ParseException, ParseFatalException
 from cStringIO import StringIO
 from hlakit.common.session import Session
 from hlakit.platform.nes import NESPreprocessor, NESCompiler
-from hlakit.platform.nes.chr import ChrBanksize, ChrBank, ChrLink
+from hlakit.platform.nes.chr import ChrBanksize, ChrBank, ChrLink, ChrEnd
 from hlakit.platform.nes.ines import iNESMapper, iNESMirroring, iNESFourscreen, iNESBattery, iNESTrainer, iNESPrgRepeat, iNESChrRepeat, iNESOff
 
 class NESPreprocessorTester(unittest.TestCase):
@@ -51,11 +51,20 @@ class NESPreprocessorTester(unittest.TestCase):
         self.assertTrue(isinstance(Session().preprocessor(), NESPreprocessor))
 
     pp_chrbanksize = '#chr.banksize %s\n'
+    pp_chrend = '#chr.end'
 
     def testChrBanksize(self):
         pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_chrbanksize % '1K'))
+        self.assertTrue(isinstance(pp.get_output()[1], ChrBanksize))
+        self.assertEquals(int(pp.get_output()[1].get_size()), 1024)
+
+    def testChrBanksizeLabel(self):
+        pp = Session().preprocessor() 
+
+        pp.set_symbol('FOO', 1024)
+        pp.parse(StringIO(self.pp_chrbanksize % 'FOO'))
         self.assertTrue(isinstance(pp.get_output()[1], ChrBanksize))
         self.assertEquals(int(pp.get_output()[1].get_size()), 1024)
 
@@ -67,6 +76,14 @@ class NESPreprocessorTester(unittest.TestCase):
             self.assertTrue(False)
         except ParseException:
             pass
+
+    #TODO: tests for #chr.bank and #chr.link
+
+    def testChrEnd(self):
+        pp = Session().preprocessor() 
+
+        pp.parse(StringIO(self.pp_chrend))
+        self.assertTrue(isinstance(pp.get_output()[1], ChrEnd))
 
     pp_inesmapper = '#ines.mapper %s\n'
     pp_inesmirroring = '#ines.mirroring %s\n'

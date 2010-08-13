@@ -46,21 +46,34 @@ class RomOrg(object):
 
         if 'address' not in tokens.keys():
             raise ParseFatalException('#rom.org without an address')
+        
+        address = tokens.address
+        if not isinstance(address, NumericValue):
+            if not pp.has_symbol(address):
+                raise ParseFatalException('unknown preprocessor symbol: %s' % address)
+            address = pp.get_symbol(address)
 
-        maxsize = getattr(tokens, 'maxsize', None)
+        maxsize = None
+        if 'maxsize' in tokens.keys():
+            maxsize = tokens.maxsize
+        if maxsize is not None:
+            if not isinstance(maxsize, NumericValue):
+                if not pp.has_symbol(maxsize):
+                    raise ParseFatalException('unknown preprocessor symbol: %s' % maxsize)
+                maxsize = pp.get_symbol(maxsize)
 
-        return klass(tokens.address, maxsize)
+        return klass(address, maxsize)
 
     @classmethod
     def exprs(klass):
         romorg = Keyword('#rom.org')
-        address = NumericValue.exprs().setResultsName('address')
-        maxsize = NumericValue.exprs().setResultsName('maxsize')
-
+        label = Word(alphas + '_', alphanums + '_')
+        address = Or([label, NumericValue.exprs()]).setResultsName('address')
+        maxsize = Or([label, NumericValue.exprs()]).setResultsName('maxsize')
+        
         expr = Suppress(romorg) + \
                address + \
-               Optional(Literal(',') + maxsize) + \
-               Suppress(LineEnd())
+               Optional(Literal(',') + maxsize)
         expr.setParseAction(klass.parse)
 
         return expr
@@ -101,8 +114,7 @@ class RomEnd(object):
     @classmethod
     def exprs(klass):
         romend = Keyword('#rom.end')
-        expr = Suppress(romend) + \
-               Suppress(LineEnd())
+        expr = Suppress(romend)
         expr.setParseAction(klass.parse)
 
         return expr
@@ -127,16 +139,21 @@ class RomBanksize(object):
         if 'size' not in tokens.keys():
             raise ParseFatalException('#rom.banksize without a size')
 
-        return klass(tokens.size)
+        size = tokens.size
+        if not isinstance(size, NumericValue):
+            if not pp.has_symbol(size):
+                raise ParseFatalException('unknown preprocessor symbol: %s' % size)
+            size = pp.get_symbol(size)
+
+        return klass(size)
 
     @classmethod
     def exprs(klass):
         rombanksize = Keyword('#rom.banksize')
-        size = NumericValue.exprs().setResultsName('size')
+        label = Word(alphas + '_', alphanums + '_')
+        size = Or([label, NumericValue.exprs()]).setResultsName('size')
 
-        expr = Suppress(rombanksize) + \
-               size + \
-               Suppress(LineEnd())
+        expr = Suppress(rombanksize) + size
         expr.setParseAction(klass.parse)
 
         return expr
@@ -167,21 +184,34 @@ class RomBank(object):
 
         if 'number' not in tokens.keys():
             raise ParseFatalException('#rom.bank without a number')
+        
+        number = tokens.number
+        if not isinstance(number, NumericValue):
+            if not pp.has_symbol(number):
+                raise ParseFatalException('unknown preprocessor symbol: %s' % number)
+            number = pp.get_symbol(number)
 
-        maxsize = getattr(tokens, 'maxsize', None)
+        maxsize = None
+        if 'maxsize' in tokens.keys():
+            maxsize = tokens.maxsize
+        if maxsize is not None:
+            if not isinstance(maxsize, NumericValue):
+                if not pp.has_symbol(maxsize):
+                    raise ParseFatalException('unknown preprocessor symbol: %s' % maxsize)
+                maxsize = pp.get_symbol(maxsize)
 
-        return klass(tokens.number, maxsize)
+        return klass(number, maxsize)
 
     @classmethod
     def exprs(klass):
         rombank = Keyword('#rom.bank')
-        number = NumericValue.exprs().setResultsName('number')
-        maxsize = NumericValue.exprs().setResultsName('maxsize')
+        label = Word(alphas + '_', alphanums + '_')
+        number = Or([label, NumericValue.exprs()]).setResultsName('number')
+        maxsize = Or([label, NumericValue.exprs()]).setResultsName('maxsize')
 
         expr = Suppress(rombank) + \
                number + \
-               Optional(Literal(',') + maxsize) + \
-               Suppress(LineEnd())
+               Optional(Literal(',') + maxsize)
         expr.setParseAction(klass.parse)
 
         return expr

@@ -195,32 +195,12 @@ class PreprocessorTester(unittest.TestCase):
         pp.parse(StringIO(self.pp_todo % '"Hello World!"'))
 
 
-    def testBadTodo(self):
-        pp = Session().preprocessor()
-
-        #todo
-        try:
-            pp.parse(StringIO(self.pp_todo))
-            self.assertTrue(False)
-        except ParseException, e:
-            pass
-
     def testWarning(self):
         pp = Session().preprocessor()
 
         #warning "Hello World"
         pp.parse(StringIO(self.pp_warning % '"Hello World!"'))
 
-
-    def testBadWarning(self):
-        pp = Session().preprocessor()
-
-        #warning
-        try:
-            pp.parse(StringIO(self.pp_warning))
-            self.assertTrue(False)
-        except ParseException, e:
-            pass
 
     def testError(self):
         pp = Session().preprocessor()
@@ -230,16 +210,6 @@ class PreprocessorTester(unittest.TestCase):
             pp.parse(StringIO(self.pp_error % '"Hello World!"'))
             self.assertTrue(False)
         except ParseFatalException, e:
-            pass
-
-    def testBadError(self):
-        pp = Session().preprocessor()
-
-        #error
-        try:
-            pp.parse(StringIO(self.pp_error))
-            self.assertTrue(False)
-        except ParseException, e:
             pass
 
     pp_tellbank = '#tell.bank\n'
@@ -409,20 +379,37 @@ class PreprocessorTester(unittest.TestCase):
         self.assertEquals(int(pp.get_output()[1].get_address()), 0x0100)
         self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
 
+    def testRamOrgLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 0x0100)
+        pp.parse(StringIO(self.pp_ramorg % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], RamOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x100)
+
+    def testRamOrgMaxsizeLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 0x0100)
+        pp.set_symbol('BAR', 0x1000)
+        pp.parse(StringIO(self.pp_ramorg % 'FOO, BAR'))
+        self.assertTrue(isinstance(pp.get_output()[1], RamOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x0100)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
+
+    def testRamOrgMaxsizeWithComment(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_ramorg % '0x0100, 0x1000 // hello'))
+        self.assertTrue(isinstance(pp.get_output()[1], RamOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x0100)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
+
     def testBadRamOrg(self):
         pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_ramorg % ''))
-            self.assertTrue(False)
-        except ParseException:
-            pass
-
-    def testBadRamOrgMaxsize(self):
-        pp = Session().preprocessor()
-
-        try:
-            pp.parse(StringIO(self.pp_ramorg % '0x0100,'))
             self.assertTrue(False)
         except ParseException:
             pass
@@ -448,20 +435,37 @@ class PreprocessorTester(unittest.TestCase):
         self.assertEquals(int(pp.get_output()[1].get_address()), 0x0100)
         self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
 
+    def testRomOrgLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 0x0100)
+        pp.parse(StringIO(self.pp_romorg % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], RomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x100)
+
+    def testRomOrgMaxsizeLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 0x0100)
+        pp.set_symbol('BAR', 0x1000)
+        pp.parse(StringIO(self.pp_romorg % 'FOO, BAR'))
+        self.assertTrue(isinstance(pp.get_output()[1], RomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x0100)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
+
+    def testRomOrgMaxsizeWithComment(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_romorg % '0x0100, 0x1000 // hello'))
+        self.assertTrue(isinstance(pp.get_output()[1], RomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_address()), 0x0100)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
+
     def testBadRomOrg(self):
         pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_romorg % ''))
-            self.assertTrue(False)
-        except ParseException:
-            pass
-
-    def testBadRomOrgMaxsize(self):
-        pp = Session().preprocessor()
-
-        try:
-            pp.parse(StringIO(self.pp_romorg % '0x0100,'))
             self.assertTrue(False)
         except ParseException:
             pass
@@ -476,6 +480,14 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_rombanksize % '0x4000'))
+        self.assertTrue(isinstance(pp.get_output()[1], RomBanksize))
+        self.assertEquals(int(pp.get_output()[1].get_size()), 0x4000)
+
+    def testRomBanksizeLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 0x4000)
+        pp.parse(StringIO(self.pp_rombanksize % 'FOO'))
         self.assertTrue(isinstance(pp.get_output()[1], RomBanksize))
         self.assertEquals(int(pp.get_output()[1].get_size()), 0x4000)
 
@@ -503,20 +515,29 @@ class PreprocessorTester(unittest.TestCase):
         self.assertEquals(int(pp.get_output()[1].get_number()), 3)
         self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
 
+    def testRomBankLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 3)
+        pp.parse(StringIO(self.pp_rombank % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], RomBank))
+        self.assertEquals(int(pp.get_output()[1].get_number()), 3)
+
+    def testRomBankMaxsize(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 3)
+        pp.set_symbol('BAR', 0x1000)
+        pp.parse(StringIO(self.pp_rombank % 'FOO, BAR'))
+        self.assertTrue(isinstance(pp.get_output()[1], RomBank))
+        self.assertEquals(int(pp.get_output()[1].get_number()), 3)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
+
     def testBadRomBank(self):
         pp = Session().preprocessor()
 
         try:
             pp.parse(StringIO(self.pp_rombank % ''))
-            self.assertTrue(False)
-        except ParseException:
-            pass
-
-    def testBadRomBankMaxsize(self):
-        pp = Session().preprocessor()
-
-        try:
-            pp.parse(StringIO(self.pp_rombank % '3,'))
             self.assertTrue(False)
         except ParseException:
             pass
@@ -551,6 +572,14 @@ class PreprocessorTester(unittest.TestCase):
         pp = Session().preprocessor()
 
         pp.parse(StringIO(self.pp_align % '1K'))
+        self.assertTrue(isinstance(pp.get_output()[1], Align))
+        self.assertEquals(int(pp.get_output()[1].get_value()), 1024)
+
+    def testAlignLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 1024)
+        pp.parse(StringIO(self.pp_align % 'FOO'))
         self.assertTrue(isinstance(pp.get_output()[1], Align))
         self.assertEquals(pp.get_output()[1].get_value(), 1024)
 

@@ -52,7 +52,9 @@ class SymbolTable(object):
         self._scope_stack = [Scope()]
 
     def scope_push(self, namespace=None):
-        self._scope_stack.insert(Scope(namespace), 0)
+        if not hasattr(self, '_scope_stack'):
+            self.reset_state()
+        self._scope_stack.insert(0, Scope(namespace))
 
     def scope_pop(self):
         if len(self._scope_stack) <= 1:

@@ -56,8 +56,7 @@ class Message(object):
         message_string = message_string.setResultsName('message')
 
         expr = Suppress(kw) + \
-               Optional(message_string) + \
-               Suppress(LineEnd())
+               Optional(message_string) 
         expr.setParseAction(klass.parse)
 
         return expr

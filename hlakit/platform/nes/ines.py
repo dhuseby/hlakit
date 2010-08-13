@@ -392,16 +392,16 @@ class iNESMirroring(object):
         if 'mirroring' not in tokens.keys():
             raise ParseFatalException('#ines.mirroring missing parameter')
 
-        if tokens.mirroring == 'vertical' or \
-           tokens.mirroring == 'horizontal':
-            return klass(tokens.mirroring)
+        if tokens.mirroring.lower() == 'vertical' or \
+           tokens.mirroring.lower() == 'horizontal':
+            return klass(tokens.mirroring.lower())
 
         raise ParseFatalException('#ines.mirroring invalid parameter')
 
     @classmethod
     def exprs(klass):
         kw = Keyword('#ines.mirroring')
-        mirroring = quotedString(Or([Keyword('vertical'), Keyword('horizontal')]))
+        mirroring = quotedString(Or([CaselessKeyword('vertical'), CaselessKeyword('horizontal')]))
         mirroring.setParseAction(removeQuotes)
         mirroring = mirroring.setResultsName('mirroring')
 

@@ -50,8 +50,7 @@ class Endif(object):
     @classmethod
     def exprs(klass):
         endif = Keyword('#endif')
-        expr = Suppress(endif) + \
-               Suppress(LineEnd())
+        expr = Suppress(endif)
         expr.setParseAction(klass.parse)
 
         return expr

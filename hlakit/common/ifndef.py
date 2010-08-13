@@ -60,8 +60,7 @@ class Ifndef(object):
         label = Word(alphas + '_', alphanums + '_').setResultsName('label')
 
         expr = Suppress(ifndef) + \
-               label + \
-               Suppress(LineEnd())
+               label
         expr.setParseAction(klass.parse)
 
         return expr

@@ -65,8 +65,7 @@ class File(object):
                        Word(klass.FILE_NAME_CHARS).setResultsName('implied_path') + \
                        Suppress(Literal('>'))
         expr = Suppress(kw) + \
-               Or([literal_path, implied_path]) + \
-               Suppress(LineEnd())
+               Or([literal_path, implied_path]) 
         expr.setParseAction(klass.parse)
 
         return expr

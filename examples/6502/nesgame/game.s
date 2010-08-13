@@ -19,6 +19,8 @@
 
 #rom.banksize  16K
 #chr.banksize  8K
+#define BANK_MAIN_ENTRY $C000
+#define CHR_FONT_BANK $0000
 
 /******************************************************************************/
 
@@ -62,4 +64,5 @@
 #chr.bank    CHR_FONT_BANK
 #incbin "font2.chr"
 #chr.end
+
 /******************************************************************************/

@@ -46,15 +46,22 @@ class Align(object):
         if 'value' not in tokens.keys():
             raise ParseFatalException('missing #align parameter')
 
-        return klass(int(tokens.value))
+        value = tokens.value
+        if not isinstance(value, NumericValue):
+            if not pp.has_symbol(value):
+                raise ParseFatalException('unknown preprocessor symbol: %s' % value)
+            value = pp.get_symbol(value)
+
+        return klass(value)
 
     @classmethod
     def exprs(klass):
         kw = Keyword('#align')
+        label = Word(alphas + '_', alphanums + '_')
+        value = Or([label, NumericValue.exprs()]).setResultsName('value')
 
         expr = Suppress(kw) + \
-               NumericValue.exprs().setResultsName('value') + \
-               Suppress(LineEnd())
+               value
         expr.setParseAction(klass.parse)
 
         return expr

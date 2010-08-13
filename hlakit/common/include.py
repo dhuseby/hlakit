@@ -44,13 +44,13 @@ class Include(File):
 
     @classmethod
     def _handle_file(klass, path, implied=False):
+
         if not path or len(path) <= 0:
             raise ParseFatalException('invalid include file path')
 
         session = Session()
         pp = session.preprocessor()
         file_path = session.get_file_path(path)
-
         if not file_path:
             raise ParseFatalException('included file does not exist: %s' % file_path)
 

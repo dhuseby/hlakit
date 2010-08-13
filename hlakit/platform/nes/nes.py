@@ -31,7 +31,7 @@ import os
 from pyparsing import *
 from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler
 from ines import iNES, iNESMapper, iNESMirroring, iNESFourscreen, iNESBattery, iNESTrainer, iNESPrgRepeat, iNESChrRepeat, iNESOff
-from chr import ChrBanksize, ChrBank, ChrLink
+from chr import ChrBanksize, ChrBank, ChrLink, ChrEnd
 
 class NESPreprocessor(MOS6502Preprocessor):
 
@@ -46,6 +46,7 @@ class NESPreprocessor(MOS6502Preprocessor):
         e.append(('chrbanksize', ChrBanksize.exprs()))
         e.append(('chrbank', ChrBank.exprs()))
         e.append(('chrlink', ChrLink.exprs()))
+        e.append(('chrend', ChrEnd.exprs()))
         e.append(('inesmapper', iNESMapper.exprs()))
         e.append(('inesmirroring', iNESMirroring.exprs()))
         e.append(('inesfourscreen', iNESFourscreen.exprs()))

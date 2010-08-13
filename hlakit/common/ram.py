@@ -45,22 +45,35 @@ class RamOrg(object):
             return []
 
         if 'address' not in tokens.keys():
-            raise ParseFatalException('#ram.org without an address')
+            raise ParseFatalException('#rom.org without an address')
+        
+        address = tokens.address
+        if not isinstance(address, NumericValue):
+            if not pp.has_symbol(address):
+                raise ParseFatalException('unknown preprocessor symbol: %s' % address)
+            address = pp.get_symbol(address)
 
-        maxsize = getattr(tokens, 'maxsize', None)
+        maxsize = None
+        if 'maxsize' in tokens.keys():
+            maxsize = tokens.maxsize
+        if maxsize is not None:
+            if not isinstance(maxsize, NumericValue):
+                if not pp.has_symbol(maxsize):
+                    raise ParseFatalException('unknown preprocessor symbol: %s' % maxsize)
+                maxsize = pp.get_symbol(maxsize)
 
-        return klass(tokens.address, maxsize)
+        return klass(address, maxsize)
 
     @classmethod
     def exprs(klass):
         ramorg = Keyword('#ram.org')
-        address = NumericValue.exprs().setResultsName('address')
-        maxsize = NumericValue.exprs().setResultsName('maxsize')
+        label = Word(alphas + '_', alphanums + '_')
+        address = Or([label, NumericValue.exprs()]).setResultsName('address')
+        maxsize = Or([label, NumericValue.exprs()]).setResultsName('maxsize')
 
         expr = Suppress(ramorg) + \
                address + \
-               Optional(Literal(',') + maxsize) + \
-               Suppress(LineEnd())
+               Optional(Literal(',') + maxsize)
         expr.setParseAction(klass.parse)
 
         return expr

@@ -28,6 +28,7 @@ or implied, of David Huseby.
 """
 
 import os
+import sys
 from pyparsing import *
 from define import Define
 from undef import Undef
@@ -73,6 +74,9 @@ class Preprocessor(object):
            
             # build final parser
             self._parser = ZeroOrMore(expr_or)
+
+            # add in comment ignoring
+            self._parser.ignore(cStyleComment)
 
         def parse(self):
             tokens = self._parser.parseFile(self._file, parseAll=True)

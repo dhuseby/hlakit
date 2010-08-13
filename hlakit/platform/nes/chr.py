@@ -44,18 +44,23 @@ class ChrBanksize(object):
             return []
 
         if 'size' not in tokens.keys():
-            raise ParseFatalException('#chr.banksize without a size')
+            raise ParseFatalException('#rom.banksize without a size')
 
-        return klass(tokens.size)
+        size = tokens.size
+        if not isinstance(size, NumericValue):
+            if not pp.has_symbol(size):
+                raise ParseFatalException('unknown preprocessor symbol: %s' % size)
+            size = pp.get_symbol(size)
+
+        return klass(size)
 
     @classmethod
     def exprs(klass):
         rombanksize = Keyword('#chr.banksize')
-        size = NumericValue.exprs().setResultsName('size')
+        label = Word(alphas + '_', alphanums + '_')
+        size = Or([label, NumericValue.exprs()]).setResultsName('size')
 
-        expr = Suppress(rombanksize) + \
-               size + \
-               Suppress(LineEnd())
+        expr = Suppress(rombanksize) + size
         expr.setParseAction(klass.parse)
 
         return expr
@@ -85,22 +90,35 @@ class ChrBank(object):
             return []
 
         if 'number' not in tokens.keys():
-            raise ParseFatalException('#chr.bank without a number')
+            raise ParseFatalException('#rom.bank without a number')
+        
+        number = tokens.number
+        if not isinstance(number, NumericValue):
+            if not pp.has_symbol(number):
+                raise ParseFatalException('unknown preprocessor symbol: %s' % number)
+            number = pp.get_symbol(number)
 
-        maxsize = getattr(tokens, 'maxsize', None)
+        maxsize = None
+        if 'maxsize' in tokens.keys():
+            maxsize = tokens.maxsize
+        if maxsize is not None:
+            if not isinstance(maxsize, NumericValue):
+                if not pp.has_symbol(maxsize):
+                    raise ParseFatalException('unknown preprocessor symbol: %s' % maxsize)
+                maxsize = pp.get_symbol(maxsize)
 
-        return klass(tokens.number, maxsize)
+        return klass(number, maxsize)
 
     @classmethod
     def exprs(klass):
         rombank = Keyword('#chr.bank')
-        number = NumericValue.exprs().setResultsName('number')
-        maxsize = NumericValue.exprs().setResultsName('maxsize')
+        label = Word(alphas + '_', alphanums + '_')
+        number = Or([label, NumericValue.exprs()]).setResultsName('number')
+        maxsize = Or([label, NumericValue.exprs()]).setResultsName('maxsize')
 
         expr = Suppress(rombank) + \
                number + \
-               Optional(Literal(',') + maxsize) + \
-               Suppress(LineEnd())
+               Optional(Literal(',') + maxsize)
         expr.setParseAction(klass.parse)
 
         return expr
@@ -177,5 +195,32 @@ class ChrLink(object):
 
     __repr__ = __str__
 
+
+class ChrEnd(object):
+    """
+    This defines the rules for parsing a #chr.end line in a file
+    """
+
+    @classmethod
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
+
+        if pp.ignore():
+            return []
+
+        return klass()
+
+    @classmethod
+    def exprs(klass):
+        romend = Keyword('#chr.end')
+        expr = Suppress(romend)
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __str__(self):
+        return 'ChrEnd'
+
+    __repr__ = __str__
 
 

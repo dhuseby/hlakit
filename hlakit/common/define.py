@@ -61,8 +61,7 @@ class Define(object):
 
         expr = Suppress(define) + \
                label + \
-               Optional(value) + \
-               Suppress(LineEnd())
+               Optional(value)
         expr.setParseAction(klass.parse)
 
         return expr
