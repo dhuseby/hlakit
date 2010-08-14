@@ -124,6 +124,8 @@ class Session(object):
             help='specify directories to search for include files')
         parser.add_option('--pp', action='store_true', dest='output_pp', default=False,
             help='outputs the preprocessed input to stdout')
+        parser.add_option('--cc', action='store_true', dest='output_cc', default=False,
+            help='outputs the compiled token names to stdout')
         parser.add_option('-d', '--debug', action='store_true', dest='debug', default=False,
             help='outputs some debug output')
 
@@ -345,6 +347,12 @@ class Session(object):
                     s += str(type(t))
                     print s
 
+            if self._options.output_cc:
+                for t in cc_tokens:
+                    s = str(type(t))
+                    s = s[s.rfind('.')+1:-2]
+                    if s not in ('FileBegin', 'FileEnd'):
+                        print '%s,' % s
 
             #for t in cc_tokens:
             #    print "%s" % type(t)

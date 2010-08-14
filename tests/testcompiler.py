@@ -51,6 +51,7 @@ from hlakit.common.numericvalue import NumericValue
 from hlakit.common.arrayvalue import ArrayValue, StringValue
 from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 from hlakit.common.enum import Enum
+from hlakit.common.immediate import Immediate
 
 class CompilerTester(unittest.TestCase):
     """
@@ -631,7 +632,7 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
         self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
-        self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 0x0400)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), Immediate))
 
         # reset state
         st.reset_state()
@@ -660,11 +661,11 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[4], FunctionParameter))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
         self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
-        self.assertEquals(int(cc.get_output()[0].get_params()[0].get_value()), 1024)
-        self.assertEquals(int(cc.get_output()[0].get_params()[1].get_value()), 1024)
-        self.assertEquals(int(cc.get_output()[0].get_params()[2].get_value()), 1024)
-        self.assertEquals(int(cc.get_output()[0].get_params()[3].get_value()), 1024)
-        self.assertEquals(int(cc.get_output()[0].get_params()[4].get_value()), 1024)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), Immediate))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1].get_value(), Immediate))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2].get_value(), Immediate))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[3].get_value(), Immediate))
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[4].get_value(), Immediate))
 
         # reset state
         st.reset_state()
@@ -691,7 +692,7 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
         self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.food')
         self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
-        self.assertEquals(int(cc.get_output()[0].get_params()[2].get_value()), 1024)
+        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2].get_value(), Immediate))
 
         # reset state
         st.reset_state()

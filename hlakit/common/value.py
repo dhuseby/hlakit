@@ -29,7 +29,7 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
-from numericvalue import NumericValue
+from immediate import Immediate
 from arrayvalue import ArrayValue, StringValue
 
 class Value(object):
@@ -54,10 +54,8 @@ class Value(object):
 
     @classmethod
     def exprs(klass):
-        # TODO: put immediate in here instead of numeric and array values
-        expr = NumericValue.exprs().setResultsName('number') | \
-               ArrayValue.exprs().setResultsName('array_') | \
-               StringValue.exprs().setResultsName('string_')
+        expr = Or([Optional(Suppress('#')) + Immediate.exprs().setResultsName('number'),
+                   StringValue.exprs().setResultsName('string_')])
         expr.setParseAction(klass.parse)
         return expr
 
