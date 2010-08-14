@@ -30,6 +30,7 @@ or implied, of David Huseby.
 import os
 from cStringIO import StringIO
 from pyparsing import *
+from enum import Enum
 from type_ import Type
 from struct import Struct
 from typedef import Typedef
@@ -54,6 +55,7 @@ class Compiler(object):
     @classmethod
     def first_exprs(klass):
         e = []
+        e.append(('enum', Enum.exprs()))
         e.append(('type', Type.exprs()))
         e.append(('struct', Struct.exprs()))
         e.append(('typedef', Typedef.exprs()))
@@ -86,14 +88,6 @@ class Compiler(object):
         self.set_exprs(self.__class__.exprs())
         self._tokens = []
 
-    def basic_types(klass):
-        # these are the basic type identifiers
-        return [ Type('byte'),
-                 Type('char'),
-                 Type('bool'),
-                 Type('word'),
-                 Type('pointer') ]
-
     def get_exprs(self):
         return getattr(self, '_exprs', [])
 
@@ -116,7 +110,7 @@ class Compiler(object):
         for e in self.get_exprs():
             expr_or.append(e[1])
         parser = ZeroOrMore(expr_or)
-        parser.ignore(cStyleComment)
+        parser.ignore(cStyleComment | cppStyleComment)
 
         # process the tokens the compiler cares about
         cc_tokens = []
@@ -124,9 +118,11 @@ class Compiler(object):
             if isinstance(token, FileBegin):
                 # set up the file scope
                 SymbolTable().scope_push(token.get_name())
+                cc_tokens.append(token)
             elif isinstance(token, FileEnd):
                 # take down the file scope
                 SymbolTable().scope_pop()
+                cc_tokens.append(token)
             elif isinstance(token, CodeBlock):
                 # compile the code block
                 cc_tokens.extend(parser.parseFile(StringIO(str(token))))

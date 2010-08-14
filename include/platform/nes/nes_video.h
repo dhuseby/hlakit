@@ -71,17 +71,17 @@
  * REGISTERS
  ******************************************************************************/
 enum PPU {
-    CNT0     = $2000,
-    CNT1     = $2001,
-    STATUS     = $2002,
+    CNT0        = $2000,
+    CNT1        = $2001,
+    STATUS      = $2002,
     ADDRESS     = $2006,
-    IO      = $2007,
+    IO          = $2007,
 
-    SPR_ADDRESS    = $2003,
-    SPR_IO     = $2004,
+    SPR_ADDRESS = $2003,
+    SPR_IO      = $2004,
     SPR_DMA     = $4014,
 
-    BG_SCROLL    = $2005,
+    BG_SCROLL   = $2005,
 }
 
 /******************************************************************************
@@ -114,31 +114,31 @@ enum PPU {
 #define SPR_OAM_TOTAL    64
 #define SPR_OAM_SIZE    (sizeof(OAM_ENTRY)*SPR_OAM_TOTAL)
 
-typedef struct OAM_ENTRY {
-    BYTE y,
+typedef struct OAM_ENTRY_ {
+    byte y,
     tile,
     attributes,
     x
-}
+} OAM_ENTRY
 
 // palette
 #define PAL_ADDRESS     0x3F00
 #define PAL_0_ADDRESS    0x3F00
 #define PAL_1_ADDRESS    0x3F10
 
-typedef struct PALENT {
+typedef struct PALENT_ {
     byte colBackground,
     col1,
     col2,
     col3
-}
+} PALENT
 
-typedef struct PALETTE {
+typedef struct PALETTE_ {
     PALENT pal0,
     pal1,
     pal2,
     pal3
-}
+} PALETTE
 
 // CHR
 
@@ -377,8 +377,9 @@ inline vblank_wait()
 {
     do
         lda PPU.STATUS
-        while (is plus)
-        }
+    while (is plus)
+}
+
 /******************************************************************************
  * waits for vblank to occur
  */
@@ -387,6 +388,7 @@ inline vblank_wait_full()
     vblank_wait()
     unvblank_wait()
 }
+
 /******************************************************************************
  * waits for vblank to occur
  */
@@ -397,7 +399,7 @@ inline vblank_wait_for(amount)
         vblank_wait_full()
         dex
     } while (nonzero)
-    }
+}
 
 /******************************************************************************
  * waits for vblank to finish
@@ -406,9 +408,8 @@ inline unvblank_wait()
 {
     do
         lda PPU.STATUS
-        while (is minus)
-        }
-
+    while (is minus)
+}
 
 /******************************************************************************
  * tests the sprites scanline and results in reg.A as well as the status flags

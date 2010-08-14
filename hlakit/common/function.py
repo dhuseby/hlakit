@@ -30,12 +30,13 @@ or implied, of David Huseby.
 from pyparsing import *
 from session import Session
 from symboltable import SymbolTable
+from symbol import Symbol
 from name import Name
 from functiontype import FunctionType
 from functionparameter import FunctionParameter
 
 
-class Function(object):
+class Function(Symbol):
     """
     The base class of function definitions
     """
@@ -65,7 +66,11 @@ class Function(object):
                 raise ParseFatalException('non-inline function decl with params')
             params = [ p for p in tokens.params ]
 
-        return klass(fnname, type_, params)
+        # add the function to the symbol table
+        fn = klass(fnname, type_, params)
+        SymbolTable().new_symbol(fn)
+
+        return fn
 
     @classmethod
     def exprs(klass):
@@ -78,16 +83,9 @@ class Function(object):
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, name, type=None, params=None):
-        self._type = type
-        self._name = name
+    def __init__(self, name, type_=None, params=None):
+        super(Function, self).__init__(name, type_)
         self._params = params
-
-    def get_type(self):
-        return self._type
-
-    def get_name(self):
-        return self._name
 
     def get_noreturn(self):
         return self.get_type().get_noreturn()
@@ -97,9 +95,9 @@ class Function(object):
 
     def __str__(self):
         s = ''
-        if self._type:
-            s += str(self._type) + ' '
-        s += self._name
+        if self.get_type():
+            s += str(self.get_type()) + ' '
+        s += str(self.get_name())
         s += '('
         if self._params:
             for i in range(0, len(self._params)):

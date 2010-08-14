@@ -30,6 +30,7 @@ or implied, of David Huseby.
 import os
 import sys
 import optparse
+from codeblock import CodeBlock
 
 HLAKIT_VERSION = "0.0.2"
 
@@ -121,6 +122,10 @@ class Session(object):
                  'directives and implies the cpu so you don\'t have to specify the cpu.')
         parser.add_option('-I', '--include', action="append", default=[], dest='include',
             help='specify directories to search for include files')
+        parser.add_option('--pp', action='store_true', dest='output_pp', default=False,
+            help='outputs the preprocessed input to stdout')
+        parser.add_option('-d', '--debug', action='store_true', dest='debug', default=False,
+            help='outputs some debug output')
 
         (self._options, self._args) = parser.parse_args(args)
 
@@ -247,6 +252,36 @@ class Session(object):
 
         return None
 
+    def opcodes(self):
+        target = getattr(self, '_target', None)
+        if target:
+            return target.opcodes()
+        return None
+
+    def keywords(self):
+        target = getattr(self, '_target', None)
+        if target:
+            return target.keywords()
+        return None
+
+    def basic_types(self):
+        target = getattr(self, '_target', None)
+        if target:
+            return target.basic_types()
+        return None
+
+    def basic_types_names(self):
+        target = getattr(self, '_target', None)
+        if target:
+            return target.basic_types_names()
+        return None
+
+    def conditions(self):
+        target = getattr(self, '_target', None)
+        if target:
+            return target.conditions()
+        return None
+
     def preprocessor(self):
         target = getattr(self, '_target', None)
         if target:
@@ -264,6 +299,7 @@ class Session(object):
         if target:
             return target.linker()
         return None
+
 
     def build(self):
         pp = self.preprocessor()
@@ -286,10 +322,33 @@ class Session(object):
 
             pp_tokens = pp.get_output()
             #for t in pp_tokens:
-            #    print "%s: %s" % (type(t), t)
+            #    print "pp: %s" % type(t)
+
+            if self._options.output_pp:
+                for t in pp_tokens:
+                    if isinstance(t, CodeBlock):
+                        print str(t)
+                return
 
             # compile the tokenstream
-            cc_tokens = cc.compile(pp_tokens)
+            cc.compile(pp_tokens)
+            cc_tokens = cc.get_output()
+
+            # now output the CodeBlock and the tokens it 
+            # parsed to
+            if self._options.debug:
+                for t in cc_tokens:
+                    if not isinstance(t.__str__(), str):
+                        import pdb; pdb.set_trace()
+                    s = str(t)
+                    s += ' ' * (80 - len(s))
+                    s += str(type(t))
+                    print s
+
+
+            #for t in cc_tokens:
+            #    print "%s" % type(t)
+            #    print "%s" % t
 
             # link the compiled tokens into a binary
             #ll.link(cc_tokens)

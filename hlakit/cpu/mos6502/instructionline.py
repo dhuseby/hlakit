@@ -49,6 +49,8 @@ class InstructionLine(object):
         operand = None
         if 'operand' in tokens.keys():
             operand = tokens.operand
+        else:
+            operand = Operand(Operand.IMP)
 
         return klass(tokens.opcode, operand)
 
@@ -56,8 +58,7 @@ class InstructionLine(object):
     def exprs(klass):
       
         expr = Opcode.exprs().setResultsName('opcode') + \
-               Optional(Operand.exprs()).setResultsName('operand') + \
-               Suppress(LineEnd())
+               Optional(Operand.exprs()).setResultsName('operand')
         expr.setParseAction(klass.parse)
         return expr
 

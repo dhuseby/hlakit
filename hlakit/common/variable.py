@@ -68,7 +68,11 @@ class Variable(Symbol):
         if 'address' in tokens.keys():
             address = tokens.address
 
-        return klass(tokens.name, tokens.type_, shared, array_, size, address)
+        # add the variable to the symbol table
+        var = klass(tokens.name, tokens.type_, shared, array_, size, address)
+        SymbolTable().new_symbol(var)
+
+        return var
 
     @classmethod
     def exprs(klass):
@@ -80,7 +84,7 @@ class Variable(Symbol):
 
         expr = Optional(Keyword('shared').setResultsName('shared')) + \
                Or([Struct.exprs(), Type.exprs()]).setResultsName('type_') + \
-               Suppress(~LineEnd()) + \
+               ~LineEnd() + \
                Name.exprs().setResultsName('name') + \
                Optional(lbracket + \
                         Optional(size.setResultsName('size')) + \

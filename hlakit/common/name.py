@@ -45,6 +45,7 @@ class Name(object):
         if 'name' in tokens.keys():
             return klass(tokens.name)
 
+        import pdb; pdb.set_trace()
         raise ParseFatalException('no name specified')
 
     @classmethod

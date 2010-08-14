@@ -54,16 +54,16 @@ class FunctionCall(object):
             name = tokens.name
 
         # look up the function decl
+        type_ = None
         fn = st[name]
-        if fn is None:
-            raise ParseFatalException('function %s not defined' % name)
-        type_ = fn.get_type()
+        if fn != None:
+            type_ = fn.get_type()
 
         params = None
         if 'params' in tokens.keys():
             # some built-in functions are "operator" type functions and they can
             # have parameters because they are a special type of inline macro
-            if type_.get_type() not in ('inline', 'operator'):
+            if (type_ != None) and (type_.get_type() not in ('inline', 'operator')):
                 raise ParseFatalException('calling non-inline function with params')
             params = [ p for p in tokens.params ]
 
@@ -94,4 +94,14 @@ class FunctionCall(object):
     def get_type(self):
         return self._type
 
-
+    def __str__(self):
+        s = str(self.get_name())
+        s += '('
+        if self._params:
+            for i in range(0, len(self._params)):
+                if i > 0:
+                    s += ','
+                s += ' ' + str(self._params[i])
+            s += ' '
+        s += ')'
+        return s

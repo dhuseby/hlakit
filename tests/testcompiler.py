@@ -31,6 +31,7 @@ import sys
 import unittest
 from pyparsing import ParseException, ParseFatalException
 from cStringIO import StringIO
+from tests.utils import build_code_block 
 from hlakit.common.compiler import Compiler
 from hlakit.common.session import Session, CommandLineError
 from hlakit.common.symboltable import SymbolTable
@@ -49,6 +50,7 @@ from hlakit.common.variable import Variable
 from hlakit.common.numericvalue import NumericValue
 from hlakit.common.arrayvalue import ArrayValue, StringValue
 from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
+from hlakit.common.enum import Enum
 
 class CompilerTester(unittest.TestCase):
     """
@@ -67,12 +69,6 @@ class CompilerTester(unittest.TestCase):
         session = Session()
         self.assertTrue(isinstance(session.compiler(), Compiler))
 
-    def testInitialTypes(self):
-        tr = TypeRegistry()
-        types = Session().compiler().basic_types()
-        for t in types:
-            self.assertTrue(tr[t.get_name()] != None)
-  
     cc_struct = 'struct foo { byte x, y word i }'
 
     def testStructType(self):
@@ -279,6 +275,110 @@ class CompilerTester(unittest.TestCase):
         self.assertFalse(cc.get_output()[0].is_shared())
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), Type))
         self.assertEquals(cc.get_output()[0].get_type().get_name(), 'struct baz')
+
+    def testEnumEmpty(self):
+        code = """
+        enum FOO 
+        {
+        }
+        """
+
+        cc = Session().compiler()
+
+        cc.compile([build_code_block(code)])
+        self.assertTrue(isinstance(cc.get_output()[0], Enum))
+        self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
+
+    def testEnumRecursive(self):
+        code = """
+        enum FOO 
+        {
+            enum BAR { }
+        }
+        """
+
+        cc = Session().compiler()
+
+        cc.compile([build_code_block(code)])
+        self.assertTrue(isinstance(cc.get_output()[0], Enum))
+        self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
+        self.assertTrue(cc.get_output()[0].has_member('BAR'))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum))
+
+    def testEnumMemberNoValue(self):
+        code = """
+        enum FOO 
+        {
+            BAR
+        }
+        """
+
+        cc = Session().compiler()
+
+        cc.compile([build_code_block(code)])
+        self.assertTrue(isinstance(cc.get_output()[0], Enum))
+        self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
+        self.assertTrue(cc.get_output()[0].has_member('BAR'))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum.Member))
+
+    def testEnumMembersNoValue(self):
+        code = """
+        enum FOO 
+        {
+            BAR,
+            BAZ,
+            QUX
+        }
+        """
+
+        cc = Session().compiler()
+
+        cc.compile([build_code_block(code)])
+        self.assertTrue(isinstance(cc.get_output()[0], Enum))
+        self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
+        self.assertTrue(cc.get_output()[0].has_member('BAR'))
+        self.assertTrue(cc.get_output()[0].has_member('BAZ'))
+        self.assertTrue(cc.get_output()[0].has_member('QUX'))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('BAZ'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('QUX'), Enum.Member))
+
+    def testEnumMemberValue(self):
+        code = """
+        enum FOO 
+        {
+            BAR = 1
+        }
+        """
+
+        cc = Session().compiler()
+
+        cc.compile([build_code_block(code)])
+        self.assertTrue(isinstance(cc.get_output()[0], Enum))
+        self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
+        self.assertTrue(cc.get_output()[0].has_member('BAR'))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum.Member))
+        self.assertEquals(int(cc.get_output()[0].get_member('BAR').get_value()), 1)
+
+    def testEnumMembersValue(self):
+        code = """
+        enum FOO {
+            BAR = 1,
+            BAZ = 1k,
+            QUX = $2000
+        }
+        """
+
+        cc = Session().compiler()
+
+        cc.compile([build_code_block(code)])
+        self.assertTrue(isinstance(cc.get_output()[0], Enum))
+        self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
+        self.assertTrue(cc.get_output()[0].has_member('BAR'))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum.Member))
+        self.assertEquals(int(cc.get_output()[0].get_member('BAR').get_value()), 1)
+        self.assertEquals(int(cc.get_output()[0].get_member('BAZ').get_value()), 1024)
+        self.assertEquals(int(cc.get_output()[0].get_member('QUX').get_value()), 8192)
 
     def testFunctionCall(self):
         cc = Session().compiler()

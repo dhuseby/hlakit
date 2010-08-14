@@ -32,9 +32,11 @@ from pyparsing import *
 from hlakit.common.target import Target
 from hlakit.common.preprocessor import Preprocessor
 from hlakit.common.compiler import Compiler
+from hlakit.common.type_ import Type
 from interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from instructionline import InstructionLine
 from conditional import Conditional
+from opcode import Opcode
 
 class MOS6502Preprocessor(Preprocessor):
 
@@ -69,10 +71,28 @@ class MOS6502Compiler(Compiler):
 
 class MOS6502(Target):
 
+    BASIC_TYPES = [ 'byte', 'char', 'bool', 'word', 'pointer' ]
+
     def __init__(self):
 
         # init the base class 
         super(MOS6502, self).__init__()
+
+    def opcodes(self):
+        return Opcode.exprs()
+
+    def keywords(self):
+        return super(MOS6502, self).keywords()
+
+    def basic_types(klass):
+        # these are the basic type identifiers
+        return [ Type(t) for t in MOS6502.BASIC_TYPES ]
+
+    def basic_types_names(self):
+        return MatchFirst([CaselessKeyword(t) for t in MOS6502.BASIC_TYPES])
+
+    def conditions(self):
+        return MatchFirst([CaselessKeyword(c) for c in Conditional.CONDITIONS])
 
     def preprocessor(self):
         return MOS6502Preprocessor()

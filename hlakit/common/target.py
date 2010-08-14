@@ -8,6 +8,7 @@ included LICENSE file or by visiting here:
 <http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>
 """
 
+from pyparsing import *
 from preprocessor import Preprocessor
 from compiler import Compiler
 from symboltable import SymbolTable
@@ -19,40 +20,32 @@ from functioncall import FunctionCall
 
 class Target(object):
 
+    KEYWORDS = [ 'typedef', 'struct', 'function', 'inline', 'interrupt', 
+                 'noreturn', 'return', 'near', 'far', 'is', 'has', 'no',
+                 'not', 'if', 'else', 'while', 'do', 'forever', 'switch',
+                 'case', 'default', 'shared' ]
+    
     def __init__(self):
-        """
-        # we treat the sizeof, hi, lo, nyhi, and nylo operators just like
-        # regular functions so we need to prime the pump by defining them in
-        # the global symbol table before any files get compiled
-        sizeof_     = Function(Name('sizeof'),  
-                               FunctionType('operator'), 
-                               [ FunctionParameter('imm') ])
-        hi_         = Function(Name('hi'),
-                               FunctionType('operator'),
-                               [ FunctionParameter('imm') ])
-        lo_         = Function(Name('lo'),
-                               FunctionType('operator'),
-                               [ FunctionParameter('imm') ])
-        nyhi_       = Function(Name('nyhi'),
-                               FunctionType('operator'),
-                               [ FunctionParameter('imm') ])
-        nylo_       = Function(Name('nylo'),
-                               FunctionType('operator'),
-                               [ FunctionParameter('imm') ])
-
         # get a handle to the global symbol table
         st = SymbolTable()
 
         # reset its state back to the global scope
         st.reset_state()
-        
-        # add the functions to the global scope
-        st.new_symbol(sizeof_)
-        st.new_symbol(hi_)
-        st.new_symbol(lo_)
-        st.new_symbol(nyhi_)
-        st.new_symbol(nylo_)
-        """
+
+    def opcodes(self):
+        return None
+
+    def keywords(self):
+        return MatchFirst([CaselessKeyword(kw) for kw in Target.KEYWORDS])
+
+    def basic_types(self):
+        return None
+
+    def basic_types_names(self):
+        return None
+
+    def conditions(self):
+        return None
 
     def preprocessor(self):
         return Preprocessor()

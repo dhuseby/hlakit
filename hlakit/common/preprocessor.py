@@ -76,7 +76,7 @@ class Preprocessor(object):
             self._parser = ZeroOrMore(expr_or)
 
             # add in comment ignoring
-            self._parser.ignore(cStyleComment)
+            self._parser.ignore(cStyleComment | cppStyleComment)
 
         def parse(self):
             tokens = self._parser.parseFile(self._file, parseAll=True)

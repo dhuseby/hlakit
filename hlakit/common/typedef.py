@@ -94,3 +94,10 @@ class Typedef(Type):
             return int(self._size)
         return None
 
+    def __str__(self):
+        s = 'typedef %s' % self._aliased_type
+        return s
+
+    __repr__ = __str__
+
+

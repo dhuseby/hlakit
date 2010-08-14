@@ -33,13 +33,14 @@ from hlakit.common.name import Name
 from hlakit.common.functioncall import FunctionCall
 from hlakit.common.numericvalue import NumericValue
 from hlakit.common.immediate import Immediate
+from opcode import Opcode
 
 class Operand(object):
     """
     This encapsulates a 6502 operand
     """
 
-    ADDR, IMM, INDEXED, IDX_IND, ZP_IND = range(5)
+    IMP, ACC, ADDR, IMM, INDEXED, INDIRECT, IDX_IND, ZP_IND = range(8)
 
     @classmethod
     def parse(klass, pstring, location, tokens):
@@ -48,12 +49,16 @@ class Operand(object):
         if pp.ignore():
             return []
 
-        if 'addr' in tokens.keys():
+        if 'acc' in tokens.keys():
+            return klass(Operand.ACC)
+        elif 'addr' in tokens.keys():
             return klass(Operand.ADDR, addr=tokens.addr[0])
         elif 'imm' in tokens.keys():
             return klass(Operand.IMM, value=tokens.imm[0])
         elif 'indexed' in tokens.keys():
             return klass(Operand.INDEXED, addr=tokens.indexed[0], reg=tokens.indexed[1])
+        elif 'indirect' in tokens.keys():
+            return klass(Operand.INDIRECT, addr=tokens.indirect[0])
         elif 'idx_ind' in tokens.keys():
             return klass(Operand.IDX_IND, addr=tokens.idx_ind[0], reg=tokens.idx_ind[1])
         elif 'zp_ind' in tokens.keys():
@@ -63,29 +68,53 @@ class Operand(object):
 
     @classmethod
     def exprs(klass):
-       
-        # TODO: add variable name support to all addressing modes where makes sense
-        addr = Group(NumericValue.exprs()).setResultsName('addr')
+        ops = Session().opcodes()
+        kws = Session().keywords()
+        conds = Session().conditions()
+        variable_ref = Group(delimitedList(Name.exprs(), '.'))
+
+        # accumulator
+        acc = Group(Suppress(CaselessLiteral('reg') + \
+                    Literal('.')) + \
+                    CaselessLiteral('a')).setResultsName('acc')
+
+        # zero page and full absolute address
+        addr = Group(Or([NumericValue.exprs(),
+                         ~ops + ~kws + ~conds + variable_ref])).setResultsName('addr')
+
+        # immediate operand
         imm  = Group(Suppress('#') + \
                      Immediate.exprs()).setResultsName('imm')
+
+        # zero page, x/y and absolute, x/y
         indexed = Group(Or([NumericValue.exprs(),
-                            Name.exprs()]) + \
+                            ~ops + ~kws + ~conds + variable_ref]) + \
                         Suppress(',') + \
-                        oneOf('x y', True)).setResultsName('indexed')
+                        oneOf('x y', caseless=True)).setResultsName('indexed')
+
+        # indirect is only valie for JMP
+        indirect = Group(Suppress('(') + \
+                         Or([NumericValue.exprs(),
+                             ~ops + ~kws + ~conds + variable_ref]) + \
+                         Suppress(')')).setResultsName('indirect')
+        
+        # indexed indirect
         idx_ind = Group(Suppress('(') + \
                         Or([NumericValue.exprs(),
-                            Name.exprs()])+ \
+                            ~ops + ~kws + ~conds + variable_ref])+ \
                         Suppress(',') + \
                         CaselessLiteral('x') + \
                         Suppress(')')).setResultsName('idx_ind')
+
+        # indirect indexed
         zp_ind = Group(Suppress('(') + \
                        Or([NumericValue.exprs(),
-                           Name.exprs()])+ \
+                           ~ops + ~kws + ~conds + variable_ref])+ \
                        Suppress(')') + \
                        Suppress(',') + \
                        CaselessLiteral('y')).setResultsName('zp_ind')
 
-        expr = Or([addr, imm, indexed, idx_ind, zp_ind])
+        expr = Or([acc, addr, imm, indexed, indirect, idx_ind, zp_ind])
         expr.setParseAction(klass.parse)
         return expr
 
@@ -108,12 +137,18 @@ class Operand(object):
         return self._value
 
     def __str__(self):
-        if self._mode is Operand.ADDR:
+        if self._mode is Operand.IMP:
+            return '<implied>'
+        elif self._mode is Operand.ACC:
+            return '<accumulator>'
+        elif self._mode is Operand.ADDR:
            return str(self._addr)
         elif self._mode is Operand.IMM:
-            return '#' + str(self._addr)
+            return '#' + str(self._value)
         elif self._mode is Operand.INDEXED:
             return '%s,%s' % (self._addr, self._reg)
+        elif self._mode is Operand.INDIRECT:
+            return '(%s)' % (self._addr)
         elif self._mode is Operand.IDX_IND:
             return '(%s,%s)' % (self._addr, self._reg)
         elif self._mode is Operand.ZP_IND:

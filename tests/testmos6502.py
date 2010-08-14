@@ -33,6 +33,7 @@ import unittest
 from pyparsing import ParseException, ParseFatalException
 from cStringIO import StringIO
 from tests.utils import build_code_block 
+from hlakit.common.enum import Enum
 from hlakit.common.name import Name
 from hlakit.common.session import Session
 from hlakit.common.symboltable import SymbolTable
@@ -69,6 +70,12 @@ class MOS6502PreprocessorTester(unittest.TestCase):
         session = Session()
         session.parse_args(['--cpu=6502'])
         self.assertTrue(isinstance(session._target.preprocessor(), MOS6502Preprocessor))
+
+    def testInitialTypes(self):
+        tr = TypeRegistry()
+        types = Session().basic_types()
+        for t in types:
+            self.assertTrue(tr[t.get_name()] != None)
 
     pp_intstart = '#interrupt.start %s\n'
     pp_intnmi = '#interrupt.nmi %s\n'
@@ -146,8 +153,9 @@ class MOS6502CompilerTester(unittest.TestCase):
         cc.compile([CodeBlock([CodeLine('clc')])])
         self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), NoneType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'clc')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMP)
 
     def testTwoLinesNoOperand(self):
         cc = Session().compiler()
@@ -156,12 +164,14 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertEquals(len(cc.get_output()), 2)
         self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), NoneType))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'clc')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMP)
         self.assertTrue(isinstance(cc.get_output()[1], InstructionLine))
         self.assertTrue(isinstance(cc.get_output()[1].get_opcode(), Opcode))
-        self.assertTrue(isinstance(cc.get_output()[1].get_operand(), NoneType))
+        self.assertTrue(isinstance(cc.get_output()[1].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[1].get_opcode().get_op()), 'cli')
+        self.assertEquals(cc.get_output()[1].get_operand().get_mode(), Operand.IMP)
 
 
     def testLineAddr(self):
@@ -445,6 +455,25 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], NumericValue))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[1], NumericValue))
 
+
+    def testImpliedAddress(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('clc')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'clc')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMP)
+
+    def testAccumulatorRegAddress(self):
+        cc = Session().compiler()
+        cc.compile([CodeBlock([CodeLine('ror REG.A')])])
+        self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))
+        self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
+        self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'ror')
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ACC)
+
     def testBlockOfCode(self):
         code = """
                clc
@@ -475,7 +504,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         cc.compile([cb])
         self.assertEquals(len(cc.get_output()), len(types))
         for i in range(0,6):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]), 
+                            '%s != %s' % (type(cc.get_output()[i]), types[i]))
 
     def testSimpleCompleteFunctionDecl(self):
         code = """
@@ -911,4 +941,98 @@ class MOS6502CompilerTester(unittest.TestCase):
         for i in range(0,len(types)):
             self.assertTrue(isinstance(cc.get_output()[i], types[i]))
 
- 
+
+    def testNESSystemInitialize(self):
+        code = """
+            inline system_initialize()
+            {
+                disable_decimal_mode()
+                disable_interrupts()
+                reset_stack()  // this is why this MUST be inline!
+                vblank_wait()
+                // clear the registers
+                lda  #0  
+                sta  PPU.CNT0
+                sta  PPU.CNT1
+                sta  PPU.BG_SCROLL
+                sta  PPU.BG_SCROLL
+                sta  PCM_CNT
+                sta  PCM_VOLUMECNT
+                sta  SND_CNT
+                lda  #0xC0
+                sta  joystick.cnt1
+                enable_interrupts()
+            }
+            """
+        types = [ Function,
+                  ScopeBegin,
+                  FunctionCall,
+                  FunctionCall,
+                  FunctionCall,
+                  FunctionCall,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  FunctionCall,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testNESPPUEnum(self):
+        code = """
+            enum PPU {
+                CNT0        = $2000,
+                CNT1        = $2001,
+                STATUS      = $2002,
+                ADDRESS     = $2006,
+                IO          = $2007,
+                SPR_ADDRESS = $2003,
+                SPR_IO      = $2004,
+                SPR_DMA     = $4014,
+                BG_SCROLL   = $2005
+            }
+            """
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertTrue(isinstance(cc.get_output()[0], Enum))
+        self.assertTrue(cc.get_output()[0].has_member('CNT0'))
+        self.assertTrue(cc.get_output()[0].has_member('CNT1'))
+        self.assertTrue(cc.get_output()[0].has_member('STATUS'))
+        self.assertTrue(cc.get_output()[0].has_member('ADDRESS'))
+        self.assertTrue(cc.get_output()[0].has_member('IO'))
+        self.assertTrue(cc.get_output()[0].has_member('SPR_ADDRESS'))
+        self.assertTrue(cc.get_output()[0].has_member('SPR_IO'))
+        self.assertTrue(cc.get_output()[0].has_member('SPR_DMA'))
+        self.assertTrue(cc.get_output()[0].has_member('BG_SCROLL'))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('CNT0'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('CNT1'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('STATUS'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('ADDRESS'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('IO'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('SPR_ADDRESS'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('SPR_IO'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('SPR_DMA'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('BG_SCROLL'), Enum.Member))
+        self.assertEquals(int(cc.get_output()[0].get_member('CNT0').get_value()), 8192)
+        self.assertEquals(int(cc.get_output()[0].get_member('CNT1').get_value()), 8193)
+        self.assertEquals(int(cc.get_output()[0].get_member('STATUS').get_value()), 8194)
+        self.assertEquals(int(cc.get_output()[0].get_member('ADDRESS').get_value()), 8198)
+        self.assertEquals(int(cc.get_output()[0].get_member('IO').get_value()), 8199)
+        self.assertEquals(int(cc.get_output()[0].get_member('SPR_ADDRESS').get_value()), 8195)
+        self.assertEquals(int(cc.get_output()[0].get_member('SPR_IO').get_value()), 8196)
+        self.assertEquals(int(cc.get_output()[0].get_member('SPR_DMA').get_value()), 16404)
+        self.assertEquals(int(cc.get_output()[0].get_member('BG_SCROLL').get_value()), 8197)
+

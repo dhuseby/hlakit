@@ -51,6 +51,11 @@ class ScopeBegin(object):
     def exprs(klass):
         return Suppress(Literal('{')).setParseAction(klass.parse)
 
+    def __str__(self):
+        return '{'
+
+    __repr__ = __str__
+
 
 class ScopeEnd(object):
     """
@@ -70,3 +75,7 @@ class ScopeEnd(object):
     def exprs(klass):
         return Suppress(Literal('}')).setParseAction(klass.parse)
 
+    def __str__(self):
+        return '}'
+
+    __repr__ = __str__

@@ -15,10 +15,8 @@
  * REGISTERS and FLAGS
  ******************************************************************************/
 
-BYTE JOYSTICK_CNT0    :
-$4016
-BYTE JOYSTICK_CNT1    :
-$4017
+byte JOYSTICK_CNT0    :$4016
+byte JOYSTICK_CNT1    :$4017
 
 enum JOYSTICK {
     CNT0 = $4016,

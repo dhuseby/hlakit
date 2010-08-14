@@ -79,7 +79,7 @@ class NumericValue(object):
     @classmethod
     def exprs(klass):
         decimal_ = Word(nums).setResultsName('decimal')
-        decimal_with_K_ = Combine(Word(nums) + Suppress('K')).setResultsName('decimal_with_k')
+        decimal_with_K_ = Combine(Word(nums) + Suppress(CaselessLiteral('K'))).setResultsName('decimal_with_k')
         hex_ = Combine(Suppress('0x') + Word(hexnums)).setResultsName('hex')
         asmhex_ = Combine(Suppress('$') + Word(hexnums)).setResultsName('asmhex')
         binary_ = Combine(Suppress('%') + Word('01')).setResultsName('binary')

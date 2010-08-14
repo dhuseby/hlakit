@@ -63,7 +63,7 @@ class FunctionParameter(object):
 
     @classmethod
     def exprs(klass):
-        variable_ref = Group(Name.exprs() + ZeroOrMore(Suppress('.') + Name.exprs()))
+        variable_ref = Group(delimitedList(Name.exprs(), '.'))
         expr = Or([Struct.exprs().setResultsName('struct'), 
                    variable_ref.setResultsName('name'),
                    Value.exprs().setResultsName('value')])
@@ -80,4 +80,10 @@ class FunctionParameter(object):
     def get_value(self):
         return self._value
 
+    def __str__(self):
+        if self._symbol != None:
+            return str(self._symbol)
+        elif self._value != None:
+            return str(self._value)
+        return 'FnParam'
 

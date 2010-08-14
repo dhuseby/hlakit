@@ -49,7 +49,32 @@ class Type(object):
 
     @classmethod
     def exprs(klass):
-        expr = Word(alphas, alphanums + '_').setResultsName('type_')
+        ops = Session().opcodes()
+        kws = Session().keywords()
+        conds = Session().conditions()
+
+        # types can be anything but opcodes
+        expr = None
+        if ops:
+            if expr:
+                expr += ~ops
+            else:
+                expr = ~ops
+        if kws:
+            if expr:
+                expr += ~kws
+            else:
+                expr = ~kws
+        if conds:
+            if expr:
+               expr += ~conds
+            else:
+               expr = ~conds
+
+        if expr:
+            expr += Word(alphas, alphanums + '_').setResultsName('type_')
+        else:
+            expr = Word(alphas, alphanums + '_').setResultsName('type_')
         expr.setParseAction(klass.parse)
         return expr
 

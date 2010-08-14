@@ -77,6 +77,9 @@ class Conditional(object):
     def get_mode(self):
         return self._mode
 
+    def get_cond(self):
+        return self._cond
+
     output = { IF: 'if',
                ELSE: 'else',
                WHILE: 'while',
@@ -88,7 +91,7 @@ class Conditional(object):
 
     def __str__(self):
         s = self.output[self.get_mode()]
-        if self.get_mode() in (IF, WHILE, SWITCH):
+        if self.get_mode() in (self.IF, self.WHILE, self.SWITCH, self.CASE):
             s += '(' + str(self.get_cond()) + ')'
         return s
 

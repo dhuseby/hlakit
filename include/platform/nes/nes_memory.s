@@ -197,7 +197,7 @@ function vram_memcpy_name_table()
         } while (nonzero)
     }
 /******************************************************************************
- * memcpy( WORD pMemDest,  WORD pMemSrc, REG.Y memSize )
+ * memcpy( word pMemDest,  word pMemSrc, REG.Y memSize )
  *
  * memSize==0? memSize=256
  *

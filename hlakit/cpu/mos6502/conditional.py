@@ -45,6 +45,10 @@ class Conditional(CommonConditional):
     PLUS, POSITIVE, GREATER, MINUS, NEGATIVE, LESS, OVERFLOW, CARRY, NONZERO, \
     SET, TRUE, ONE, EQUAL, ZERO, FALSE, UNSET, CLEAR = range(17)
 
+    CONDITIONS = [ 'plus', 'positivie', 'greater', 'minus', 'negative', 'less',
+                   'overflow', 'carry', 'nonzero', 'set', 'true', 'one',
+                   'equal', 'zero', 'false', 'unset', 'clear' ]
+
     conditions = { 'plus': PLUS,
                    'positive': POSITIVE,
                    'greater': GREATER,

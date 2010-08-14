@@ -47,9 +47,10 @@ class TypeRegistry(object):
 
     def reset_state(self):
         self._types = {}
-        types = Session().compiler().basic_types()
-        for t in types:
-            self._types[t.get_name()] = t
+        types = Session().basic_types()
+        if types:
+            for t in types:
+                self._types[t.get_name()] = t
 
     def __getitem__(self, t):
         if isinstance(t, Type):
