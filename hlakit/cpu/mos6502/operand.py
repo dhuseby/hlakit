@@ -40,7 +40,7 @@ class Operand(object):
     This encapsulates a 6502 operand
     """
 
-    IMP, ACC, ADDR, IMM, INDEXED, INDIRECT, IDX_IND, ZP_IND = range(8)
+    IMP, ACC, IMM, ADDR, INDEXED, INDIRECT, IDX_IND, ZP_IND = range(8)
 
     @classmethod
     def parse(klass, pstring, location, tokens):
@@ -49,12 +49,14 @@ class Operand(object):
         if pp.ignore():
             return []
 
-        if 'acc' in tokens.keys():
+        if 'imp' in tokens.keys():
+            return klass(Operand.IMP)
+        elif 'acc' in tokens.keys():
             return klass(Operand.ACC)
-        elif 'addr' in tokens.keys():
-            return klass(Operand.ADDR, addr=tokens.addr[0])
         elif 'imm' in tokens.keys():
             return klass(Operand.IMM, value=tokens.imm[0])
+        elif 'addr' in tokens.keys():
+            return klass(Operand.ADDR, addr=tokens.addr[0])
         elif 'indexed' in tokens.keys():
             return klass(Operand.INDEXED, addr=tokens.indexed[0], reg=tokens.indexed[1])
         elif 'indirect' in tokens.keys():
@@ -78,30 +80,30 @@ class Operand(object):
                     Literal('.')) + \
                     CaselessLiteral('a')).setResultsName('acc')
 
-        # zero page and full absolute address
-        addr = Group(Or([NumericValue.exprs(),
-                         ~ops + ~kws + ~conds + variable_ref])).setResultsName('addr')
-
         # immediate operand
         imm  = Group(Suppress('#') + \
                      Immediate.exprs()).setResultsName('imm')
 
+        # zero page and full absolute address
+        addr = Group(Or([NumericValue.exprs(),
+                         Immediate.exprs()])).setResultsName('addr')
+
         # zero page, x/y and absolute, x/y
         indexed = Group(Or([NumericValue.exprs(),
-                            ~ops + ~kws + ~conds + variable_ref]) + \
+                            Immediate.exprs()]) + \
                         Suppress(',') + \
                         oneOf('x y', caseless=True)).setResultsName('indexed')
 
         # indirect is only valie for JMP
         indirect = Group(Suppress('(') + \
                          Or([NumericValue.exprs(),
-                             ~ops + ~kws + ~conds + variable_ref]) + \
+                             Immediate.exprs()]) + \
                          Suppress(')')).setResultsName('indirect')
         
         # indexed indirect
         idx_ind = Group(Suppress('(') + \
                         Or([NumericValue.exprs(),
-                            ~ops + ~kws + ~conds + variable_ref])+ \
+                            Immediate.exprs()])+ \
                         Suppress(',') + \
                         CaselessLiteral('x') + \
                         Suppress(')')).setResultsName('idx_ind')
@@ -109,12 +111,12 @@ class Operand(object):
         # indirect indexed
         zp_ind = Group(Suppress('(') + \
                        Or([NumericValue.exprs(),
-                           ~ops + ~kws + ~conds + variable_ref])+ \
+                           Immediate.exprs()])+ \
                        Suppress(')') + \
                        Suppress(',') + \
                        CaselessLiteral('y')).setResultsName('zp_ind')
 
-        expr = Or([acc, addr, imm, indexed, indirect, idx_ind, zp_ind])
+        expr = Or([acc, imm, addr, indirect, idx_ind, zp_ind, indexed])
         expr.setParseAction(klass.parse)
         return expr
 

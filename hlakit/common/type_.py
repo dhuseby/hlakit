@@ -49,12 +49,14 @@ class Type(object):
 
     @classmethod
     def exprs(klass):
+        '''
         ops = Session().opcodes()
         kws = Session().keywords()
         conds = Session().conditions()
-
-        # types can be anything but opcodes
+        '''
+        # types can be anything but opcodes, keywords, or coditionals
         expr = None
+        '''
         if ops:
             if expr:
                 expr += ~ops
@@ -70,7 +72,7 @@ class Type(object):
                expr += ~conds
             else:
                expr = ~conds
-
+        '''
         if expr:
             expr += Word(alphas, alphanums + '_').setResultsName('type_')
         else:

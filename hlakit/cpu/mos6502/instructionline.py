@@ -56,9 +56,10 @@ class InstructionLine(object):
 
     @classmethod
     def exprs(klass):
-      
-        expr = Opcode.exprs().setResultsName('opcode') + \
-               Optional(Operand.exprs()).setResultsName('operand')
+     
+        expr = Or([Opcode.no_operands().setResultsName('opcode'),
+                   Opcode.operands().setResultsName('opcode') + \
+                   Operand.exprs().setResultsName('operand')])
         expr.setParseAction(klass.parse)
         return expr
 

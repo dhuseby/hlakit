@@ -403,6 +403,126 @@ class NESCompilerTester(unittest.TestCase):
         for i in range(0,len(types)):
             self.assertTrue(isinstance(cc.get_output()[i], types[i]))
 
+    def testMMC5Init(self):
+        code = """
+            inline mmc5_init()
+            {
+            lda #MMC5.GRAPHMODE_EXGRAPHIC
+            sta MMC5.GRAPHICS_MODE
+            lda #0
+            sta MMC5.SPLIT_CNT
+            sta MMC5.SOUND_CH_OUTPUT
+            sta MMC5.SOUND_CH3_VOICE_CH
+            ldx #0
+            stx MMC5.BGCHR_BANK_SELECT_2K_0000
+            inx
+            stx MMC5.BGCHR_BANK_SELECT_2K_0800
+            inx
+            stx MMC5.BGCHR_BANK_SELECT_2K_1000
+            inx
+            stx MMC5.BGCHR_BANK_SELECT_2K_1800
+            }
+            """
+        types =[Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd]
+        
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testMathImmediate(self):
+        code = """
+            inline vram_set_address(newaddress)
+            {
+            ppu_clean_latch()
+            lda newaddress+1
+            sta PPU.ADDRESS
+            lda newaddress+0
+            sta PPU.ADDRESS
+            }
+            """
+        types = [ Function,
+                  ScopeBegin,
+                  FunctionCall,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testComplexParamFunctionCall(self):
+        code = """
+            inline mmc5_save_prg_A000_bank_number()
+            {
+            pha
+            assign(pBankA000_prev, pBankA000_cur)
+            pla
+            }
+            """
+        types = [ Function,
+                  ScopeBegin,
+                  InstructionLine,
+                  FunctionCall,
+                  InstructionLine,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testComplexOperands(self):
+        code = """
+            inline assign_16_8_x(dest,value)
+            {
+            lda value
+            sta dest+0,x
+            lda #0
+            sta dest+1,x
+            }
+            """
+        types = [ Function,
+                  ScopeBegin,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
     def testExampleGame(self):
         code = """
             inline enable_interrupts()
@@ -634,42 +754,49 @@ class NESCompilerTester(unittest.TestCase):
             lda PPU.STATUS
             while (is plus)
             }
-            """
-        '''
+
             inline vblank_wait_full()
             {
             vblank_wait()
             unvblank_wait()
             }
+
             inline vblank_wait_for(amount)
             {
             ldx amount
-            do {
+            do 
+            {
             vblank_wait_full()
             dex
-            } while (nonzero)
+            } 
+            while (nonzero)
             }
+
             inline unvblank_wait()
             {
             do
             lda PPU.STATUS
             while (is minus)
             }
+
             inline test_scanline()
             {
             lda PPU.STATUS
             and #%00100000
             }
+
             inline ppu_clean_latch()
             {
             lda PPU.STATUS
             }
+
             inline vram_clear_address()
             {
             lda #0
             sta PPU.ADDRESS
             sta PPU.ADDRESS
             }
+
             inline vram_set_address(newaddress)
             {
             ppu_clean_latch()
@@ -678,6 +805,7 @@ class NESCompilerTester(unittest.TestCase):
             lda newaddress+0
             sta PPU.ADDRESS
             }
+
             inline vram_set_address_i(newaddress)
             {
             ppu_clean_latch()
@@ -686,76 +814,93 @@ class NESCompilerTester(unittest.TestCase):
             lda #lo(newaddress)
             sta PPU.ADDRESS
             }
+
             inline vram_set_scroll( x, y )
             {
             assign(PPU.BG_SCROLL, x)
             assign(PPU.BG_SCROLL, y)
             }
+
             inline vram_write(value)
             {
             assign(PPU.IO, value)
             }
+
             inline vram_write_ind(value)
             {
             ind_assign(PPU.IO, value)
             }
+
             inline vram_write_x(value)
             {
             x_assign(PPU.IO, value)
             }
+
             inline vram_write_ind_y(value)
             {
             ind_y_assign(PPU.IO, value)
             }
+
             inline vram_write_a()
             {
             sta PPU.IO
             }
+            
             inline vram_write_regx()
             {
             stx PPU.IO
             }
+
             inline vram_write_16(value)
             {
             assign(PPU.IO, value+0)
             assign(PPU.IO, value+1)
             }
+
             inline vram_write_16_i(value)
             {
             assign(PPU.IO, #hi(value))
             assign(PPU.IO, #lo(value))
             }
+
             inline vram_read(dest)
             {
             assign(dest,PPU.IO)
             }
+
             inline vram_ind_read(dest)
             {
             assign_ind(dest,PPU.IO)
             }
+
             inline vram_ind_y_read(dest)
             {
             assign_ind_y(dest,PPU.IO)
             }
+
             inline vram_read_a()
             {
             lda PPU.IO
             }
+
             inline vram_read_16(dest)
             {
             assign(dest+0,PPU.IO)
             assign(dest+1,PPU.IO)
             }
+
             inline vram_set_sprite_address(newaddress)
             {
             assign(PPU.SPR_ADDRESS,newaddress+1)
             assign(PPU.SPR_ADDRESS,newaddress+0)
             }
+
             inline vram_set_sprite_address_i(newaddress)
             {
             assign(PPU.SPR_ADDRESS, #hi(newaddress))
             assign(PPU.SPR_ADDRESS, #lo(newaddress))
             }
+
             inline vram_set_sprite_data( x, y, tile, attributes )
             {
             assign(PPU.SPR_IO, y)
@@ -763,6 +908,7 @@ class NESCompilerTester(unittest.TestCase):
             assign(PPU.SPR_IO, attributes)
             assign(PPU.SPR_IO, x)
             }
+
             inline vram_sprite_dma_copy(oamptr)
             {
             assign(PPU.SPR_DMA, #hi(oamptr))
@@ -774,43 +920,52 @@ class NESCompilerTester(unittest.TestCase):
             CNT0 = $4016,
             CNT1 = $4017,
             }
+
             inline reset_joystick()
             {
             assign(JOYSTICK.CNT0, #1)
             assign(JOYSTICK.CNT0, #0)
             }
+
             inline read_joystick0()
             {
             lda JOYSTICK.CNT0
             and #1
             }
+
             inline read_joystick1()
             {
             lda JOYSTICK.CNT1
             and #1
             }
+
             inline test_joystick1(buttonmask)
             {
             lda _joypad
             and buttonmask
             }
+
             inline test_joystick1_prev(buttonmask)
             {
             lda _joypad_prev
             and buttonmask
             }
+
             inline test_button_release(buttonmask)
             {
             test_joystick1(buttonmask)
-            if (zero) {
+            if (zero) 
+            {
             test_joystick1_prev(buttonmask)
             }
             eor #0xFF
             }
+
             inline test_button_press(buttonmask)
             {
             test_joystick1(buttonmask)    // return(
-            if (nonzero) {      //   if(joypad&buttonmask)
+            if (nonzero)       //   if(joypad&buttonmask)
+            {
             test_joystick1_prev(buttonmask)  //   !(joypad&buttonmask)
             eor #0xFF       //
             }          // )
@@ -937,6 +1092,7 @@ class NESCompilerTester(unittest.TestCase):
             SOUND_CH4_VOICE_CH = 0x5011,
             SOUND_CH_OUTPUT  = 0x5015,
             }
+
             inline mmc5_init()
             {
             lda #MMC5.GRAPHMODE_EXGRAPHIC
@@ -954,26 +1110,31 @@ class NESCompilerTester(unittest.TestCase):
             inx
             stx MMC5.BGCHR_BANK_SELECT_2K_1800
             }
+
             inline mmc5_select_prg_8000_a()
             {
             ora #MMC5.SELECT_PRG_ACTIVATE
             sta MMC5.PRG_BANK_SELECT_8000
             }
+
             inline mmc5_select_prg_8000(number)
             {
             lda number
             mmc5_select_prg_8000_a()
             }
+            
             inline mmc5_select_prg_8000i(number)
             {
             assign(MMC5.PRG_BANK_SELECT_8000, #number|MMC5.SELECT_PRG_ACTIVATE)
             }
+
             inline mmc5_save_prg_A000_bank_number()
             {
             pha
             assign(pBankA000_prev, pBankA000_cur)
             pla
             }
+            
             inline mmc5_select_prg_A000_a()
             {
             mmc5_save_prg_A000_bank_number()
@@ -981,22 +1142,26 @@ class NESCompilerTester(unittest.TestCase):
             sta pBankA000_cur
             sta MMC5.PRG_BANK_SELECT_A000
             }
+            
             inline mmc5_select_prg_A000(number)
             {
             lda number
             mmc5_select_prg_A000_a()
             }
+            
             inline mmc5_select_prg_A000i_raw(number)
             {
             lda #number|MMC5.SELECT_PRG_ACTIVATE
             sta pBankA000_cur
             sta MMC5.PRG_BANK_SELECT_A000
             }
+
             inline mmc5_select_prg_A000i(number)
             {
             assign(pBankA000_prev, pBankA000_cur)
             mmc5_select_prg_A000i_raw(number)
             }
+
             inline mmc5_select_prg_A000i_push(number)
             {
             lda pBankA000_cur
@@ -1005,6 +1170,7 @@ class NESCompilerTester(unittest.TestCase):
             sta pBankA000_cur
             sta MMC5.PRG_BANK_SELECT_A000
             }
+
             inline mmc5_select_prg_A000_x_push(var)
             {
             lda pBankA000_cur
@@ -1014,6 +1180,7 @@ class NESCompilerTester(unittest.TestCase):
             sta pBankA000_cur
             sta MMC5.PRG_BANK_SELECT_A000
             }
+
             inline mmc5_select_prg_A000_push(var)
             {
             lda pBankA000_cur
@@ -1023,46 +1190,55 @@ class NESCompilerTester(unittest.TestCase):
             sta pBankA000_cur
             sta MMC5.PRG_BANK_SELECT_A000
             }
+
             inline mmc5_restore_prg_A000_pop()
             {
             pla
             sta pBankA000_cur
             sta MMC5.PRG_BANK_SELECT_A000
             }
+
             inline mmc5_restore_prg_A000(number)
             {
             lda pBankA000_prev
             sta pBankA000_cur
             sta MMC5.PRG_BANK_SELECT_A000
             }
+
             inline mmc5_select_prg_C000_a()
             {
             ora #MMC5.SELECT_PRG_ACTIVATE
             sta MMC5.PRG_BANK_SELECT_C000
             }
+
             inline mmc5_select_prg_C000(number)
             {
             lda number
             mmc5_select_prg_C000_a()
             }
+
             inline mmc5_select_prg_C000i(number)
             {
             assign(MMC5.PRG_BANK_SELECT_C000, #number|MMC5.SELECT_PRG_ACTIVATE)
             }
+
             inline mmc5_select_prg_E000_a()
             {
             ora #MMC5.SELECT_PRG_ACTIVATE
             sta MMC5.PRG_BANK_SELECT_E000
             }
+
             inline mmc5_select_prg_E000(number)
             {
             lda number
             mmc5_select_prg_E000_a()
             }
+
             inline mmc5_select_prg_E000i(number)
             {
             assign(MMC5.PRG_BANK_SELECT_E000, #number|MMC5.SELECT_PRG_ACTIVATE)
             }
+            
             inline mmc5_multiply(valueA, valueB)
             {
             assign(MMC5.MULT_VALUE_A, valueA)
@@ -1074,56 +1250,67 @@ class NESCompilerTester(unittest.TestCase):
             lda value
             sta dest
             }
+            
             inline assign_x(dest,value)
             {
             lda value
             sta dest,x
             }
+
             inline x_assign_x(dest,src)
             {
             lda src,x
             sta dest,x
             }
+
             inline x_assign_y(dest,src)
             {
             lda src,x
             sta dest,y
             }
+            
             inline assign_y(dest,value)
             {
             lda value
             sta dest,y
             }
+            
             inline x_assign(dest,src)
             {
             lda src,x
             sta dest
             }
+            
             inline y_assign(dest,src)
             {
             lda src,y
             sta dest
             }
+
             inline assign_ind(dest,value)
             {
             lda value
-            sta [dest]
+            sta (dest)
             }
+            
             inline assign_ind_y(dest,value)
             {
             lda value
-            sta [dest],y
+            sta (dest),y
             }
+            
             inline ind_x_assign(dest,src)
             {
-            lda [src,x]
+            lda (src,x)
             sta dest
             }
+            
             inline ind_y_assign(dest,src)
             {
-            lda [src],y
+            lda (src),y
             sta dest
             }
+            
             inline assign_16_8(dest,value)
             {
             lda value
@@ -1131,6 +1318,8 @@ class NESCompilerTester(unittest.TestCase):
             lda #0
             sta dest+1
             }
+             """
+        '''         
             inline assign_16_8_x(dest,value)
             {
             lda value
@@ -1138,6 +1327,7 @@ class NESCompilerTester(unittest.TestCase):
             lda #0
             sta dest+1,x
             }
+
             inline assign_16_8_y(dest,value)
             {
             lda value
@@ -1145,6 +1335,7 @@ class NESCompilerTester(unittest.TestCase):
             lda #0
             sta dest+1,y
             }
+            
             inline assign_16_16(dest,value)
             {
             lda value+0
@@ -1152,6 +1343,7 @@ class NESCompilerTester(unittest.TestCase):
             lda value+1
             sta dest+1
             }
+            
             inline assign_16_16_x(dest,value)
             {
             lda value+0
@@ -1159,6 +1351,7 @@ class NESCompilerTester(unittest.TestCase):
             lda value+1
             sta dest+1,x
             }
+
             inline y_assign_16_16_x(dest,value)
             {
             lda value+0,y
@@ -1166,6 +1359,7 @@ class NESCompilerTester(unittest.TestCase):
             lda value+1,y
             sta dest+1,x
             }
+            
             inline assign_16_16_y(dest,value)
             {
             lda value+0
@@ -1173,15 +1367,17 @@ class NESCompilerTester(unittest.TestCase):
             lda value+1
             sta dest+1,y
             }
+
             inline ind_assign_16_16_x(dest,value)
             {
             ldy #0
-            lda [value],y
+            lda (value),y
             sta dest+0,x
             iny
-            lda [value],y
+            lda (value),y
             sta dest+1,x
             }
+            
             inline x_assign_16_16(dest,value)
             {
             lda value+0,x
@@ -1189,6 +1385,7 @@ class NESCompilerTester(unittest.TestCase):
             lda value+1,x
             sta dest +1
             }
+            
             inline x_assign_16_16_x(dest,value)
             {
             lda value+0,x
@@ -1196,6 +1393,7 @@ class NESCompilerTester(unittest.TestCase):
             lda value+1,x
             sta dest +1,x
             }
+            
             inline y_ind_assign_16_16(dest,value)
             {
             lda [value],y
@@ -1204,6 +1402,7 @@ class NESCompilerTester(unittest.TestCase):
             lda [value],y
             sta dest +1
             }
+            
             inline y_assign_16_16(dest,value)
             {
             lda value+0,y
@@ -1211,6 +1410,7 @@ class NESCompilerTester(unittest.TestCase):
             lda value+1,y
             sta dest +1
             }
+            
             inline assign_16i(dest,value)
             {
             lda #lo(value)
@@ -1218,6 +1418,7 @@ class NESCompilerTester(unittest.TestCase):
             lda #hi(value)
             sta dest+1
             }
+            
             inline assign_16i_x(dest,value)
             {
             lda #lo(value)
@@ -1225,6 +1426,7 @@ class NESCompilerTester(unittest.TestCase):
             lda #hi(value)
             sta dest+1,x
             }
+            
             inline assign_16i_y(dest,value)
             {
             lda #lo(value)
@@ -1232,12 +1434,14 @@ class NESCompilerTester(unittest.TestCase):
             lda #hi(value)
             sta dest+1,y
             }
+            
             inline zero_16(dest)
             {
             lda #0
             sta dest+0
             sta dest+1
             }
+
             inline zero_32(dest)
             {
             lda #0
@@ -1246,23 +1450,27 @@ class NESCompilerTester(unittest.TestCase):
             sta dest+2
             sta dest+3
             }
+            
             inline zero_16_x(dest)
             {
             lda #0
             sta dest+0,x
             sta dest+1,x
             }
+            
             inline zero_16_y(dest)
             {
             lda #0
             sta dest+0,y
             sta dest+1,y
             }
+            
             inline tyx()
             {
             tya
             tax
             }
+            
             inline txy()
             {
             txa
@@ -1274,72 +1482,86 @@ class NESCompilerTester(unittest.TestCase):
             lda mask
             bit dest
             }
+            
             inline test_x(dest,mask)
             {
             lda dest,x
             and mask
             }
+            
             inline test_16_8(dest,mask)
             {
             lda mask+0
             bit dest+0
             }
+            
             inline test_16_16(dest,mask)
             {
             lda mask+0
             bit dest+0
-            if (zero) {
+            if (zero) 
+            {
             lda mask+1
             bit dest+1
             }
             }
+            
             inline test_16i(dest,mask)
             {
             lda #lo(mask)
             bit dest+0
-            if (zero) {
+            if (zero) 
+            {
             lda #hi(mask)
             bit dest+1
             }
             }
+            
             inline or(dest,mask)
             {
             lda dest
             ora mask
             sta dest
             }
+            
             inline or_x_a(dest)
             {
             ora dest,x
             sta dest,x
             }
+            
             inline or_x(dest,mask)
             {
             lda mask
             or_x_a(dest)
             }
+            
             inline or_y_a(dest)
             {
             ora dest,y
             sta dest,y
             }
+            
             inline or_y(dest,mask)
             {
             lda mask
             or_y_a(dest)
             }
+            
             inline or_16_8(dest,mask)
             {
             lda dest+0
             ora mask
             sta dest+0
             }
+            
             inline or_16_8_x(dest,mask)
             {
             lda dest+0,x
             ora mask
             sta dest+0,x
             }
+            
             inline or_16_16(dest,mask)
             {
             lda dest+0
@@ -1349,6 +1571,7 @@ class NESCompilerTester(unittest.TestCase):
             ora mask+1
             sta dest+1
             }
+            
             inline or_16_16_x(dest,mask)
             {
             lda dest+0
@@ -1358,6 +1581,7 @@ class NESCompilerTester(unittest.TestCase):
             ora mask+1
             sta dest+1,x
             }
+            
             inline or_16i(dest,mask)
             {
             lda dest+0
@@ -1367,6 +1591,7 @@ class NESCompilerTester(unittest.TestCase):
             ora #hi(mask)
             sta dest+1
             }
+            
             inline or_16i_x(dest,mask)
             {
             lda dest+0,x
@@ -1376,30 +1601,35 @@ class NESCompilerTester(unittest.TestCase):
             ora #hi(mask)
             sta dest+1,x
             }
+            
             inline xor(dest,mask)
             {
             lda dest
             eor mask
             sta dest
             }
+            
             inline xor_x(dest,mask)
             {
             lda dest,x
             eor mask
             sta dest,x
             }
+            
             inline xor_16_8(dest,mask)
             {
             lda dest+0
             eor mask
             sta dest+0
             }
+            
             inline xor_16_8_x(dest,mask)
             {
             lda dest+0,x
             eor mask
             sta dest+0,x
             }
+            
             inline xor_16_16(dest,mask)
             {
             lda dest+0
@@ -1409,6 +1639,7 @@ class NESCompilerTester(unittest.TestCase):
             eor mask+1
             sta dest+1
             }
+            
             inline xor_16_16_x(dest,mask)
             {
             lda dest+0
@@ -1418,6 +1649,7 @@ class NESCompilerTester(unittest.TestCase):
             eor mask+1
             sta dest+1,x
             }
+            
             inline xor_16i(dest,mask)
             {
             lda dest+0
@@ -1427,6 +1659,7 @@ class NESCompilerTester(unittest.TestCase):
             eor #hi(mask)
             sta dest+1
             }
+            
             inline xor_16i_x(dest,mask)
             {
             lda dest+0,x
@@ -1436,36 +1669,42 @@ class NESCompilerTester(unittest.TestCase):
             eor #hi(mask)
             sta dest+1,x
             }
+            
             inline and_8(dest,mask)
             {
             lda dest
             and mask
             sta dest
             }
+            
             inline and_x(dest,mask)
             {
             lda dest,x
             and mask
             sta dest,x
             }
+            
             inline and_y(dest,mask)
             {
             lda dest,y
             and mask
             sta dest,y
             }
+            
             inline and_16_8(dest,mask)
             {
             lda dest+0
             and mask
             sta dest+0
             }
+            
             inline and_16_8_x(dest,mask)
             {
             lda dest+0,x
             and mask
             sta dest+0,x
             }
+            
             inline and_16_16(dest,mask)
             {
             lda dest+0
@@ -1475,6 +1714,7 @@ class NESCompilerTester(unittest.TestCase):
             and mask+1
             sta dest+1
             }
+            
             inline and_16_16_x(dest,mask)
             {
             lda dest+0
@@ -1484,6 +1724,7 @@ class NESCompilerTester(unittest.TestCase):
             and mask+1
             sta dest+1,x
             }
+            
             inline and_16i(dest,mask)
             {
             lda dest+0
@@ -1493,6 +1734,7 @@ class NESCompilerTester(unittest.TestCase):
             and #hi(mask)
             sta dest+1
             }
+            
             inline and_16i_x(dest,mask)
             {
             lda dest+0,x
@@ -1502,6 +1744,7 @@ class NESCompilerTester(unittest.TestCase):
             and #hi(mask)
             sta dest+1,x
             }
+            
             inline and_or(dest,and_mask,or_mask)
             {
             lda dest
@@ -1517,6 +1760,7 @@ class NESCompilerTester(unittest.TestCase):
             adc value
             sta dest
             }
+            
             inline add_x(dest,value)
             {
             clc
@@ -1524,6 +1768,7 @@ class NESCompilerTester(unittest.TestCase):
             adc value
             sta dest,x
             }
+            
             inline y_add(dest,value)
             {
             clc
@@ -1531,12 +1776,14 @@ class NESCompilerTester(unittest.TestCase):
             adc value, y
             sta dest
             }
+            
             inline add_x_a(dest)
             {
             clc
             adc dest,x
             sta dest,x
             }
+            
             inline add_16_8_a(dest)
             {
             clc
@@ -1546,16 +1793,20 @@ class NESCompilerTester(unittest.TestCase):
             adc #0
             sta dest+1
             }
+            
             inline adds_16_8_a(dest)
             {
-            if (negative) {
+            if (negative) 
+            {
             clc
             adc dest
             sta dest
             lda dest+1
             adc #0xFF
             sta dest+1
-            } else {
+            } 
+            else 
+            {
             clc
             adc dest
             sta dest
@@ -1564,6 +1815,7 @@ class NESCompilerTester(unittest.TestCase):
             sta dest+1
             }
             }
+            
             inline add_16_8_a_x(dest)
             {
             clc
@@ -1573,15 +1825,19 @@ class NESCompilerTester(unittest.TestCase):
             adc #0
             sta dest+1,x
             }
+            
             inline adds_16_8_a_x(dest)
             {
-            if (negative) {
+            if (negative) 
+            {
             clc
             adc dest+0,x
             sta dest+0,x
             lda dest+1,x
             adc #0xFF
-            } else {
+            } 
+            else 
+            {
             clc
             adc dest+0,x
             sta dest+0,x
@@ -1590,16 +1846,20 @@ class NESCompilerTester(unittest.TestCase):
             }
             sta dest+1,x
             }
+            
             inline adds_16_8_a_x_to(src, dest)
             {
-            if (negative) {
+            if (negative) 
+            {
             clc
             adc src+0,x
             sta dest+0
             lda src+1,x
             adc #0xFF
             sta dest+1
-            } else {
+            } 
+            else 
+            {
             clc
             adc src+0,x
             sta dest+0
@@ -1608,16 +1868,19 @@ class NESCompilerTester(unittest.TestCase):
             sta dest+1
             }
             }
+            
             inline add_16_8(dest,value)
             {
             lda value
             add_16_8_a(dest)
             }
+            
             inline adds_16_8(dest,value)
             {
             lda value
             adds_16_8_a(dest)
             }
+            
             inline add_16_8_to(src,value,dest)
             {
             clc
@@ -1628,6 +1891,7 @@ class NESCompilerTester(unittest.TestCase):
             adc #0
             sta dest+1
             }
+            
             inline add_16_8yind_to(src,value,dest)
             {
             clc
@@ -1638,12 +1902,16 @@ class NESCompilerTester(unittest.TestCase):
             adc #0
             sta dest+1
             }
+            
             inline adds_16_8yind_to(src,value,dest)
             {
             lda [value],y
-            if (negative) {
+            if (negative) 
+            {
             ldx #0xFF
-            } else {
+            } 
+            else 
+            {
             ldx #0
             }
             stx btemp
@@ -1654,6 +1922,7 @@ class NESCompilerTester(unittest.TestCase):
             adc btemp
             sta dest+1
             }
+            
             inline add_16_8_a_to_x(src,dest)
             {
             clc
@@ -1663,16 +1932,19 @@ class NESCompilerTester(unittest.TestCase):
             adc #0
             sta dest+1, x
             }
+            
             inline add_16_8_x(dest,value)
             {
             lda value
             add_16_8_a_x(dest)
             }
+            
             inline adds_16_8_x(dest,value)
             {
             lda value
             adds_16_8_a_x(dest)
             }
+            
             inline add_16_16(dest,value)
             {
             clc
@@ -1683,6 +1955,7 @@ class NESCompilerTester(unittest.TestCase):
             adc value+1
             sta dest+1
             }
+            
             inline add_16_16_x(dest,value)
             {
             clc
@@ -1693,6 +1966,7 @@ class NESCompilerTester(unittest.TestCase):
             adc value+1
             sta dest+1,x
             }
+            
             inline x_add_16_8_to(dest,value,src)
             {
             clc
@@ -1703,16 +1977,20 @@ class NESCompilerTester(unittest.TestCase):
             adc #0
             sta dest+1
             }
+            
             inline add_8y_16x_to_16(var8, var16, dest16)
             {
             lda var8, y
-            if (positive) {
+            if (positive) 
+            {
             clc
             adc var16 +0,x
             sta dest16+0
             lda var16 +1,x
             adc #0
-            } else {
+            } 
+            else 
+            {
             clc
             adc var16 +0,x
             sta dest16+0
@@ -1721,6 +1999,7 @@ class NESCompilerTester(unittest.TestCase):
             }
             sta dest16+1
             }
+            
             inline x_sub_16_8_to(dest,value,src)
             {
             sec
@@ -1731,6 +2010,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #0
             sta dest+1
             }
+            
             inline add_16i(dest,value)
             {
             clc
@@ -1741,6 +2021,7 @@ class NESCompilerTester(unittest.TestCase):
             adc #hi(value)
             sta dest+1
             }
+            
             inline add_16i_x(dest,value)
             {
             clc
@@ -1751,6 +2032,7 @@ class NESCompilerTester(unittest.TestCase):
             adc #hi(value)
             sta dest+1,x
             }
+            
             inline sub(dest,value)
             {
             sec
@@ -1758,6 +2040,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc value
             sta dest
             }
+            
             inline sub_x(dest,value)
             {
             sec
@@ -1765,6 +2048,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc value
             sta dest,x
             }
+            
             inline sub_16_8_a(dest)
             {
             sec
@@ -1776,6 +2060,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #0
             sta dest+1
             }
+            
             inline sub_16_8_a_to(value,dest)
             {
             sec
@@ -1787,6 +2072,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #0
             sta dest+1
             }
+            
             inline sub_16_8_a_x(dest)
             {
             sec
@@ -1798,6 +2084,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #0
             sta dest+1,x
             }
+            
             inline x_sub_16_8_a_to(value, dest)
             {
             sec
@@ -1809,6 +2096,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #0
             sta dest+1
             }
+            
             inline y_sub_16_8_a_to(value, dest)
             {
             sec
@@ -1820,6 +2108,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #0
             sta dest+1
             }
+            
             inline sub_16_8(dest,value)
             {
             sec
@@ -1830,6 +2119,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #0
             sta dest+1
             }
+            
             inline sub_16_8_to(src,value,dest)
             {
             sec
@@ -1840,6 +2130,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #0
             sta dest+1
             }
+            
             inline sub_16_8_x(dest,value)
             {
             sec
@@ -1850,6 +2141,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #0
             sta dest+1,x
             }
+            
             inline sub_16_16(dest,value)
             {
             sec
@@ -1860,6 +2152,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc value+1
             sta dest+1
             }
+            
             inline sub_16_16_to(valuea,valueb,dest)
             {
             sec
@@ -1870,6 +2163,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc valueb+1
             sta dest+1
             }
+            
             inline add_16_16_to(valuea,valueb,dest)
             {
             clc
@@ -1880,6 +2174,7 @@ class NESCompilerTester(unittest.TestCase):
             adc valueb+1
             sta dest+1
             }
+            
             inline sub16_16_x(dest,value)
             {
             sec
@@ -1890,6 +2185,7 @@ class NESCompilerTester(unittest.TestCase):
             adc value+1
             sta dest+1,x
             }
+            
             inline sub_16i(dest,value)
             {
             sec
@@ -1900,6 +2196,7 @@ class NESCompilerTester(unittest.TestCase):
             sbc #hi(value)
             sta dest+1
             }
+            
             inline sub_16i_x(dest,value)
             {
             sec
@@ -1910,67 +2207,80 @@ class NESCompilerTester(unittest.TestCase):
             sbc #hi(value)
             sta dest+1,x
             }
+            
             inline mul_a( dest, multipiler )
             {
             clc
             lda #0
             ldx dest
-            while (nonzero) {
+            while (nonzero) 
+            {
             adc multipiler
             dex
             }
             }
+            
             inline mul_x_a( dest, multipiler )
             {
             clc
             lda #0
             ldy dest,x
-            while (nonzero) {
+            while (nonzero) 
+            {
             adc multipiler
             dey
             }
             }
+            
             inline mul( dest, multipiler )
             {
             mul_a( dest, multipiler )
             sta dest
             }
+            
             inline mul_x( dest, multipiler )
             {
             mul_x_a( dest, multipiler )
             sta dest,x
             }
+            
             inline mul_16_8( dest, multipiler )
             {
             zero_16(_w_temp)
             ldx multipiler
-            while (nonzero) {
+            while (nonzero) 
+            {
             add_16_16( _w_temp, dest )
             dex
             }
             assign_16_16( dest, _w_temp )
             }
+            
             inline mul_16_8_x( dest, multipiler )
             {
             zero_16(_w_temp)
             ldx multipiler
-            while (nonzero) {
+            while (nonzero) 
+            {
             add_16_16_x( _w_temp, dest )
             dex
             }
             assign_16_16_x( dest, _w_temp )
             }
+            
             inline asl2_a()
             {
             asl a
             asl a
             }
+            
             inline asl3_a()
             {
             asl a
             asl a
             asl a
             }
+            
             inline asl4_a()
             {
             asl a
@@ -1978,6 +2288,7 @@ class NESCompilerTester(unittest.TestCase):
             asl a
             asl a
             }
+            
             inline asl5_a()
             {
             asl a
@@ -1986,6 +2297,7 @@ class NESCompilerTester(unittest.TestCase):
             asl a
             asl a
             }
+            
             inline asl6_a()
             {
             asl a
@@ -1995,6 +2307,7 @@ class NESCompilerTester(unittest.TestCase):
             asl a
             asl a
             }
+            
             inline asl7_a()
             {
             asl a
@@ -2005,25 +2318,30 @@ class NESCompilerTester(unittest.TestCase):
             asl a
             asl a
             }
+            
             inline asl_16_1( dest )
             {
             asl dest+0
             rol dest+1
             }
+            
             inline asl_16( dest, amount )
             {
             ldx amount
-            while (not zero) {
+            while (not zero) 
+            {
             asl dest+0
             rol dest+1
             dex
             }
             }
+            
             inline asl_16_to( dest, src, amount )
             {
             assign_16_16(src,dest)
             ldx amount
-            while (not zero) {
+            while (not zero) 
+            {
             asl src+0/*
             php
             lda src+1
@@ -2035,6 +2353,7 @@ class NESCompilerTester(unittest.TestCase):
             dex
             }
             }
+            
             inline asl_8_to_16( dest, src, amount )
             {
             lda src
@@ -2042,12 +2361,14 @@ class NESCompilerTester(unittest.TestCase):
             lda #0
             sta dest+1
             ldx amount
-            while (not zero) {
+            while (not zero) 
+            {
             asl dest+0
             rol dest+1
             dex
             }
             }
+            
             inline asl2_8_a_to_16( dest )
             {
             sta dest+0
@@ -2058,17 +2379,20 @@ class NESCompilerTester(unittest.TestCase):
             asl dest+0
             rol dest+1
             }
+            
             inline lsr2_a()
             {
             lsr a
             lsr a
             }
+            
             inline lsr3_a()
             {
             lsr a
             lsr a
             lsr a
             }
+            
             inline lsr4_a()
             {
             lsr a
@@ -2076,6 +2400,7 @@ class NESCompilerTester(unittest.TestCase):
             lsr a
             lsr a
             }
+            
             inline lsr5_a()
             {
             lsr a
@@ -2084,6 +2409,7 @@ class NESCompilerTester(unittest.TestCase):
             lsr a
             lsr a
             }
+            
             inline lsr6_a()
             {
             lsr a
@@ -2093,6 +2419,7 @@ class NESCompilerTester(unittest.TestCase):
             lsr a
             lsr a
             }
+            
             inline lsr7_a()
             {
             lsr a
@@ -2103,25 +2430,30 @@ class NESCompilerTester(unittest.TestCase):
             lsr a
             lsr a
             }
+            
             inline lsr_16( dest, amount )
             {
             ldx amount
-            while (not zero) {
+            while (not zero) 
+            {
             lsr dest+1
             ror dest+0
             dex
             }
             }
+            
             inline lsr_16_to( dest, src, amount )
             {
             assign_16_16(src,dest)
             ldx amount
-            while (not zero) {
+            while (not zero) 
+            {
             lsr dest+1
             ror dest+0
             dex
             }
             }
+            
             inline lsr_16_by_6_to_8( dest, src )
             {
             lda src+0
@@ -2136,6 +2468,7 @@ class NESCompilerTester(unittest.TestCase):
             ora dest
             sta dest
             }
+            
             inline lsr_16_by_5_to_8( dest, src )
             {
             lda src+0    // A  = LOW(B)  >> 5
@@ -2146,6 +2479,7 @@ class NESCompilerTester(unittest.TestCase):
             ora dest    //
             sta dest    //
             }
+            
             inline lsr_16_by_4_to_8( dest, src )
             {
             lda src+0    // A  = LOW(B)  >> 4
@@ -2156,6 +2490,7 @@ class NESCompilerTester(unittest.TestCase):
             ora dest    //
             sta dest    //
             }
+            
             inline lsr_16_by_3_to_8( dest, src )
             {
             lda src+0    // A  = LOW(B)  >> 3
@@ -2166,6 +2501,7 @@ class NESCompilerTester(unittest.TestCase):
             ora dest    //
             sta dest    //
             }
+            
             inline lsr_16_by_2_to_8( dest, src )
             {
             lda src+0
@@ -2177,12 +2513,14 @@ class NESCompilerTester(unittest.TestCase):
             and #7
             sta dest
             }
+            
             inline div( dest, amount )
             {
             sec
             ldx #0
             lda amount
-            while (nonzero) {
+            while (nonzero) 
+            {
             bmi div_done_remainder
             inx
             sec
@@ -2194,12 +2532,14 @@ class NESCompilerTester(unittest.TestCase):
             div_done:
             stx dest
             }
+            
             inline div_with_rem( dest, amount )
             {
             sec
             ldx #0
             lda dest
-            while (nonzero) {
+            while (nonzero) 
+            {
             bmi div_done_remainder
             inx
             sec
@@ -2215,6 +2555,7 @@ class NESCompilerTester(unittest.TestCase):
             div_done:
             stx dest
             }
+            
             inline div_16_8_to_x( dest, amount )
             {
             assign_16_16( _w_temp, dest )
@@ -2230,12 +2571,14 @@ class NESCompilerTester(unittest.TestCase):
             if (nonzero)
             dex
             }
+            
             inline mod_16_by_240_to_8( dest, src )
             {
             lda src
             sta _w_temp+0
             ora src+1
-            if (not zero) {
+            if (not zero) 
+            {
             lda src+1
             sta _w_temp+1
             _loop:
@@ -2255,6 +2598,7 @@ class NESCompilerTester(unittest.TestCase):
             _is_solid:
             sta    dest
             }
+            
             inline mod_16_to_8( dest, src, val )
             {
             lda src
@@ -2280,36 +2624,44 @@ class NESCompilerTester(unittest.TestCase):
             _is_solid:
             sta    dest
             }
+            
             inline abs_a()
             {
-            if (is minus) {
+            if (is minus) 
+            {
             eor #0xFF
             clc
             adc #1
             }
             }
+            
             inline abs(number)
             {
             lda number
-            if (is minus) {
+            if (is minus) 
+            {
             eor #0xFF
             sta number
             inc number
             }
             }
+            
             inline abs_16(number)
             {
             lda number+1
-            if (is minus) {
+            if (is minus) 
+            {
             neg_16(number)
             }
             }
+            
             inline neg_a()
             {
             eor #0xFF
             clc
             adc #1
             }
+            
             inline neg(number)
             {
             lda number
@@ -2317,6 +2669,7 @@ class NESCompilerTester(unittest.TestCase):
             sta number
             inc number
             }
+            
             inline neg_16(number)
             {
             sec
@@ -2327,20 +2680,24 @@ class NESCompilerTester(unittest.TestCase):
             sbc number+1
             sta number+1
             }
+            
             inline inc_16(number)
             {
             inc number+0
             if (zero)
             inc number+1
             }
+            
             inline inc_16_limit(number)
             {/*
             ldx number+0
             inx
-            if(not zero) {
+            if(not zero) 
+            {
             ldx number+1
             inx
-            if(not zero) {
+            if(not zero) 
+            {
             inc number+0
             if(zero)
             inc number+1
@@ -2357,12 +2714,14 @@ class NESCompilerTester(unittest.TestCase):
             inc number+1
             _inc_limit_reached:
             }
+            
             inline inc_16_x(number)
             {
             inc number+0,x
             if (zero)
             inc number+1,x
             }
+            
             inline dec_16(number)
             {
             lda number+0
@@ -2370,6 +2729,7 @@ class NESCompilerTester(unittest.TestCase):
             dec number+1
             dec number+0
             }
+            
             inline dec_16_x(number)
             {
             lda number+0,x
@@ -2377,10 +2737,12 @@ class NESCompilerTester(unittest.TestCase):
             dec number+1,x
             dec number+0,x
             }
+            
             inline clip_16(number)
             {
             lda number+1
-            if (negative) {
+            if (negative) 
+            {
             zero_16( number )
             }
             }
@@ -2390,100 +2752,121 @@ class NESCompilerTester(unittest.TestCase):
             lda src
             cmp value
             }
+            
             inline compare_x(src, value)
             {
             lda src, x
             cmp value
             }
+            
             inline x_compare_x(src, value)
             {
             lda src, x
             cmp value, x
             }
+            
             inline compare_16_16(src, value)
             {
             lda src+1
             cmp value+1
-            if (equal) {
+            if (equal) 
+            {
             lda src+0
             cmp value+0
             }
             }
+            
             inline compare_16_16_x(src, value)
             {
             lda src+1
             cmp value+1, x
-            if (equal) {
+            if (equal) 
+            {
             lda src+0
             cmp value+0, x
             }
             }
+            
             inline compare_16_x_16_x(src, value)
             {
             lda src+1, x
             cmp value+1, x
-            if (equal) {
+            if (equal) 
+            {
             lda src+0, x
             cmp value+0, x
             }
             }
+            
             inline compare_16_y_16_x(src, value)
             {
             lda src+1, y
             cmp value+1, x
-            if (equal) {
+            if (equal) 
+            {
             lda src+0, y
             cmp value+0, x
             }
             }
+            
             inline compare_8_y_8_x(src, value)
             {
             lda src, y
             cmp value, x
             }
+            
             inline compare_16_x_16_y(src, value)
             {
             lda src+1, x
             cmp value+1, y
-            if (equal) {
+            if (equal) 
+            {
             lda src+0, x
             cmp value+0, y
             }
             }
+            
             inline compare_8_x_8_y(src, value)
             {
             lda src, x
             cmp value, y
             }
+            
             inline compare_8_x_8_x(src, value)
             {
             lda src, x
             cmp value, x
             }
+            
             inline compare_8_x_8(src, value)
             {
             lda src, x
             cmp value
             }
+            
             inline compare_8_y_8_y(src, value)
             {
             lda src, y
             cmp value, y
             }
+            
             inline compare_16_16_y(src, value)
             {
             lda src+1
             cmp value+1, y
-            if (equal) {
+            if (equal) 
+            {
             lda src+0
             cmp value+0, y
             }
             }
+            
             inline compare_16i(src, value)
             {
             lda src+1
             cmp #hi(value)
-            if (equal) {
+            if (equal) 
+            {
             lda src+0
             cmp #lo(value)
             }
@@ -2493,25 +2876,30 @@ class NESCompilerTester(unittest.TestCase):
             {
             pha
             }
+            
             inline popa()
             {
             pla
             }
+            
             inline toss16()
             {
             pla
             pla
             }
+            
             inline push(value)
             {
             lda value
             pusha()
             }
+            
             inline push_x(src)
             {
             lda src,x
             pusha()
             }
+            
             inline push_16(src)
             {
             lda src+0
@@ -2519,6 +2907,7 @@ class NESCompilerTester(unittest.TestCase):
             lda src+1
             pusha()
             }
+            
             inline push_16_x(src)
             {
             lda src+0,x
@@ -2526,16 +2915,19 @@ class NESCompilerTester(unittest.TestCase):
             lda src+1,x
             pusha()
             }
+            
             inline pop(dest)
             {
             popa()
             sta dest
             }
+            
             inline pop_x(dest)
             {
             popa()
             sta dest,x
             }
+            
             inline pop_16(dest)
             {
             popa()
@@ -2543,6 +2935,7 @@ class NESCompilerTester(unittest.TestCase):
             popa()
             sta dest+0
             }
+            
             inline pop_16_x(dest)
             {
             popa()
@@ -2550,61 +2943,73 @@ class NESCompilerTester(unittest.TestCase):
             popa()
             sta dest+0,x
             }
+            
             inline peek()
             {
             popa()
             pusha()
             }
+            
             inline pushx()
             {
             txa
             pusha()
             }
+            
             inline popx()
             {
             popa()
             tax
             }
+            
             inline peekx()
             {
             popa()
             pusha()
             tax
             }
+            
             inline pushy()
             {
             tya
             pusha()
             }
+            
             inline popy()
             {
             popa()
             tay
             }
+            
             inline peeky()
             {
             popa()
             pusha()
             tay
             }
+            
             inline pushp()
             {
             php
             }
+            
             inline popp()
             {
             plp
             }
+            
             inline pushsp()
             {
             tsx
             pushx()
             }
+            
             inline popsp()
             {
             popx()
             txs
             }
+            
             inline push_all()
             {
             pushp()
@@ -2612,6 +3017,7 @@ class NESCompilerTester(unittest.TestCase):
             pushx()
             pushy()
             }
+            
             inline pop_all()
             {
             popy()
@@ -2623,22 +3029,26 @@ class NESCompilerTester(unittest.TestCase):
             inline memcpy_inline( dest, src, size )
             {
             ldx #0
-            do {
+            do 
+            {
             lda src,x
             sta dest,x
             inx
             cpx size
-            } while (nonzero)
+            } 
+            while (nonzero)
             }
             inline memset_inline( memdest, value, memsize)
             {
             lda value
             ldx #0
-            do {
+            do 
+            {
             sta memdest,x
             inx
             cpx memsize
-            } while (nonzero)
+            } 
+            while (nonzero)
             }
 
             enum COLOUR {
@@ -2664,10 +3074,12 @@ class NESCompilerTester(unittest.TestCase):
             {
             assign(PPU.CNT1, #%00001000|%00000010)
             }
+            
             function Turn_Video_Off()
             {
             assign(PPU.CNT1, #0)
             }
+            
             function vram_write_hex_a()
             {
             pha
@@ -2701,18 +3113,22 @@ class NESCompilerTester(unittest.TestCase):
             sta $2007
             pla
             }
+            
             inline vram_write_string_inl(addr, str)
             {
             vram_set_address_i(addr)
             assign_16i(pstr, str)
             vram_write_string()
             }
+            
             function vram_write_string()
             {
             ldy #0
-            forever {
+            forever 
+            {
             lda [pstr], y
-            if (zero) {
+            if (zero) 
+            {
             vram_clear_address()
             return
             }
@@ -2721,6 +3137,7 @@ class NESCompilerTester(unittest.TestCase):
             }
             }
             byte setamt[] = {0,0,0,0,0,0,0,7}
+            
             function vram_init()
             {
             vram_set_address_i(0x3F00)
@@ -2731,35 +3148,44 @@ class NESCompilerTester(unittest.TestCase):
             vram_set_address_i(0x2000)
             lda #0
             ldy #8 // 1024 bytes
-            do {
+            do 
+            {
             lda setamt-1,y
             ldx #128
-            do {
+            do 
+            {
             vram_write_a()
             dex
-            } while (not zero)
+            } 
+            while (not zero)
             dey
-            } while (not zero)
+            } 
+            while (not zero)
             vram_write_string_inl(0x2000+0x40, strTitle)
             vram_clear_address()
             }
+            
             function palette_memset()
             {
             unvblank_wait()
             vblank_wait()
             vram_set_address_i(0x3F00)
             ldy #16
-            do {
+            do 
+            {
             vram_write_regx()
             dey
-            } while (not equal)
+            } 
+            while (not equal)
             vram_clear_address()
             }
+            
             inline palette_memset_inl(col)
             {
             ldx col
             palette_memset()
             }
+            
             function pal_animate()
             {
             vram_set_address_i(0x3F00)
@@ -2771,13 +3197,15 @@ class NESCompilerTester(unittest.TestCase):
             php
             lda palcol
             plp
-            if (set) {
+            if (set) 
+            {
             eor #0x30
             }
             and #0x3F
             vram_write_a()
             vram_clear_address()
             }
+            
             function pal_animate2()
             {
             vram_set_address_i(0x3F00)
@@ -2789,29 +3217,36 @@ class NESCompilerTester(unittest.TestCase):
             php
             lda palcol
             plp
-            if (set) {
+            if (set) 
+            {
             eor #0x0F
             }
             and #0x0F
             vram_write_a()
             vram_clear_address()
             }
+            
             inline wait_for(amount)
             {
             ldx amount
             wait_for_func()
             }
+            
             function wait_for_func()
             {
-            do {
+            do 
+            {
             vblank_wait_full()
             dex
-            } while (nonzero)
+            } 
+            while (nonzero)
             }
+            
             function message_error()
             {
             assign(palcol, #COLOUR.RED)
-            forever {
+            forever 
+            {
             wait_for(#5)
             pal_animate()
             }
@@ -2819,6 +3254,7 @@ class NESCompilerTester(unittest.TestCase):
 
             char strTitle[] = "\a\a\a\a\a\a\aNESHLA Demo Program"
             char strHello[] = "Hello, World!"
+            
             inline custom_system_initialize()
             {
             disable_decimal_mode()
@@ -2835,12 +3271,15 @@ class NESCompilerTester(unittest.TestCase):
             lda  #0xC0
             sta  joystick.cnt1
             }
+            
             interrupt.irq int_irq()
             {
             }
+            
             interrupt.nmi int_nmi()
             {
             }
+            
             interrupt.start main()
             {
             custom_system_initialize()
@@ -2850,14 +3289,16 @@ class NESCompilerTester(unittest.TestCase):
             vram_clear_address()
             assign(palcol, #COLOUR.YELLOW)
             Turn_Video_On()
-            forever {
+            forever 
+            {
             wait_for(#6)
             pal_animate()
             }
             }
+
             function jsr_ind()
             {
-            jmp [paddr]
+            jmp (paddr)
             }
         '''
 
@@ -3089,86 +3530,572 @@ class NESCompilerTester(unittest.TestCase):
                 Conditional,
                 InstructionLine,
                 Conditional,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                Conditional,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                Conditional,
+                InstructionLine,
+                Conditional,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+
+                Variable,
+                Variable,
+                Enum,
+
+
+
+               
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Enum,
+
+
+
+
+
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Enum,
+
+
+
+
+
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Enum,
+
+
+
+
+
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Enum,
+
+
+
+
+
+
+                
+                Enum,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
                 ScopeEnd]
         '''
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                FunctionCall,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                Type,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
                 Function,
                 ScopeBegin,
                 InstructionLine,
@@ -3176,6 +4103,7 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
+
                 Function,
                 ScopeBegin,
                 InstructionLine,
@@ -3183,6 +4111,7 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
+
                 Function,
                 ScopeBegin,
                 InstructionLine,
@@ -3190,101 +4119,126 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
+
                 Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                FunctionCall,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                FunctionCall,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                Conditional,
                 ScopeBegin,
                 InstructionLine,
                 InstructionLine,
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
-                Conditional,
-                ScopeEnd,
+
                 Function,
                 ScopeBegin,
                 InstructionLine,
                 InstructionLine,
-                Conditional,
-                ScopeBegin,
-                InstructionLine,
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
-                Conditional,
-                ScopeEnd,
-                Enum,
-                Type,
-                Type,
-                Type,
+
                 Function,
                 ScopeBegin,
-                Type,
-                Type,
-                Type]
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd]
         '''
+
+                
+
+
 
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
         self.assertEquals(len(cc.get_output()), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]), "%d: %s != %s (%s)" % (i, type(cc.get_output()[i]), types[i], cc.get_output()[i]))
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]), "%d: %s != %s\n%s" % (i, type(cc.get_output()[i]), types[i], cc.get_output()[i]))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -43,6 +43,16 @@ class Opcode(object):
                 'ror', 'rti', 'rts', 'sbc', 'sec', 'sed', 'sei', 'sta', 
                 'stx', 'sty', 'tax', 'tay', 'tsx', 'txa', 'txs', 'tya']
 
+    OPERANDS =[ 'adc', 'and', 'asl', 'bcc', 'bcs', 'beq', 'bit', 'bmi', 
+                'bne', 'bpl', 'bvc', 'bvs', 'cmp', 'cpx', 'cpy', 'dec', 
+                'eor', 'inc', 'jmp', 'jsr', 'lda', 'ldx', 'ldy', 'lsr', 
+                'ora', 'rol', 'ror', 'sbc', 'sta', 'stx', 'sty']
+
+    IMPLIED = [ 'brk', 'clc', 'cld', 'cli', 'clv', 'dex', 'dey', 'inx', 
+                'iny', 'nop', 'pha', 'php', 'pla', 'plp', 'rti', 'rts', 
+                'sec', 'sed', 'sei', 'tax', 'tay', 'tsx', 'txa', 'txs', 
+                'tya']
+
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -54,6 +64,18 @@ class Opcode(object):
             raise ParseFatalException('opcode missing')
        
         return klass(tokens.op)
+
+    @classmethod
+    def no_operands(klass):
+        expr = MatchFirst([CaselessKeyword(op).setResultsName('op') for op in Opcode.IMPLIED])
+        expr.setParseAction(klass.parse)
+        return expr
+
+    @classmethod
+    def operands(klass):
+        expr = MatchFirst([CaselessKeyword(op).setResultsName('op') for op in Opcode.OPERANDS])
+        expr.setParseAction(klass.parse)
+        return expr
 
     @classmethod
     def exprs(klass):
