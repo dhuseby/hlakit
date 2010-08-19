@@ -51,7 +51,7 @@ class Label(object):
 
     @classmethod
     def exprs(klass):
-        expr = Word(alphas, alphanums + '_').setResultsName('label') + Suppress(':')
+        expr = Word(alphas + '_', alphanums + '_').setResultsName('label') + Suppress(':')
         expr.setParseAction(klass.parse)
         return expr
 

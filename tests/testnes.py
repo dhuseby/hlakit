@@ -49,6 +49,7 @@ from hlakit.common.immediate import Immediate
 from hlakit.common.typedef import Typedef
 from hlakit.common.type_ import Type
 from hlakit.common.variable import Variable
+from hlakit.common.label import Label
 from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
 from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from hlakit.cpu.mos6502.register import Register
@@ -522,6 +523,54 @@ class NESCompilerTester(unittest.TestCase):
         self.assertEquals(len(cc.get_output()), len(types))
         for i in range(0,len(types)):
             self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testFunctionWithLabel(self):
+        code = """
+            inline div( dest, amount )
+            {
+            sec
+            ldx #0
+            lda amount
+            while (nonzero) 
+            {
+            bmi div_done_remainder
+            inx
+            sec
+            sbc dest
+            }
+            jmp div_done
+            div_done_remainder:
+            dex
+            div_done:
+            stx dest
+            }
+            """
+        types = [ Function,
+                  ScopeBegin,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  ScopeEnd,
+                  InstructionLine,
+                  Label,
+                  InstructionLine,
+                  Label,
+                  InstructionLine,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
 
     def testExampleGame(self):
         code = """
@@ -2334,8 +2383,7 @@ class NESCompilerTester(unittest.TestCase):
             dex
             }
             }
-            """
-        '''
+
             inline asl_16_to( dest, src, amount )
             {
             assign_16_16(src,dest)
@@ -2513,7 +2561,8 @@ class NESCompilerTester(unittest.TestCase):
             and #7
             sta dest
             }
-            
+            """
+        '''
             inline div( dest, amount )
             {
             sec
@@ -5110,8 +5159,114 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
-                ScopeEnd]
-        '''
+                ScopeEnd,
+        
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                
+                
+                
+                
+                
+                
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                               
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
                 Function,
                 ScopeBegin,
                 FunctionCall,
@@ -5131,16 +5286,6 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 InstructionLine,
-                Conditional,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
                 InstructionLine,
                 InstructionLine,
                 InstructionLine,
@@ -5148,86 +5293,7 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                Conditional,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                FunctionCall,
-                InstructionLine,
-                Conditional,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
-                ScopeEnd,
-                Function,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd,
+                
                 Function,
                 ScopeBegin,
                 InstructionLine,
@@ -5238,6 +5304,7 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
+                
                 Function,
                 ScopeBegin,
                 InstructionLine,
@@ -5248,6 +5315,7 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
+                
                 Function,
                 ScopeBegin,
                 InstructionLine,
@@ -5258,6 +5326,7 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
+                
                 Function,
                 ScopeBegin,
                 InstructionLine,
@@ -5268,7 +5337,8 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 InstructionLine,
-                ScopeEnd,
+                ScopeEnd]
+        '''
                 Function,
                 ScopeBegin,
                 InstructionLine,
@@ -5281,8 +5351,7 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
-                InstructionLine,
-                Type,
+
         '''
 
         cc = Session().compiler()

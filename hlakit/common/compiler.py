@@ -32,6 +32,7 @@ from cStringIO import StringIO
 from pyparsing import *
 from enum import Enum
 from type_ import Type
+from label import Label
 from struct import Struct
 from typedef import Typedef
 from immediate import Immediate
@@ -57,6 +58,7 @@ class Compiler(object):
         e = []
         e.append(('enum', Enum.exprs()))
         e.append(('type', Type.exprs()))
+        e.append(('label', Label.exprs()))
         e.append(('struct', Struct.exprs()))
         e.append(('typedef', Typedef.exprs()))
         e.append(('variable', Variable.exprs()))
