@@ -44,11 +44,13 @@ from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
 from hlakit.common.function import Function
 from hlakit.common.functioncall import FunctionCall
+from hlakit.common.functionreturn import FunctionReturn
 from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 from hlakit.common.immediate import Immediate
 from hlakit.common.typedef import Typedef
 from hlakit.common.type_ import Type
 from hlakit.common.variable import Variable
+from hlakit.common.variableinitializer import VariableInitializer
 from hlakit.common.label import Label
 from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
 from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
@@ -571,6 +573,111 @@ class NESCompilerTester(unittest.TestCase):
         for i in range(0,len(types)):
             self.assertTrue(isinstance(cc.get_output()[i], types[i]))
 
+    def testComplexVariableDecl(self):
+        code = """
+            byte _b_temp, _b_temp2
+            word _w_temp
+            """
+        types = [ Variable,
+                  Variable,
+                  Variable ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testComplexVariableDecls(self):
+        code = """
+            byte _b_temp
+            word _w_temp
+            pointer _p_temp, _jsrind_temp
+            byte _b_remainder,
+            _random_value,
+            _random_ticks
+            pointer _mem_src, _mem_dest
+            """
+        types = [ Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testFunctionWithReturn(self):
+        code = """
+            function vram_write_string()
+            {
+            ldy #0
+            forever 
+            {
+            lda (pstr), y
+            if (zero) 
+            {
+            vram_clear_address()
+            return
+            }
+            vram_write_a()
+            iny
+            }
+            }
+            """
+        types = [ Function,
+                  ScopeBegin,
+                  InstructionLine,
+                  Conditional,
+                  ScopeBegin,
+                  InstructionLine,
+                  Conditional,
+                  ScopeBegin,
+                  FunctionCall,
+                  FunctionReturn,
+                  ScopeEnd,
+                  FunctionCall,
+                  InstructionLine,
+                  ScopeEnd,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testInitializedArrayBeforeFunction(self):
+        code = """
+            byte setamt[] = {0,0,0,0,0,0,0,7}
+            function dummy_fn()
+            {
+                ldy #0
+            }
+            """
+        types = [ Variable,
+                  VariableInitializer,
+                  Function,
+                  ScopeBegin,
+                  InstructionLine,
+                  ScopeEnd ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
 
     def testExampleGame(self):
         code = """
@@ -2561,8 +2668,7 @@ class NESCompilerTester(unittest.TestCase):
             and #7
             sta dest
             }
-            """
-        '''
+
             inline div( dest, amount )
             {
             sec
@@ -2653,7 +2759,8 @@ class NESCompilerTester(unittest.TestCase):
             lda src
             sta _w_temp+0
             ora src+1
-            if (not zero) {
+            if (not zero) 
+            {
             lda src+1
             sta _w_temp+1
             _loop:
@@ -3109,14 +3216,17 @@ class NESCompilerTester(unittest.TestCase):
 
             byte _b_temp
             word _w_temp
-            pointer _p_temp, _jsrind_temp
-            byte _b_remainder,
-            _random_value,
-            _random_ticks
-            pointer _mem_src, _mem_dest
-
-            byte counter, palcol
-            pointer paddr, pstr
+            pointer _p_temp
+            pointer _jsrind_temp
+            byte _b_remainder
+            byte _random_value
+            byte _random_ticks
+            pointer _mem_src
+            pointer _mem_dest
+            byte counter
+            byte palcol
+            pointer paddr
+            pointer pstr
             char msgbuf[64]
 
             function Turn_Video_On()
@@ -3185,6 +3295,7 @@ class NESCompilerTester(unittest.TestCase):
             iny
             }
             }
+
             byte setamt[] = {0,0,0,0,0,0,0,7}
             
             function vram_init()
@@ -3304,6 +3415,7 @@ class NESCompilerTester(unittest.TestCase):
             char strTitle[] = "\a\a\a\a\a\a\aNESHLA Demo Program"
             char strHello[] = "Hello, World!"
             
+            
             inline custom_system_initialize()
             {
             disable_decimal_mode()
@@ -3349,7 +3461,7 @@ class NESCompilerTester(unittest.TestCase):
             {
             jmp (paddr)
             }
-        '''
+            """
 
         types=[ Function,
                 ScopeBegin,
@@ -5337,8 +5449,8 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 InstructionLine,
-                ScopeEnd]
-        '''
+                ScopeEnd,
+
                 Function,
                 ScopeBegin,
                 InstructionLine,
@@ -5351,8 +5463,786 @@ class NESCompilerTester(unittest.TestCase):
                 InstructionLine,
                 InstructionLine,
                 ScopeEnd,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                FunctionCall,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                Conditional,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                Label,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                Label,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                Conditional,
+                InstructionLine,
+                Label,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                Conditional,
+                ScopeEnd,
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                Conditional,
+                ScopeEnd,
 
-        '''
+                Enum,
+
+
+
+
+
+
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                Variable,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                InstructionLine,
+                Label,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                FunctionReturn,
+                ScopeEnd,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                ScopeEnd,
+
+                Variable,
+                VariableInitializer,
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                Conditional,
+                InstructionLine,
+                ScopeEnd,
+                Conditional,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                Conditional,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+                InstructionLine,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                Conditional,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd,
+                InstructionLine,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                FunctionCall,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                InstructionLine,
+                ScopeEnd,
+                Conditional,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Variable,
+                VariableInitializer,
+                Variable,
+                VariableInitializer,
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                InstructionLine,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                FunctionCall,
+                Conditional,
+                ScopeBegin,
+                FunctionCall,
+                FunctionCall,
+                ScopeEnd,
+                ScopeEnd,
+                
+                Function,
+                ScopeBegin,
+                InstructionLine,
+                ScopeEnd]
 
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -5360,6 +6250,11 @@ class NESCompilerTester(unittest.TestCase):
         self.assertEquals(len(cc.get_output()), len(types))
         for i in range(0,len(types)):
             self.assertTrue(isinstance(cc.get_output()[i], types[i]), "%d: %s != %s\n%s" % (i, type(cc.get_output()[i]), types[i], cc.get_output()[i]))
+
+
+
+
+
 
 
 

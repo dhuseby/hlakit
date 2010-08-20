@@ -32,10 +32,11 @@ from session import Session
 from immediate import Immediate
 from arrayvalue import ArrayValue, StringValue
 
-class Value(object):
+class VariableInitializer(object):
     """
-    value base class
+    Variable initializer
     """
+
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -43,21 +44,29 @@ class Value(object):
         if pp.ignore():
             return []
 
-        if 'number' in tokens.keys():
-            return tokens.number
-        elif 'array_' in tokens.keys():
-            return tokens.array_
-        elif 'string_' in tokens.keys():
-            return tokens.string_
+        if 'value' not in tokens.keys():
+            raise ParseFatalException('invalid varaible initializer')
 
-        raise ParseFatalException('unrecognized value expression')
+        return klass(tokens.value)
+       
 
     @classmethod
     def exprs(klass):
-        expr = Or([Optional(Suppress('#')) + Immediate.exprs().setResultsName('number'),
-                   StringValue.exprs().setResultsName('string_'),
-                   ArrayValue.exprs().setResultsName('array_')])
+        value_initializer = MatchFirst([StringValue.exprs(),
+                                        ArrayValue.exprs(),
+                                        Suppress('#') + Immediate.exprs()]).setResultsName('value')
+        expr = Suppress('=') + value_initializer
         expr.setParseAction(klass.parse)
         return expr
 
+    def __init__(self, value):
+        self._value = value
+
+    def get_value(self):
+        return self._value
+
+    def __str__(self):
+        return ' = ' + str(self._value)
+
+    __repr__ = __str__
 

@@ -53,8 +53,6 @@ def get_args(tokens):
     args_ = None
     if 'numeric_terminal' in tokens.keys():
         args_ = tokens.numeric_terminal
-    elif 'array_terminal' in tokens.keys():
-        args_ = tokens.array_terminal
     elif 'variable_terminal' in tokens.keys():
         # return the variable name
         args_ = Name('.'.join([str(v) for v in tokens.variable_terminal]))

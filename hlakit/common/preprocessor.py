@@ -68,7 +68,7 @@ class Preprocessor(object):
 
             # initialize the pyparsing parser as ZeroOrMore(Or())
             # of all of the expressions 
-            expr_or = Or([])
+            expr_or = MatchFirst([])
             for e in exprs:
                 expr_or.append(e[1])
            

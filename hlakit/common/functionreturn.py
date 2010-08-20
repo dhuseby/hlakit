@@ -29,13 +29,12 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
-from immediate import Immediate
-from arrayvalue import ArrayValue, StringValue
 
-class Value(object):
+class FunctionReturn(object):
     """
-    value base class
+    Enapsulates the 'return' keyword
     """
+
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -43,21 +42,19 @@ class Value(object):
         if pp.ignore():
             return []
 
-        if 'number' in tokens.keys():
-            return tokens.number
-        elif 'array_' in tokens.keys():
-            return tokens.array_
-        elif 'string_' in tokens.keys():
-            return tokens.string_
-
-        raise ParseFatalException('unrecognized value expression')
+        if 'return' in tokens.keys():
+            return klass()
+        
+        raise ParseFatalException('no return specified')
 
     @classmethod
     def exprs(klass):
-        expr = Or([Optional(Suppress('#')) + Immediate.exprs().setResultsName('number'),
-                   StringValue.exprs().setResultsName('string_'),
-                   ArrayValue.exprs().setResultsName('array_')])
+        expr = Keyword('return').setResultsName('return')
         expr.setParseAction(klass.parse)
         return expr
 
+    def __str__(self):
+        return 'return'
+
+    __repr__ = __str__
 

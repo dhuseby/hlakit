@@ -39,10 +39,12 @@ from immediate import Immediate
 from variable import Variable
 from function import Function
 from functioncall import FunctionCall
+from functionreturn import FunctionReturn
 from codeblock import CodeBlock
 from filemarkers import FileBegin, FileEnd
 from scopemarkers import ScopeBegin, ScopeEnd
 from symboltable import SymbolTable
+from variableinitializer import VariableInitializer
 
 class Compiler(object):
 
@@ -56,16 +58,18 @@ class Compiler(object):
     @classmethod
     def first_exprs(klass):
         e = []
+        e.append(('return', FunctionReturn.exprs()))
         e.append(('enum', Enum.exprs()))
-        e.append(('type', Type.exprs()))
         e.append(('label', Label.exprs()))
-        e.append(('struct', Struct.exprs()))
         e.append(('typedef', Typedef.exprs()))
         e.append(('variable', Variable.exprs()))
+        e.append(('struct', Struct.exprs()))
         e.append(('function', Function.exprs()))
         e.append(('functioncall', FunctionCall.exprs()))
         e.append(('scopebegin', ScopeBegin.exprs()))
         e.append(('scopeend', ScopeEnd.exprs()))
+        e.append(('initializer', VariableInitializer.exprs()))
+        e.append(('type', Type.exprs()))
         return e
 
     @classmethod
@@ -108,7 +112,7 @@ class Compiler(object):
         return self._get_tokens()
 
     def compile(self, tokens):
-        expr_or = Or([])
+        expr_or = MatchFirst([])
         for e in self.get_exprs():
             expr_or.append(e[1])
         parser = ZeroOrMore(expr_or)

@@ -52,45 +52,75 @@ class Variable(Symbol):
             return []
 
         shared = 'shared' in tokens.keys()
-        array_ = 'array_' in tokens.keys()
 
         if 'type_' not in tokens.keys():
             raise ParseFatalException('variable missing type')
 
-        if 'name' not in tokens.keys():
-            raise ParseFatalException('variable has no name')
+        if 'variables' not in tokens.keys():
+            raise ParseFatalException('invalid variable decl')
 
-        size = None
-        if 'size' in tokens.keys():
-            size = tokens.size
+        variables = []
+        for v in tokens.variables:
+            array_ = 'array_' in v.keys()
 
-        address = None
-        if 'address' in tokens.keys():
-            address = tokens.address
+            if 'name' not in v.keys():
+                raise ParseFatalException('variable has no name')
 
-        # add the variable to the symbol table
-        var = klass(tokens.name, tokens.type_, shared, array_, size, address)
-        SymbolTable().new_symbol(var)
+            size = None
+            if 'size' in v.keys():
+                size = v.size
 
-        return var
+            address = None
+            if 'address' in v.keys():
+                address = v.address
+
+            # add the variable to the symbol table
+            var = klass(v.name, tokens.type_, shared, array_, size, address)
+            SymbolTable().new_symbol(var)
+
+            variables.append(var)
+
+        return variables
 
     @classmethod
     def exprs(klass):
+        ops = Session().opcodes()
+        kwds = Session().keywords()
+        conds = Session().conditions()
         lbracket = Suppress('[')
         rbracket = Suppress(']')
         colon = Suppress(':')
         size = NumericValue.exprs()
         address = NumericValue.exprs()
 
+        # build the proper expression for detecting types
+        type_expr = None
+        if ops:
+            type_expr = ~ops
+        if kwds:
+            if type_expr:
+                type_expr += ~kwds
+            else:
+                type_expr = ~kwds
+        if conds:
+            if type_expr:
+                type_expr += ~conds
+            else:
+                type_expr = ~conds
+        if type_expr:
+            type_expr += Type.exprs()
+        else:
+            type_expr = Type.exprs()
+
         expr = Optional(Keyword('shared').setResultsName('shared')) + \
-               Or([Struct.exprs(), Type.exprs()]).setResultsName('type_') + \
+               Or([Struct.exprs(), type_expr]).setResultsName('type_') + \
                ~LineEnd() + \
-               Name.exprs().setResultsName('name') + \
-               Optional(lbracket + \
-                        Optional(size.setResultsName('size')) + \
-                        rbracket).setResultsName('array_') + \
-               Optional(colon + address.setResultsName('address')) + \
-               Suppress(LineEnd()) 
+               delimitedList(Group(Name.exprs().setResultsName('name') + \
+                                   Optional(lbracket + \
+                                            Optional(size.setResultsName('size')) + \
+                                            rbracket).setResultsName('array_') + \
+                                    Optional(colon + address.setResultsName('address'))),
+                             delim=',').setResultsName('variables')
         expr.setParseAction(klass.parse)
         
         return expr
@@ -125,7 +155,7 @@ class Variable(Symbol):
         if self.is_array():
             s += '['
             if self.get_array_size():
-                s += '%s' % self.get_size()
+                s += '%s' % self.get_array_size()
             s += ']'
         if self.get_address():
             s += ' :%s' % self.get_address()
