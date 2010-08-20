@@ -69,7 +69,7 @@ function vram_write_string()
 {
     ldy #0
     forever {
-        lda [pstr], y
+        lda (pstr), y
         if (zero) {
             vram_clear_address()
             return

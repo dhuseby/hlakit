@@ -15,8 +15,10 @@
 
 #include "6502/std_ram.s"
 
-byte counter, palcol
-pointer paddr, pstr
+byte counter
+byte palcol
+pointer paddr
+pointer pstr
 
 char msgbuf[64]
 

@@ -25,8 +25,8 @@ function memcpy()
 {
     do {
         dey
-        lda [_mem_src],y
-        sta [_mem_dest],y
+        lda (_mem_src),y
+        sta (_mem_dest),y
         tya
     } while (nonzero)
 }
@@ -41,7 +41,7 @@ function memcpy()
 function memset()
 {
     do {
-        sta [_mem_dest],y
+        sta (_mem_dest),y
         dey
     } while (nonzero)
 }

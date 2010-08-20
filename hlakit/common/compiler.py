@@ -69,7 +69,6 @@ class Compiler(object):
         e.append(('scopebegin', ScopeBegin.exprs()))
         e.append(('scopeend', ScopeEnd.exprs()))
         e.append(('initializer', VariableInitializer.exprs()))
-        e.append(('type', Type.exprs()))
         return e
 
     @classmethod

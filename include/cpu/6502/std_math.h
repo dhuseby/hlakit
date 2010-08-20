@@ -293,7 +293,7 @@ inline add_16_8yind_to(src,value,dest)
 {
     clc
     lda src+0
-    adc [value],y
+    adc (value),y
     sta dest+0
     lda src+1
     adc #0
@@ -309,7 +309,7 @@ inline add_16_8yind_to(src,value,dest)
  */
 inline adds_16_8yind_to(src,value,dest)
 {
-    lda [value],y
+    lda (value),y
     if (negative) {
         ldx #0xFF
     } else {

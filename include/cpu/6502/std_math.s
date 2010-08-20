@@ -18,7 +18,7 @@
 function random_more()
 {
     lda _random_value
-    adc [_random_value],y
+    adc (_random_value),y
     adc _random_value,x
     ldy _random_value
     adc $C123,y   // just some random pointer to ROM data
@@ -33,7 +33,7 @@ function random_more()
 function random()
 {
     lda _random_value
-    adc [_random_value,x]
+    adc (_random_value,x)
     sbc time.ticks   // just a little more randomness
     sta _random_value
 }

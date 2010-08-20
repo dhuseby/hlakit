@@ -124,7 +124,7 @@ function memset_ram_name_table()
 
         ldy #0
         do {
-            sta [_p_temp],y
+            sta (_p_temp),y
             iny
             cpy #NAMETABLE_WIDTH*2
         } while (not equal)
@@ -155,7 +155,7 @@ function memset_ram_name_n_attr_table()
 
         ldy #0
         do {
-            sta [_p_temp],y
+            sta (_p_temp),y
             iny
         } while (nonzero)
 
@@ -185,7 +185,7 @@ function vram_memcpy_name_table()
         ldy #0
         do {
 
-            lda [_p_temp], y
+            lda (_p_temp), y
             vram_write_a()
             iny
             cpy #NAMETABLE_WIDTH
@@ -207,7 +207,7 @@ function vram_memcpy()
 {
     ldy #0
     do {
-        lda [_mem_src],y
+        lda (_mem_src),y
         vram_write_a()
         iny
         dex

@@ -18,13 +18,13 @@
 // temporary variables for macros such as the math ones
 byte _b_temp
 word _w_temp
-pointer _p_temp, _jsrind_temp
+pointer _p_temp
+pointer _jsrind_temp
 
 #ifdef _STD_MATH_H
-byte _b_remainder,
-
-_random_value,
-_random_ticks
+byte _b_remainder
+byte _random_value
+byte _random_ticks
 #endif
 
 #endif
@@ -35,7 +35,8 @@ _random_ticks
 #ifdef _STD_MEMORY_H
 
 // temporary pointers to the memory locations
-pointer _mem_src, _mem_dest
+pointer _mem_src
+pointer _mem_dest
 
 
 #endif

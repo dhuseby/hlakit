@@ -124,7 +124,7 @@ inline y_assign(dest,src)
 inline assign_ind(dest,value)
 {
     lda value
-    sta [dest]
+    sta (dest)
 }
 
 /******************************************************************************
@@ -135,7 +135,7 @@ inline assign_ind(dest,value)
 inline assign_ind_y(dest,value)
 {
     lda value
-    sta [dest],y
+    sta (dest),y
 }
 
 /******************************************************************************
@@ -145,7 +145,7 @@ inline assign_ind_y(dest,value)
  */
 inline ind_x_assign(dest,src)
 {
-    lda [src,x]
+    lda (src,x)
     sta dest
 }
 
@@ -156,7 +156,7 @@ inline ind_x_assign(dest,src)
  */
 inline ind_y_assign(dest,src)
 {
-    lda [src],y
+    lda (src),y
     sta dest
 }
 
@@ -263,10 +263,10 @@ inline assign_16_16_y(dest,value)
 inline ind_assign_16_16_x(dest,value)
 {
     ldy #0
-    lda [value],y
+    lda (value),y
     sta dest+0,x
     iny
-    lda [value],y
+    lda (value),y
     sta dest+1,x
 }
 
@@ -304,10 +304,10 @@ inline x_assign_16_16_x(dest,value)
  */
 inline y_ind_assign_16_16(dest,value)
 {
-    lda [value],y
+    lda (value),y
     sta dest +0
     iny
-    lda [value],y
+    lda (value),y
     sta dest +1
 }
 

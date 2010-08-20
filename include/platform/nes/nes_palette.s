@@ -85,7 +85,7 @@ function set_palette_entry_x()
 {
     ldy #0
     do {
-        lda [_p_temp], y
+        lda (_p_temp), y
         sta _palette, x
         inx
         iny
