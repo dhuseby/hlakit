@@ -50,7 +50,7 @@ from hlakit.cpu.mos6502.instructionline import InstructionLine
 from hlakit.cpu.mos6502.conditional import Conditional
 from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
-from hlakit.common.function import Function
+from hlakit.common.functiondecl import FunctionDecl
 from hlakit.common.functioncall import FunctionCall
 from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 from hlakit.common.immediate import Immediate
@@ -495,9 +495,9 @@ class MOS6502CompilerTester(unittest.TestCase):
         st = SymbolTable()
         st.reset_state()
         # pre-define the function 'jsrind_f'
-        st.new_symbol(Function(Name('jsrind_f'), FunctionType('function'), []))
+        st.new_symbol(FunctionDecl(Name('jsrind_f'), FunctionType('function'), []))
         # pre-define the macro 'assign_16i'
-        st.new_symbol(Function(Name('assign_16i'), FunctionType('inline'), 
+        st.new_symbol(FunctionDecl(Name('assign_16i'), FunctionType('inline'), 
                                [FunctionParameter('one'), FunctionParameter('two')]))
 
         cb = build_code_block(code)
@@ -517,7 +517,7 @@ class MOS6502CompilerTester(unittest.TestCase):
                    inx
                }
                """
-        types = [ Function,
+        types = [ FunctionDecl,
                   ScopeBegin,
                   InstructionLine,
                   InstructionLine,
@@ -543,7 +543,7 @@ class MOS6502CompilerTester(unittest.TestCase):
                    inx
                }
                """
-        types = [ Function,
+        types = [ FunctionDecl,
                   ScopeBegin,
                   InstructionLine,
                   InstructionLine,
@@ -555,7 +555,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         cc = Session().compiler()
         st = SymbolTable()
         # pre-define the function 'jsrind_f'
-        st.new_symbol(Function(Name('jsrind_f'), FunctionType('function'), []))
+        st.new_symbol(FunctionDecl(Name('jsrind_f'), FunctionType('function'), []))
         cb = build_code_block(code)
         cc.compile([cb])
         self.assertEquals(len(cc.get_output()), len(types))
@@ -903,7 +903,7 @@ class MOS6502CompilerTester(unittest.TestCase):
                    }
                }
                """
-        types = [ Function,
+        types = [ FunctionDecl,
                   ScopeBegin,
                   Conditional,
                   ScopeBegin,

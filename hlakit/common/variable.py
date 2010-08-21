@@ -29,8 +29,6 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
-from typeregistry import TypeRegistry
-from symboltable import SymbolTable
 from symbol import Symbol
 from type_ import Type
 from struct import Struct
@@ -45,8 +43,6 @@ class Variable(Symbol):
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
-        tr = TypeRegistry()
-        st = SymbolTable()
 
         if pp.ignore():
             return []
@@ -76,7 +72,6 @@ class Variable(Symbol):
 
             # add the variable to the symbol table
             var = klass(v.name, tokens.type_, shared, array_, size, address)
-            SymbolTable().new_symbol(var)
 
             variables.append(var)
 

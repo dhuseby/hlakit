@@ -29,16 +29,15 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
-from symboltable import SymbolTable
 from symbol import Symbol
 from name import Name
 from functiontype import FunctionType
 from functionparameter import FunctionParameter
 
 
-class Function(Symbol):
+class FunctionDecl(Symbol):
     """
-    The base class of function definitions
+    The base class of function declarations
     """
 
     @classmethod
@@ -67,10 +66,7 @@ class Function(Symbol):
             params = [ p for p in tokens.params ]
 
         # add the function to the symbol table
-        fn = klass(fnname, type_, params)
-        SymbolTable().new_symbol(fn)
-
-        return fn
+        return klass(fnname, type_, params)
 
     @classmethod
     def exprs(klass):
@@ -84,7 +80,7 @@ class Function(Symbol):
         return expr
 
     def __init__(self, name, type_=None, params=None):
-        super(Function, self).__init__(name, type_)
+        super(FunctionDecl, self).__init__(name, type_)
         self._params = params
 
     def get_noreturn(self):

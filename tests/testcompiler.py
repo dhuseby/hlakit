@@ -40,7 +40,7 @@ from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
-from hlakit.common.function import Function
+from hlakit.common.functiondecl import FunctionDecl
 from hlakit.common.functioncall import FunctionCall
 from hlakit.common.type_ import Type
 from hlakit.common.name import Name
@@ -387,7 +387,7 @@ class CompilerTester(unittest.TestCase):
         # pre-define the function 'foo'
         st = SymbolTable()
         st.reset_state()
-        st.new_symbol(Function(Name('foo'), FunctionType('function')))
+        st.new_symbol(FunctionDecl(Name('foo'), FunctionType('function')))
 
         # compile a call to foo()
         cc.compile([CodeBlock([CodeLine('foo()')])])
@@ -403,7 +403,7 @@ class CompilerTester(unittest.TestCase):
 
         cc.compile([CodeBlock([CodeLine('function foo() { }')])])
         self.assertEquals(len(cc.get_output()), 3)
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionDecl))
         self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
         self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
@@ -417,7 +417,7 @@ class CompilerTester(unittest.TestCase):
 
         cc.compile([CodeBlock([CodeLine('inline foo() { }')])])
         self.assertEquals(len(cc.get_output()), 3)
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionDecl))
         self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
         self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
@@ -430,7 +430,7 @@ class CompilerTester(unittest.TestCase):
 
         cc.compile([CodeBlock([CodeLine('interrupt foo() { }')])])
         self.assertEquals(len(cc.get_output()), 3)
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionDecl))
         self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
         self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
@@ -443,7 +443,7 @@ class CompilerTester(unittest.TestCase):
 
         cc.compile([CodeBlock([CodeLine('interrupt.start foo() { }')])])
         self.assertEquals(len(cc.get_output()), 3)
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionDecl))
         self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
         self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
@@ -494,7 +494,7 @@ class CompilerTester(unittest.TestCase):
 
         cc.compile([CodeBlock([CodeLine('function noreturn foo() { }')])])
         self.assertEquals(len(cc.get_output()), 3)
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionDecl))
         self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
         self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
@@ -508,7 +508,7 @@ class CompilerTester(unittest.TestCase):
 
         cc.compile([CodeBlock([CodeLine('interrupt noreturn foo() { }')])])
         self.assertEquals(len(cc.get_output()), 3)
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionDecl))
         self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
         self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
@@ -531,7 +531,7 @@ class CompilerTester(unittest.TestCase):
 
         cc.compile([CodeBlock([CodeLine('inline foo(bar) { }')])])
         self.assertEquals(len(cc.get_output()), 3)
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionDecl))
         self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
         self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
@@ -548,7 +548,7 @@ class CompilerTester(unittest.TestCase):
 
         cc.compile([CodeBlock([CodeLine('inline foo(bar,baz, qux) { }')])])
         self.assertEquals(len(cc.get_output()), 3)
-        self.assertTrue(isinstance(cc.get_output()[0], Function))
+        self.assertTrue(isinstance(cc.get_output()[0], FunctionDecl))
         self.assertTrue(isinstance(cc.get_output()[1], ScopeBegin))
         self.assertTrue(isinstance(cc.get_output()[2], ScopeEnd))
         self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
@@ -570,18 +570,16 @@ class CompilerTester(unittest.TestCase):
         # pre-define the function 'foo'
         st = SymbolTable()
         st.reset_state()
-        st.new_symbol(Function(Name('foo'), FunctionType('inline'), 
+        st.new_symbol(FunctionDecl(Name('foo'), FunctionType('inline'), 
                       [FunctionParameter('one')]))
 
         cc.compile([CodeBlock([CodeLine('foo(bar.baz)')])])
         self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
         self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
         self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.baz')
 
         # reset state
@@ -593,12 +591,11 @@ class CompilerTester(unittest.TestCase):
         # pre-define the function 'foo'
         st = SymbolTable()
         st.reset_state()
-        st.new_symbol(Function(Name('foo'), FunctionType('inline'),
+        st.new_symbol(FunctionDecl(Name('foo'), FunctionType('inline'),
                       [FunctionParameter('one'), FunctionParameter('two'), FunctionParameter('three')]))
 
         cc.compile([CodeBlock([CodeLine('foo(bar.food,baz, qux.free)')])])
         self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
         self.assertTrue(len(cc.get_output()[0].get_params()) == 3)
@@ -606,7 +603,6 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
         self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.food')
         self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
         self.assertEquals(cc.get_output()[0].get_params()[2].get_symbol(), 'qux.free')
@@ -620,18 +616,16 @@ class CompilerTester(unittest.TestCase):
         # pre-define the function 'foo'
         st = SymbolTable()
         st.reset_state()
-        st.new_symbol(Function(Name('foo'), FunctionType('inline'), 
+        st.new_symbol(FunctionDecl(Name('foo'), FunctionType('inline'), 
                       [FunctionParameter('one')]))
 
         cc.compile([CodeBlock([CodeLine('foo(0x0400)')])])
         self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
         self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), Immediate))
 
         # reset state
@@ -643,14 +637,13 @@ class CompilerTester(unittest.TestCase):
         # pre-define the function 'foo'
         st = SymbolTable()
         st.reset_state()
-        st.new_symbol(Function(Name('foo'), FunctionType('inline'),
+        st.new_symbol(FunctionDecl(Name('foo'), FunctionType('inline'),
                       [FunctionParameter('one'), FunctionParameter('two'), 
                        FunctionParameter('three'), FunctionParameter('four'),
                        FunctionParameter('five')]))
 
         cc.compile([CodeBlock([CodeLine('foo(0x0400,1024,$0400,1K,%10000000000)')])])
         self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
         self.assertTrue(len(cc.get_output()[0].get_params()) == 5)
@@ -660,7 +653,6 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[3], FunctionParameter))
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[4], FunctionParameter))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), Immediate))
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[1].get_value(), Immediate))
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[2].get_value(), Immediate))
@@ -676,12 +668,11 @@ class CompilerTester(unittest.TestCase):
         # pre-define the function 'foo'
         st = SymbolTable()
         st.reset_state()
-        st.new_symbol(Function(Name('foo'), FunctionType('inline'),
+        st.new_symbol(FunctionDecl(Name('foo'), FunctionType('inline'),
                       [FunctionParameter('one'), FunctionParameter('two'), FunctionParameter('three')]))
 
         cc.compile([CodeBlock([CodeLine('foo(bar.food,baz, 1K)')])])
         self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_type(), FunctionType))
         self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
         self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
         self.assertTrue(len(cc.get_output()[0].get_params()) == 3)
@@ -689,7 +680,6 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
         self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc.get_output()[0].get_type().get_type(), 'inline')
         self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.food')
         self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
         self.assertTrue(isinstance(cc.get_output()[0].get_params()[2].get_value(), Immediate))

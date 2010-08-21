@@ -29,7 +29,6 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
-from symboltable import SymbolTable
 from name import Name
 from functionparameter import FunctionParameter
 
@@ -45,29 +44,15 @@ class FunctionCall(object):
         if pp.ignore():
             return []
 
-        fn = None
-        # get a reference to the symbol table
-        st = SymbolTable()
-
         name = None
         if 'name' in tokens.keys():
             name = tokens.name
 
-        # look up the function decl
-        type_ = None
-        fn = st[name]
-        if fn != None:
-            type_ = fn.get_type()
-
         params = None
         if 'params' in tokens.keys():
-            # some built-in functions are "operator" type functions and they can
-            # have parameters because they are a special type of inline macro
-            if (type_ != None) and (type_.get_type() not in ('inline', 'operator')):
-                raise ParseFatalException('calling non-inline function with params')
             params = [ p for p in tokens.params ]
 
-        return FunctionCall(name, type_, params)
+        return FunctionCall(name, None, params)
 
     @classmethod
     def exprs(klass):

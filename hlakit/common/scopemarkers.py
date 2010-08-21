@@ -29,7 +29,6 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
-from symboltable import SymbolTable
 from name import Name
 from functionparameter import FunctionParameter
 

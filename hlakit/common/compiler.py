@@ -37,7 +37,7 @@ from struct import Struct
 from typedef import Typedef
 from immediate import Immediate
 from variable import Variable
-from function import Function
+from functiondecl import FunctionDecl
 from functioncall import FunctionCall
 from functionreturn import FunctionReturn
 from codeblock import CodeBlock
@@ -64,7 +64,7 @@ class Compiler(object):
         e.append(('typedef', Typedef.exprs()))
         e.append(('variable', Variable.exprs()))
         e.append(('struct', Struct.exprs()))
-        e.append(('function', Function.exprs()))
+        e.append(('functiondecl', FunctionDecl.exprs()))
         e.append(('functioncall', FunctionCall.exprs()))
         e.append(('scopebegin', ScopeBegin.exprs()))
         e.append(('scopeend', ScopeEnd.exprs()))
@@ -107,17 +107,15 @@ class Compiler(object):
             self._tokens = []
         self._tokens.extend(tokens)
 
-    def get_output(self):
-        return self._get_tokens()
-
-    def compile(self, tokens):
+    def _tokenize(self, tokens):
+        # build the parser phase rules
         expr_or = MatchFirst([])
         for e in self.get_exprs():
             expr_or.append(e[1])
         parser = ZeroOrMore(expr_or)
         parser.ignore(cStyleComment | cppStyleComment)
 
-        # process the tokens the compiler cares about
+        # run the pre-processor tokens through the parser phase
         cc_tokens = []
         for token in tokens:
             if isinstance(token, FileBegin):
@@ -136,3 +134,19 @@ class Compiler(object):
                 cc_tokens.append(token)
 
         self._tokens = cc_tokens
+
+    def _parse(self, tokens):
+        pass
+
+    def get_output(self):
+        return self._get_tokens()
+
+    def compile(self, tokens):
+        # first we tokenize
+        self._tokenize(tokens)
+
+        # now we need to run the parsed tokens to the structure builder
+        self._parse(tokens)
+        
+
+

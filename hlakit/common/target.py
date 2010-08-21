@@ -12,11 +12,6 @@ from pyparsing import *
 from preprocessor import Preprocessor
 from compiler import Compiler
 from symboltable import SymbolTable
-from name import Name
-from functiontype import FunctionType
-from functionparameter import FunctionParameter
-from function import Function
-from functioncall import FunctionCall
 
 class Target(object):
 
