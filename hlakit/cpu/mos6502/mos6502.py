@@ -33,6 +33,12 @@ from hlakit.common.target import Target
 from hlakit.common.preprocessor import Preprocessor
 from hlakit.common.compiler import Compiler
 from hlakit.common.type_ import Type
+from hlakit.common.label import Label
+from hlakit.common.function import Function
+from hlakit.common.functiondecl import FunctionDecl
+from hlakit.common.functioncall import FunctionCall
+from hlakit.common.functionreturn import FunctionReturn
+from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 from interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from instructionline import InstructionLine
 from conditional import Conditional
@@ -56,6 +62,8 @@ class MOS6502Preprocessor(Preprocessor):
 
 class MOS6502Compiler(Compiler):
 
+    OUTSIDE, FN, INSIDE, CONDITIONAL, ERROR = range(5)
+
     @classmethod
     def first_exprs(klass):
         e = []
@@ -68,6 +76,88 @@ class MOS6502Compiler(Compiler):
         e.extend(Compiler.first_exprs())
        
         return e
+
+
+    _shared_state = {}
+
+    def __new__(cls, *a, **k):
+        obj = object.__new__(cls, *a, **k)
+        obj.__dict__ = cls._shared_state
+        return obj
+
+    def _next_state(self, token):
+
+        # outside of a function declaration
+        if self._state == self.OUTSIDE:
+            if isinstance(token, FunctionDecl):
+                if self._depth != 0:
+                    self._state = self.ERROR
+                    raise ParseFatalError('cannot declare a function here')
+                self._fn = Function(token)
+                self._state = self.FN
+            else:
+                return token
+
+        # have seen a function decl, looking for {
+        elif self._state == self.FN:
+            if isinstance(token, ScopeBegin):
+                self._fn.append_token(token)
+                self._depth += 1
+                self._state = self.INSIDE
+            else:
+                self._state = self.ERROR
+                s = 'function decl not followed by {\n'
+                s += str(self._fn) + '\n'
+                s += str(token)
+                raise ParseFatalException(s)
+
+        # inside function decl
+        elif self._state == self.INSIDE:
+            if isinstance(token, Conditional):
+                self._fn.append_token(token)
+            elif isinstance(token, ScopeBegin):
+                self._fn.append_token(token)
+                self._depth += 1
+            elif isinstance(token, ScopeEnd):
+                self._fn.append_token(token)
+                self._depth -= 1
+                if self._depth == 0:
+                    self._state = self.OUTSIDE
+                    return self._fn
+            elif isinstance(token, Label):
+                # TODO: register the label with the global label list
+                self._fn.append_token(token)
+            elif isinstance(token, InstructionLine):
+                self._fn.append_token(token)
+            elif isinstance(token, FunctionCall):
+                self._fn.append_token(token)
+                self._fn.add_dependency(token.get_name())
+            elif isinstance(token, FunctionReturn):
+                self._fn.append_token(token)
+            else:
+                self._state = self.ERROR
+                s = 'invalid token in body of function\n'
+                s += str(self._fn) + '\n'
+                s += '%s: %s' % (type(token), str(token))
+                raise ParseFatalException(s)
+
+        return None
+
+    def _parse(self, tokens):
+        """ go through the list of tokens looking for well structred functions
+        """
+        self._state = self.OUTSIDE
+        self._fn = None
+        self._depth = 0
+        out_tokens = []
+        for t in tokens:
+            token = self._next_state(t)
+            if token != None:
+                out_tokens.append(token)
+
+        return out_tokens
+
+
 
 class MOS6502(Target):
 
@@ -100,7 +190,7 @@ class MOS6502(Target):
     def compiler(self):
         return MOS6502Compiler()
 
-    def linker(self):
+    def generator(self):
         return None
 
 

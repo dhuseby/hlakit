@@ -40,6 +40,7 @@ from hlakit.common.typeregistry import TypeRegistry
 from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.numericvalue import NumericValue
+from hlakit.common.function import Function
 from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
 from hlakit.common.functiondecl import FunctionDecl
@@ -313,8 +314,7 @@ class NESCompilerTester(unittest.TestCase):
                 enable_interrupts()
             }
             """
-        types = [ FunctionDecl,
-                  ScopeBegin,
+        types = [ ScopeBegin,
                   FunctionCall,
                   FunctionCall,
                   FunctionCall,
@@ -335,9 +335,14 @@ class NESCompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+
+        tokens = cc.get_output()[0].get_tokens()
+        self.assertEquals(len(tokens), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(tokens[i], types[i]))
 
     def testPPUEnum(self):
         code = """
@@ -393,8 +398,7 @@ class NESCompilerTester(unittest.TestCase):
             ppu_ctl1_clear(%00010000|%00001000)
             }
             """
-        types = [ FunctionDecl,
-                  ScopeBegin,
+        types = [ ScopeBegin,
                   FunctionCall,
                   FunctionCall,
                   ScopeEnd ]
@@ -402,9 +406,14 @@ class NESCompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+
+        tokens = cc.get_output()[0].get_tokens()
+        self.assertEquals(len(tokens), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(tokens[i], types[i]))
 
     def testMMC5Init(self):
         code = """
@@ -426,30 +435,35 @@ class NESCompilerTester(unittest.TestCase):
             stx MMC5.BGCHR_BANK_SELECT_2K_1800
             }
             """
-        types =[FunctionDecl,
-                ScopeBegin,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                InstructionLine,
-                ScopeEnd]
-        
+
+        types = [ ScopeBegin,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  InstructionLine,
+                  ScopeEnd ]
+
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+
+        tokens = cc.get_output()[0].get_tokens()
+        self.assertEquals(len(tokens), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(tokens[i], types[i]))
 
     def testMathImmediate(self):
         code = """
@@ -462,8 +476,7 @@ class NESCompilerTester(unittest.TestCase):
             sta PPU.ADDRESS
             }
             """
-        types = [ FunctionDecl,
-                  ScopeBegin,
+        types = [ ScopeBegin,
                   FunctionCall,
                   InstructionLine,
                   InstructionLine,
@@ -474,9 +487,14 @@ class NESCompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+
+        tokens = cc.get_output()[0].get_tokens()
+        self.assertEquals(len(tokens), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(tokens[i], types[i]))
 
     def testComplexParamFunctionCall(self):
         code = """
@@ -487,8 +505,7 @@ class NESCompilerTester(unittest.TestCase):
             pla
             }
             """
-        types = [ FunctionDecl,
-                  ScopeBegin,
+        types = [ ScopeBegin,
                   InstructionLine,
                   FunctionCall,
                   InstructionLine,
@@ -497,9 +514,14 @@ class NESCompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+
+        tokens = cc.get_output()[0].get_tokens()
+        self.assertEquals(len(tokens), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(tokens[i], types[i]))
 
     def testComplexOperands(self):
         code = """
@@ -511,8 +533,7 @@ class NESCompilerTester(unittest.TestCase):
             sta dest+1,x
             }
             """
-        types = [ FunctionDecl,
-                  ScopeBegin,
+        types = [ ScopeBegin,
                   InstructionLine,
                   InstructionLine,
                   InstructionLine,
@@ -522,9 +543,14 @@ class NESCompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+
+        tokens = cc.get_output()[0].get_tokens()
+        self.assertEquals(len(tokens), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(tokens[i], types[i]))
 
     def testFunctionWithLabel(self):
         code = """
@@ -547,8 +573,7 @@ class NESCompilerTester(unittest.TestCase):
             stx dest
             }
             """
-        types = [ FunctionDecl,
-                  ScopeBegin,
+        types = [ ScopeBegin,
                   InstructionLine,
                   InstructionLine,
                   InstructionLine,
@@ -569,9 +594,14 @@ class NESCompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+
+        tokens = cc.get_output()[0].get_tokens()
+        #self.assertEquals(len(tokens), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(tokens[i], types[i]), '%s: %s != %s' % (i, type(tokens[i]), type(types[i])))
 
     def testComplexVariableDecl(self):
         code = """
@@ -634,8 +664,7 @@ class NESCompilerTester(unittest.TestCase):
             }
             }
             """
-        types = [ FunctionDecl,
-                  ScopeBegin,
+        types = [ ScopeBegin,
                   InstructionLine,
                   Conditional,
                   ScopeBegin,
@@ -653,9 +682,14 @@ class NESCompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+
+        self.assertEquals(len(cc.get_output()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0], Function))
+
+        tokens = cc.get_output()[0].get_tokens()
+        self.assertEquals(len(tokens), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(tokens[i], types[i]))
 
     def testInitializedArrayBeforeFunction(self):
         code = """
@@ -665,19 +699,23 @@ class NESCompilerTester(unittest.TestCase):
                 ldy #0
             }
             """
-        types = [ Variable,
-                  VariableInitializer,
-                  FunctionDecl,
-                  ScopeBegin,
+        types = [ ScopeBegin,
                   InstructionLine,
                   ScopeEnd ]
 
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+        
+        self.assertEquals(len(cc.get_output()), 3)
+        self.assertTrue(isinstance(cc.get_output()[0], Variable))
+        self.assertTrue(isinstance(cc.get_output()[1], VariableInitializer))
+        self.assertTrue(isinstance(cc.get_output()[2], Function))
+
+        tokens = cc.get_output()[2].get_tokens()
+        self.assertEquals(len(tokens), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(tokens[i], types[i]))
 
     def testExampleGame(self):
         code = """
@@ -6247,72 +6285,7 @@ class NESCompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+        self.assertEquals(len(cc.get_scanner_output()), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]), "%d: %s != %s\n%s" % (i, type(cc.get_output()[i]), types[i], cc.get_output()[i]))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            self.assertTrue(isinstance(cc.get_scanner_output()[i], types[i]), "%d: %s != %s\n%s" % (i, type(cc.get_scanner_output()[i]), types[i], cc.get_scanner_output()[i]))
 

@@ -528,9 +528,9 @@ class MOS6502CompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+        self.assertEquals(len(cc.get_scanner_output()), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(cc.get_scanner_output()[i], types[i]))
 
     def testSimpleCompleteMacroDecl(self):
         code = """
@@ -558,9 +558,9 @@ class MOS6502CompilerTester(unittest.TestCase):
         st.new_symbol(FunctionDecl(Name('jsrind_f'), FunctionType('function'), []))
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+        self.assertEquals(len(cc.get_scanner_output()), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(cc.get_scanner_output()[i], types[i]))
 
     def testIfConditional(self):
         cc = Session().compiler()
@@ -937,9 +937,9 @@ class MOS6502CompilerTester(unittest.TestCase):
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
+        self.assertEquals(len(cc.get_scanner_output()), len(types))
         for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+            self.assertTrue(isinstance(cc.get_scanner_output()[i], types[i]))
 
 
 

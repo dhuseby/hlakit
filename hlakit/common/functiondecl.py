@@ -29,13 +29,12 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
-from symbol import Symbol
 from name import Name
 from functiontype import FunctionType
 from functionparameter import FunctionParameter
 
 
-class FunctionDecl(Symbol):
+class FunctionDecl(object):
     """
     The base class of function declarations
     """
@@ -80,8 +79,15 @@ class FunctionDecl(Symbol):
         return expr
 
     def __init__(self, name, type_=None, params=None):
-        super(FunctionDecl, self).__init__(name, type_)
+        self._name = name
+        self._type = type_
         self._params = params
+
+    def get_name(self):
+        return self._name
+
+    def get_type(self):
+        return self._type
 
     def get_noreturn(self):
         return self.get_type().get_noreturn()

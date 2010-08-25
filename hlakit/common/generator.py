@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -27,59 +27,14 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-import os
-from pyparsing import *
-from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler
-from loader import LynxLoader
-from lnx import Lnx, LnxOff
+class Generator(object):
+    """ This encapsulates the linker and code generator """
 
-class LynxPreprocessor(MOS6502Preprocessor):
+    _shared_state = {}
 
-    @classmethod
-    def first_exprs(klass):
-        e = []
-
-        # start with the first base preprocessor rules 
-        e.extend(MOS6502Preprocessor.first_exprs())
-
-        # add in Lynx specific preprocessor parse rules
-        e.append(('lynxloader', LynxLoader.exprs()))
-        e.append(('lnxoff', LnxOff.exprs()))
-        
-        return e
-
-
-class LynxCompiler(MOS6502Compiler):
-
-    @classmethod
-    def first_exprs(klass):
-        e = []
-
-        # start with the first, base compiler rules
-        e.extend(MOS6502Compiler.first_exprs())
-
-        # add in the Lynx specific compiler parse rules
-
-        return e
-
-
-class Lynx(MOS6502):
-
-    CPU = 'mos6502'
-
-    def __init__(self):
-
-        # init the base class 
-        super(Lynx, self).__init__()
-
-    def preprocessor(self):
-        return LynxPreprocessor()
-
-    def compiler(self):
-        return LynxCompiler()
-
-    def generator(self):
-        return None
-
+    def __new__(cls, *a, **k):
+        obj = object.__new__(cls, *a, **k)
+        obj.__dict__ = cls._shared_state
+        return obj
 
 

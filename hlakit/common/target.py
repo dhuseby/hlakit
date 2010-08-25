@@ -48,6 +48,6 @@ class Target(object):
     def compiler(self):
         return Compiler()
 
-    def linker(self):
+    def generator(self):
         return None
 

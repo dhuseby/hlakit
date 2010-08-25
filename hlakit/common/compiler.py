@@ -107,7 +107,7 @@ class Compiler(object):
             self._tokens = []
         self._tokens.extend(tokens)
 
-    def _tokenize(self, tokens):
+    def _scan(self, tokens):
         # build the parser phase rules
         expr_or = MatchFirst([])
         for e in self.get_exprs():
@@ -118,35 +118,36 @@ class Compiler(object):
         # run the pre-processor tokens through the parser phase
         cc_tokens = []
         for token in tokens:
-            if isinstance(token, FileBegin):
-                # set up the file scope
-                SymbolTable().scope_push(token.get_name())
-                cc_tokens.append(token)
-            elif isinstance(token, FileEnd):
-                # take down the file scope
-                SymbolTable().scope_pop()
-                cc_tokens.append(token)
-            elif isinstance(token, CodeBlock):
+            if isinstance(token, CodeBlock):
                 # compile the code block
                 cc_tokens.extend(parser.parseFile(StringIO(str(token))))
             else:
                 # pass the token on
                 cc_tokens.append(token)
 
-        self._tokens = cc_tokens
+        return cc_tokens
 
     def _parse(self, tokens):
-        pass
+        return tokens
 
     def get_output(self):
         return self._get_tokens()
 
+    def get_scanner_output(self):
+        return self._scanned_tokens
+
+    def get_parser_output(self):
+        return self._parsed_tokens
+
     def compile(self, tokens):
         # first we tokenize
-        self._tokenize(tokens)
+        self._scanned_tokens = self._scan(tokens)
 
         # now we need to run the parsed tokens to the structure builder
-        self._parse(tokens)
-        
+        self._tokens = self._parse(self._scanned_tokens) 
+
+        # next, make a pass over tokens and convert functions into
+        # instruction lines so that the generator doesn't need to
+        # know anything about functions or variables.
 
 
