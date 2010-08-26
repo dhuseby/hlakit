@@ -126,8 +126,8 @@ class Lnx(object):
                raise SyntaxError(inf.name, 0, 58, 'invalid rotation in .lnx file')
 
         # read in the spare bytes to put the file pointer at the first byte in
-        # the rom bank. 
-        spare = inf.read(5)
+        # the rom bank. save these for later...
+        self._spare = inf.read(5)
 
     def _unpack_banks(self, inf):
         if self._version == 1:
@@ -156,10 +156,53 @@ class Lnx(object):
             raise SyntaxError(inf.name, 0, 64, 'cannot load banks, invalid .lnx version')
 
     def _pack_header(self, outf):
-        pass
+
+        # write the magic characters
+        outf.write(pack('cccc', 'L', 'Y', 'N', 'X'))
+
+        # write out the sizes
+        if self._version == 1:
+            outf.write(pack('<HH', self._page_size_bank0, self._page_size_bank1))
+        elif self._version == 2:
+            outf.write(pack('<BBH', self._num_banks, self._use_cart_strobe, self._save_game_size))
+        else:
+            raise SyntaxError(outf.name, 0, 8, 'invalid .lnx file version')
+
+        # write out the version
+        outf.write(pack('<H', self._version))
+
+        # write out the cart name
+        outf.write(pack('32s', self._cart_name))
+
+        # write out the manufacturer name
+        outf.write(pack('16s', self._manufacturer_name))
+
+        # write out the rotation
+        outf.write(pack('B', self._rotation))
+
+        # write out the spare bytes
+        outf.write(self._spare)
 
     def _pack_banks(self, outf):
-        pass
+        if self._version == 1:
+            # write out bank 0
+            outf.write(self._banks[0])
+
+            # write out bank 1
+            if self._page_size_bank1 > 0:
+                outf.write(self._banks[1])
+
+        elif self._version == 2:
+            # write out all of the banks
+            for i in range(0, len(self._banks)):
+                outf.write(self._banks[i])
+
+            # write out the save game data if any
+            if self._save_game_size > 0:
+                outf.write(self._save_game_data)
+
+        else:
+            raise SyntaxError(outf.name, 0, 64, 'cannot save banks, invalid .lnx version')
 
     def __str__(self):
         s = 'Atari Lynx ROM\n'
