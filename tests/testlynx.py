@@ -35,6 +35,7 @@ from hlakit.common.session import Session
 from hlakit.platform.lynx import LynxPreprocessor, LynxCompiler
 from hlakit.platform.lynx.loader import LynxLoader
 from hlakit.platform.lynx.lnx import LnxOff
+from hlakit.platform.lynx.rom import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
 
 class LynxPreprocessorTester(unittest.TestCase):
     """
@@ -75,6 +76,143 @@ class LynxPreprocessorTester(unittest.TestCase):
 
         pp.parse(StringIO(self.pp_lnxoff))
         self.assertTrue(isinstance(pp.get_output()[1], LnxOff))
+
+    pp_romorg = '#lynx.rom.org %s\n'
+    pp_romend = '#lynx.rom.end\n'
+    pp_rombank = '#lynx.rom.bank %s\n'
+
+    def testRomOrg(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_romorg % '0x10'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_segment()), 0x10)
+        self.assertEquals(int(pp.get_output()[1].get_counter()), 0)
+        self.assertEquals(pp.get_output()[1].get_maxsize(), None)
+
+    def testRomOrgCounter(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_romorg % '0x20, 0x0100'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_segment()), 0x20)
+        self.assertEquals(int(pp.get_output()[1].get_counter()), 0x0100)
+        self.assertEquals(pp.get_output()[1].get_maxsize(), None)
+
+    def testRomOrgCounterMaxsize(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_romorg % '0x20, 0x0100, 0x1000'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_segment()), 0x20)
+        self.assertEquals(int(pp.get_output()[1].get_counter()), 0x0100)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x1000)
+
+    def testRomOrgLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 0x01)
+        pp.parse(StringIO(self.pp_romorg % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_segment()), 0x01)
+        self.assertEquals(int(pp.get_output()[1].get_counter()), 0)
+        self.assertEquals(pp.get_output()[1].get_maxsize(), None)
+
+    def testRomOrgMaxsizeLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 0x40)
+        pp.set_symbol('BAR', 0x0400)
+        pp.parse(StringIO(self.pp_romorg % 'FOO, BAR'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_segment()), 0x40)
+        self.assertEquals(int(pp.get_output()[1].get_counter()), 0x0400)
+        self.assertEquals(pp.get_output()[1].get_maxsize(), None)
+
+    def testRomOrgCounterMaxsizeLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 0x20)
+        pp.set_symbol('BAR', 0x0200)
+        pp.set_symbol('BAZ', 0x2000)
+        pp.parse(StringIO(self.pp_romorg % 'FOO, BAR, BAZ'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_segment()), 0x20)
+        self.assertEquals(int(pp.get_output()[1].get_counter()), 0x0200)
+        self.assertEquals(int(pp.get_output()[1].get_maxsize()), 0x2000)
+
+    def testRomOrgCounterWithComment(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_romorg % '0x01, 0x0100 // hello'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomOrg))
+        self.assertEquals(int(pp.get_output()[1].get_segment()), 0x01)
+        self.assertEquals(int(pp.get_output()[1].get_counter()), 0x0100)
+        self.assertEquals(pp.get_output()[1].get_maxsize(), None)
+
+    def testBadRomOrg(self):
+        pp = Session().preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_romorg % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testRomEnd(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_romend))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomEnd))
+
+    def testRomBank(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_rombank % '1'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomBank))
+        self.assertEquals(int(pp.get_output()[1].get_number()), 1)
+
+    def testRomBanksizeLabel(self):
+        pp = Session().preprocessor()
+
+        pp.set_symbol('FOO', 0)
+        pp.parse(StringIO(self.pp_rombank % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomBank))
+        self.assertEquals(int(pp.get_output()[1].get_number()), 0)
+
+    def testBadRomBank(self):
+        pp = Session().preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_rombank % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    pp_setpad = '#lynx.rom.padding %s\n'
+
+    def testRomPaddingNum(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_setpad % '0xFF'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomPadding))
+        self.assertEquals(pp.get_output()[1].get_value(), 0xFF)
+
+    def testRomPaddingString(self):
+        pp = Session().preprocessor()
+
+        pp.parse(StringIO(self.pp_setpad % '"Foo"'))
+        self.assertTrue(isinstance(pp.get_output()[1], LynxRomPadding))
+        self.assertEquals(pp.get_output()[1].get_value(), 'Foo')
+
+    def testBadRomPadding(self):
+        pp = Session().preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_setpad % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
 
 
 class LynxCompilerTester(unittest.TestCase):
