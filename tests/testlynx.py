@@ -34,7 +34,7 @@ from cStringIO import StringIO
 from hlakit.common.session import Session
 from hlakit.platform.lynx import LynxPreprocessor, LynxCompiler
 from hlakit.platform.lynx.loader import LynxLoader
-from hlakit.platform.lynx.lnx import LnxOff
+from hlakit.platform.lynx.lnx import LnxSetting
 from hlakit.platform.lynx.rom import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
 
 class LynxPreprocessorTester(unittest.TestCase):
@@ -51,7 +51,7 @@ class LynxPreprocessorTester(unittest.TestCase):
     def testLynxPreprocessor(self):
         self.assertTrue(isinstance(Session().preprocessor(), LynxPreprocessor))
 
-    pp_lynxloader = '#lynx.loader %s\n'
+    pp_lynxloader = '#lynx.loader %s'
 
     def testLynxLoader(self):
         pp = Session().preprocessor() 
@@ -69,17 +69,179 @@ class LynxPreprocessorTester(unittest.TestCase):
         except ParseException:
             pass
 
-    pp_lnxoff = '#lnx.off\n'
+    pp_lnxoff = '#lnx.off'
+    pp_psb0 = '#lnx.page_size_bank0 %s'
+    pp_psb1 = '#lnx.page_size_bank1 %s'
+    pp_version = '#lnx.version %s'
+    pp_cart_name = '#lnx.cart_name %s'
+    pp_manu_name = '#lnx.manufacturer_name %s'
+    pp_rotation = '#lnx.rotation %s'
 
     def testLnxOff(self):
         pp = Session().preprocessor() 
 
         pp.parse(StringIO(self.pp_lnxoff))
-        self.assertTrue(isinstance(pp.get_output()[1], LnxOff))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
 
-    pp_romorg = '#lynx.rom.org %s\n'
-    pp_romend = '#lynx.rom.end\n'
-    pp_rombank = '#lynx.rom.bank %s\n'
+    def testLnxPSB0(self):
+        pp = Session().preprocessor() 
+
+        pp.parse(StringIO(self.pp_psb0 % '2K'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.PSB0)
+        self.assertEquals(int(pp.get_output()[1].get_size()), 2048)
+
+    def testLnxPSB0Label(self):
+        pp = Session().preprocessor() 
+
+        pp.set_symbol('FOO', 1024)
+        pp.parse(StringIO(self.pp_psb0 % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.PSB0)
+        self.assertEquals(int(pp.get_output()[1].get_size()), 1024)
+
+    def testBadLnxPSB0(self):
+        pp = Session().preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_psb0 % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testLnxPSB1(self):
+        pp = Session().preprocessor() 
+
+        pp.parse(StringIO(self.pp_psb1 % '2K'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.PSB1)
+        self.assertEquals(int(pp.get_output()[1].get_size()), 2048)
+
+    def testLnxPSB1Label(self):
+        pp = Session().preprocessor() 
+
+        pp.set_symbol('FOO', 1024)
+        pp.parse(StringIO(self.pp_psb1 % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.PSB1)
+        self.assertEquals(int(pp.get_output()[1].get_size()), 1024)
+
+    def testBadLnxPSB1(self):
+        pp = Session().preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_psb1 % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testLnxVersion(self):
+        pp = Session().preprocessor() 
+
+        pp.parse(StringIO(self.pp_version % '1'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.VERSION)
+        self.assertEquals(int(pp.get_output()[1].get_version()), 1)
+
+    def testLnxVersionLabel(self):
+        pp = Session().preprocessor() 
+
+        pp.set_symbol('FOO', 1)
+        pp.parse(StringIO(self.pp_version % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.VERSION)
+        self.assertEquals(int(pp.get_output()[1].get_version()), 1)
+
+    def testBadLnxVersion(self):
+        pp = Session().preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_version % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testLnxCartName(self):
+        pp = Session().preprocessor() 
+
+        pp.parse(StringIO(self.pp_cart_name % '"CGD Demo Game"'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.CART_NAME)
+        self.assertEquals(str(pp.get_output()[1].get_name()), 'CGD Demo Game')
+
+    def testLnxCartNameLabel(self):
+        pp = Session().preprocessor() 
+
+        pp.set_symbol('FOO', "CGD Demo Game")
+        pp.parse(StringIO(self.pp_cart_name % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.CART_NAME)
+        self.assertEquals(pp.get_output()[1].get_name(), 'CGD Demo Game')
+
+    def testBadLnxCartName(self):
+        pp = Session().preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_cart_name % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testLnxManuName(self):
+        pp = Session().preprocessor() 
+
+        pp.parse(StringIO(self.pp_manu_name % '"ClassicGameDev.com"'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.MANU_NAME)
+        self.assertEquals(str(pp.get_output()[1].get_name()), 'ClassicGameDev.com')
+
+    def testLnxManuNameLabel(self):
+        pp = Session().preprocessor() 
+
+        pp.set_symbol('FOO', "ClassicGameDev.com")
+        pp.parse(StringIO(self.pp_manu_name % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.MANU_NAME)
+        self.assertEquals(pp.get_output()[1].get_name(), 'ClassicGameDev.com')
+
+    def testBadLnxManuName(self):
+        pp = Session().preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_manu_name % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    def testLnxRotation(self):
+        pp = Session().preprocessor() 
+
+        pp.parse(StringIO(self.pp_rotation % '"none"'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.ROTATION)
+        self.assertEquals(str(pp.get_output()[1].get_rotation()), 'none')
+
+    def testLnxRotationLabel(self):
+        pp = Session().preprocessor() 
+
+        pp.set_symbol('FOO', "left")
+        pp.parse(StringIO(self.pp_rotation % 'FOO'))
+        self.assertTrue(isinstance(pp.get_output()[1], LnxSetting))
+        self.assertEquals(pp.get_output()[1].get_type(), LnxSetting.ROTATION)
+        self.assertEquals(pp.get_output()[1].get_rotation(), 'left')
+
+    def testBadLnxRotation(self):
+        pp = Session().preprocessor()
+
+        try:
+            pp.parse(StringIO(self.pp_rotation % ''))
+            self.assertTrue(False)
+        except ParseException:
+            pass
+
+    pp_romorg = '#lynx.rom.org %s'
+    pp_romend = '#lynx.rom.end'
+    pp_rombank = '#lynx.rom.bank %s'
 
     def testRomOrg(self):
         pp = Session().preprocessor()
@@ -189,7 +351,7 @@ class LynxPreprocessorTester(unittest.TestCase):
         except ParseException:
             pass
 
-    pp_setpad = '#lynx.rom.padding %s\n'
+    pp_setpad = '#lynx.rom.padding %s'
 
     def testRomPaddingNum(self):
         pp = Session().preprocessor()

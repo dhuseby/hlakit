@@ -31,7 +31,7 @@ import os
 from pyparsing import *
 from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler
 from loader import LynxLoader
-from lnx import Lnx, LnxOff
+from lnx import Lnx, LnxSetting
 from rom import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
 
 class LynxPreprocessor(MOS6502Preprocessor):
@@ -45,7 +45,7 @@ class LynxPreprocessor(MOS6502Preprocessor):
 
         # add in Lynx specific preprocessor parse rules
         e.append(('lynxloader', LynxLoader.exprs()))
-        e.append(('lnxoff', LnxOff.exprs()))
+        e.append(('lnxsetting', LnxSetting.exprs()))
         e.append(('lynxromorg', LynxRomOrg.exprs()))
         e.append(('lynxromend', LynxRomEnd.exprs()))
         e.append(('lynxrombank', LynxRomBank.exprs()))
