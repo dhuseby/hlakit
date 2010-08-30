@@ -84,23 +84,23 @@ class NESPreprocessorTester(unittest.TestCase):
     def testChrBanksize(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_chrbanksize % '1K'))
-        self.assertTrue(isinstance(pp.get_output()[1], ChrBanksize))
-        self.assertEquals(int(pp.get_output()[1].get_size()), 1024)
+        tokens = pp.parse(StringIO(self.pp_chrbanksize % '1K'))
+        self.assertTrue(isinstance(tokens[1], ChrBanksize))
+        self.assertEquals(int(tokens[1].get_size()), 1024)
 
     def testChrBanksizeLabel(self):
         pp = Session().preprocessor() 
 
         pp.set_symbol('FOO', 1024)
-        pp.parse(StringIO(self.pp_chrbanksize % 'FOO'))
-        self.assertTrue(isinstance(pp.get_output()[1], ChrBanksize))
-        self.assertEquals(int(pp.get_output()[1].get_size()), 1024)
+        tokens = pp.parse(StringIO(self.pp_chrbanksize % 'FOO'))
+        self.assertTrue(isinstance(tokens[1], ChrBanksize))
+        self.assertEquals(int(tokens[1].get_size()), 1024)
 
     def testBadChrBanksize(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_chrbanksize % ''))
+            tokens = pp.parse(StringIO(self.pp_chrbanksize % ''))
             self.assertTrue(False)
         except ParseException:
             pass
@@ -110,8 +110,8 @@ class NESPreprocessorTester(unittest.TestCase):
     def testChrEnd(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_chrend))
-        self.assertTrue(isinstance(pp.get_output()[1], ChrEnd))
+        tokens = pp.parse(StringIO(self.pp_chrend))
+        self.assertTrue(isinstance(tokens[1], ChrEnd))
 
     pp_inesmapper = '#ines.mapper %s\n'
     pp_inesmirroring = '#ines.mirroring %s\n'
@@ -125,22 +125,22 @@ class NESPreprocessorTester(unittest.TestCase):
     def testiNESMapperName(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesmapper % '"NROM"'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESMapper))
-        self.assertEquals(pp.get_output()[1].get_mapper(), 'NROM')
+        tokens = pp.parse(StringIO(self.pp_inesmapper % '"NROM"'))
+        self.assertTrue(isinstance(tokens[1], iNESMapper))
+        self.assertEquals(tokens[1].get_mapper(), 'NROM')
 
     def testiNESMapperNumber(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesmapper % '0'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESMapper))
-        self.assertEquals(int(pp.get_output()[1].get_mapper()), 0)
+        tokens = pp.parse(StringIO(self.pp_inesmapper % '0'))
+        self.assertTrue(isinstance(tokens[1], iNESMapper))
+        self.assertEquals(int(tokens[1].get_mapper()), 0)
 
     def testBadiNESMapper(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_inesmapper % ''))
+            tokens = pp.parse(StringIO(self.pp_inesmapper % ''))
             self.assertTrue(False)
         except ParseException:
             pass
@@ -148,22 +148,22 @@ class NESPreprocessorTester(unittest.TestCase):
     def testiNESMirroringVertical(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesmirroring % '"vertical"'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESMirroring))
-        self.assertEquals(pp.get_output()[1].get_mirroring(), 'vertical')
+        tokens = pp.parse(StringIO(self.pp_inesmirroring % '"vertical"'))
+        self.assertTrue(isinstance(tokens[1], iNESMirroring))
+        self.assertEquals(tokens[1].get_mirroring(), 'vertical')
 
     def testiNESMirroringHorizontal(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesmirroring % '"horizontal"'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESMirroring))
-        self.assertEquals(pp.get_output()[1].get_mirroring(), 'horizontal')
+        tokens = pp.parse(StringIO(self.pp_inesmirroring % '"horizontal"'))
+        self.assertTrue(isinstance(tokens[1], iNESMirroring))
+        self.assertEquals(tokens[1].get_mirroring(), 'horizontal')
 
     def testBadiNESMirroring(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_inesmirroring % '"blah"'))
+            tokens = pp.parse(StringIO(self.pp_inesmirroring % '"blah"'))
             self.assertTrue(False)
         except ParseFatalException:
             pass
@@ -171,22 +171,22 @@ class NESPreprocessorTester(unittest.TestCase):
     def testiNESFourscreenYes(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesfourscreen % '"yes"'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESFourscreen))
-        self.assertEquals(pp.get_output()[1].get_fourscreen(), 'yes')
+        tokens = pp.parse(StringIO(self.pp_inesfourscreen % '"yes"'))
+        self.assertTrue(isinstance(tokens[1], iNESFourscreen))
+        self.assertEquals(tokens[1].get_fourscreen(), 'yes')
 
     def testiNESFourscreenNo(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesfourscreen % '"no"'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESFourscreen))
-        self.assertEquals(pp.get_output()[1].get_fourscreen(), 'no')
+        tokens = pp.parse(StringIO(self.pp_inesfourscreen % '"no"'))
+        self.assertTrue(isinstance(tokens[1], iNESFourscreen))
+        self.assertEquals(tokens[1].get_fourscreen(), 'no')
 
     def testBadiNESFourscreen(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_inesfourscreen % '"blah"'))
+            tokens = pp.parse(StringIO(self.pp_inesfourscreen % '"blah"'))
             self.assertTrue(False)
         except ParseFatalException:
             pass
@@ -194,22 +194,22 @@ class NESPreprocessorTester(unittest.TestCase):
     def testiNESBatterYes(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesbattery % '"yes"'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESBattery))
-        self.assertEquals(pp.get_output()[1].get_battery(), 'yes')
+        tokens = pp.parse(StringIO(self.pp_inesbattery % '"yes"'))
+        self.assertTrue(isinstance(tokens[1], iNESBattery))
+        self.assertEquals(tokens[1].get_battery(), 'yes')
 
     def testiNESBatteryNo(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesbattery % '"no"'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESBattery))
-        self.assertEquals(pp.get_output()[1].get_battery(), 'no')
+        tokens = pp.parse(StringIO(self.pp_inesbattery % '"no"'))
+        self.assertTrue(isinstance(tokens[1], iNESBattery))
+        self.assertEquals(tokens[1].get_battery(), 'no')
 
     def testBadiNESBattery(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_inesbattery % '"blah"'))
+            tokens = pp.parse(StringIO(self.pp_inesbattery % '"blah"'))
             self.assertTrue(False)
         except ParseFatalException:
             pass
@@ -217,22 +217,22 @@ class NESPreprocessorTester(unittest.TestCase):
     def testiNESTrainerYes(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inestrainer % '"yes"'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESTrainer))
-        self.assertEquals(pp.get_output()[1].get_trainer(), 'yes')
+        tokens = pp.parse(StringIO(self.pp_inestrainer % '"yes"'))
+        self.assertTrue(isinstance(tokens[1], iNESTrainer))
+        self.assertEquals(tokens[1].get_trainer(), 'yes')
 
     def testiNESTrainerNo(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inestrainer % '"no"'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESTrainer))
-        self.assertEquals(pp.get_output()[1].get_trainer(), 'no')
+        tokens = pp.parse(StringIO(self.pp_inestrainer % '"no"'))
+        self.assertTrue(isinstance(tokens[1], iNESTrainer))
+        self.assertEquals(tokens[1].get_trainer(), 'no')
 
     def testBadiNESTrainer(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_inestrainer % '"blah"'))
+            tokens = pp.parse(StringIO(self.pp_inestrainer % '"blah"'))
             self.assertTrue(False)
         except ParseFatalException:
             pass
@@ -240,15 +240,15 @@ class NESPreprocessorTester(unittest.TestCase):
     def testiNESPrgRepeat(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesprgrepeat % '4'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESPrgRepeat))
-        self.assertEquals(int(pp.get_output()[1].get_repeat()), 4)
+        tokens = pp.parse(StringIO(self.pp_inesprgrepeat % '4'))
+        self.assertTrue(isinstance(tokens[1], iNESPrgRepeat))
+        self.assertEquals(int(tokens[1].get_repeat()), 4)
 
     def testBadiNESPrgRepeat(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_inesprgrepeat % ''))
+            tokens = pp.parse(StringIO(self.pp_inesprgrepeat % ''))
             self.assertTrue(False)
         except ParseException:
             pass
@@ -256,15 +256,15 @@ class NESPreprocessorTester(unittest.TestCase):
     def testiNESChrRepeat(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_ineschrrepeat % '4'))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESChrRepeat))
-        self.assertEquals(int(pp.get_output()[1].get_repeat()), 4)
+        tokens = pp.parse(StringIO(self.pp_ineschrrepeat % '4'))
+        self.assertTrue(isinstance(tokens[1], iNESChrRepeat))
+        self.assertEquals(int(tokens[1].get_repeat()), 4)
 
     def testBadiNESChrRepeat(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_ineschrrepeat % ''))
+            tokens = pp.parse(StringIO(self.pp_ineschrrepeat % ''))
             self.assertTrue(False)
         except ParseException:
             pass
@@ -272,8 +272,8 @@ class NESPreprocessorTester(unittest.TestCase):
     def testiNESOff(self):
         pp = Session().preprocessor() 
 
-        pp.parse(StringIO(self.pp_inesoff))
-        self.assertTrue(isinstance(pp.get_output()[1], iNESOff))
+        tokens = pp.parse(StringIO(self.pp_inesoff))
+        self.assertTrue(isinstance(tokens[1], iNESOff))
 
 
 class NESCompilerTester(unittest.TestCase):

@@ -66,7 +66,8 @@
 function noreturn micro_loader()
 {
     // 1. force Mikey to be in memory
-    stz MAPCTL
+    lda #0
+    sta MIKEY_MEMORY_MAP_CONTROL
 
     // 2. set IODIR the way Mikey ROM does, also force AUDIN to output
     lda #%00010011    

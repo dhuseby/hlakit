@@ -144,27 +144,18 @@ class Preprocessor(object):
             self._ignore_stack = [False]
         if not hasattr(self, '_state_stack'):
             self._state_stack = []
-        if not hasattr(self, '_tokens'):
-            self._tokens = []
 
     def reset_state(self):
         self.set_exprs(self.__class__.exprs())
         self._symbols = {}
         self._ignore_stack = [False]
         self._state_stack = []
-        self._tokens = []
 
     def get_exprs(self):
         return self._exprs
 
     def set_exprs(self, value):
         self._exprs = value
-
-    def _get_tokens(self):
-        return self._tokens
-
-    def _append_tokens(self, tokens):
-        self._tokens.extend(tokens)
 
     def get_symbols(self):
         return self._symbols
@@ -223,28 +214,30 @@ class Preprocessor(object):
         return None
 
     def parse(self, f):
+        tokens = []
+
         # inject file begin token
         fname = getattr(f, 'name', 'DummyFile')
-        self._append_tokens([FileBegin(fname)])
+        tokens.append(FileBegin(fname))
 
         # set up a new context
         self.state_stack_push(Preprocessor.StateFrame(f, self.get_exprs()))
 
         # do the parse
-        tokens = self.state_stack_top().parse()
-        if len(tokens):
-            self._append_tokens(tokens)
+        tokens.extend(self.state_stack_top().parse())
  
         # restore previous state if there is one
         self.state_stack_pop()
 
         # inject file begin token
-        self._append_tokens([FileEnd(fname)])
+        tokens.append(FileEnd(fname))
 
-    def get_output(self):
-        # get the tokens 
-        tokens = self._get_tokens()
+        # create code blocks
+        tokens = self._create_code_blocks(tokens)
 
+        return tokens
+
+    def _create_code_blocks(self, tokens):
         # it's time to merge un-processed lines into code blocks for
         # parsing by the compiler pass.
         pp_tokens = []

@@ -84,15 +84,15 @@ class MOS6502PreprocessorTester(unittest.TestCase):
     def testInterruptStart(self):
         pp = Session().preprocessor()
 
-        pp.parse(StringIO(self.pp_intstart % 'start'))
-        self.assertTrue(isinstance(pp.get_output()[1], InterruptStart))
-        self.assertEquals(pp.get_output()[1].get_fn(), 'start')
+        tokens = pp.parse(StringIO(self.pp_intstart % 'start'))
+        self.assertTrue(isinstance(tokens[1], InterruptStart))
+        self.assertEquals(tokens[1].get_fn(), 'start')
 
     def testBadInterruptStart(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_intstart % ''))
+            tokens = pp.parse(StringIO(self.pp_intstart % ''))
             self.assertTrue(False)
         except ParseException:
             pass
@@ -100,15 +100,15 @@ class MOS6502PreprocessorTester(unittest.TestCase):
     def testInterruptNMI(self):
         pp = Session().preprocessor()
 
-        pp.parse(StringIO(self.pp_intnmi % 'vblank'))
-        self.assertTrue(isinstance(pp.get_output()[1], InterruptNMI))
-        self.assertEquals(pp.get_output()[1].get_fn(), 'vblank')
+        tokens = pp.parse(StringIO(self.pp_intnmi % 'vblank'))
+        self.assertTrue(isinstance(tokens[1], InterruptNMI))
+        self.assertEquals(tokens[1].get_fn(), 'vblank')
 
     def testBadInterruptNMI(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_intnmi % ''))
+            tokens = pp.parse(StringIO(self.pp_intnmi % ''))
             self.assertTrue(False)
         except ParseException:
             pass
@@ -116,15 +116,15 @@ class MOS6502PreprocessorTester(unittest.TestCase):
     def testInterruptIRQ(self):
         pp = Session().preprocessor()
 
-        pp.parse(StringIO(self.pp_intirq % 'timer'))
-        self.assertTrue(isinstance(pp.get_output()[1], InterruptIRQ))
-        self.assertEquals(pp.get_output()[1].get_fn(), 'timer')
+        tokens = pp.parse(StringIO(self.pp_intirq % 'timer'))
+        self.assertTrue(isinstance(tokens[1], InterruptIRQ))
+        self.assertEquals(tokens[1].get_fn(), 'timer')
 
     def testBadInterruptStart(self):
         pp = Session().preprocessor()
 
         try:
-            pp.parse(StringIO(self.pp_intirq % ''))
+            tokens = pp.parse(StringIO(self.pp_intirq % ''))
             self.assertTrue(False)
         except ParseException:
             pass

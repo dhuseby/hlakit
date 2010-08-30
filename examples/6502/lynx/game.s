@@ -41,10 +41,10 @@
 
 #include <lynx.h>
 
-// set the rom address: segment = 0x00, counter=%00000000000, maxsize=2K
+// set the rom address: segment=0, counter=0, maxsize=2K
 #lynx.rom.bank      0
-#lynx.rom.org       0x00,%00000000000,2K
-#lynx.rom.padding   0x00
+#lynx.rom.org       0,0,2K
+#lynx.rom.padding   0
 
 // include the micro loader code
 #include "micro_loader.s"
@@ -63,7 +63,7 @@
 #lynx.rom.end
 
 // set the rom address to the second segment
-#lynx.rom.org   0x01,%00000000000,510K
+#lynx.rom.org   1,0,510K
 
 // include the main game code.
 #include "main.s"

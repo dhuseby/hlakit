@@ -166,13 +166,13 @@ class StringValue(ArrayValue):
         return expr
 
     def __init__(self, value):
-        self._value = value
+        super(StringValue, self).__init__(value)
 
     def __str__(self):
-        return ''.join([str(item) for item in self._value])
+        return ''.join([str(item) for item in self._items])
 
     def __repr__(self):
-        return 'String("%s")' % self._value
+        return 'String("%s")' % self
 
 
 

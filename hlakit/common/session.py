@@ -296,17 +296,17 @@ class Session(object):
             return target.compiler()
         return None
 
-    def linker(self):
-        target = getattr(self, '_target', None)
+    def generator(self):
+        target = getattr(self, '_generator', None)
         if target:
-            return target.linker()
+            return target.generator()
         return None
 
 
     def build(self):
         pp = self.preprocessor()
         cc = self.compiler()
-        ll = self.linker()
+        gen = self.generator()
 
         for f in self.get_args():
 
@@ -319,17 +319,22 @@ class Session(object):
 
             # parse the file
             inf = open(fpath, 'r')
-            pp.parse(inf)
+            pp_tokens = pp.parse(inf)
             inf.close()
 
-            pp_tokens = pp.get_output()
             #for t in pp_tokens:
             #    print "pp: %s" % type(t)
 
             if self._options.output_pp:
                 for t in pp_tokens:
-                    if isinstance(t, CodeBlock):
-                        print str(t)
+                    if not isinstance(t.__str__(), str):
+                        import pdb; pdb.set_trace()
+                    s = str(t)
+                    s += ' ' * (80 - len(s))
+                    s += str(type(t))
+                    print s
+                    #if isinstance(t, CodeBlock):
+                    #    print str(t)
                 return
 
             # compile the tokenstream

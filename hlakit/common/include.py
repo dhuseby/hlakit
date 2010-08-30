@@ -55,8 +55,8 @@ class Include(File):
             raise ParseFatalException('included file does not exist: %s' % file_path)
 
         inf = open(file_path, 'r')
-        pp.parse(inf)
+        tokens = pp.parse(inf)
         inf.close()
         
-        return []
+        return tokens
 
