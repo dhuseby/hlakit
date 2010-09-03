@@ -31,7 +31,7 @@ from pyparsing import *
 from session import Session
 from symbol import Symbol
 
-class Function(object):
+class Function(Symbol):
     """
     Encapsulates Functions
     """
@@ -49,19 +49,12 @@ class Function(object):
         return self._decl.get_params()
 
     def get_type(self):
-        # returns 'inline', 'function', or 'interrupt'
-        type_ = self._decl.get_type().get_type()
-        name = self.get_interrupt_name()
-
-        if name != None:
-            return '%s.%s' % (type_, name)
-
-        return type_
+        return self._decl.get_type()
 
     def get_interrupt_name(self):
-        if self._decl.get_type().get_type() != 'interrupt':
+        if self._decl.get_type().get_name() != 'interrupt':
             return None
-        return self._decl.get_type().get_name()
+        return self._decl.get_type().get_sub_type()
 
     def get_name(self):
         return self._decl.get_name()
@@ -72,15 +65,25 @@ class Function(object):
     def get_tokens(self):
         return self._tokens
 
-    def add_dependency(self, fnname):
-        fn = '%s' % fnname
-        if fn in self._dependencies:
+    def add_dependency(self, fn):
+        fnname = str(fn.get_name())
+        if fnname in self._dependencies:
             return
         self._dependencies.append(fn)
 
+    def get_dependencies(self):
+        return self._dependencies
+
     def __str__(self):
         s = ''
-        s += self.get_type() + ' '
+        s += self.get_type().get_name() 
+        if (self.get_type().get_name() == 'interrupt') and \
+           (self.get_type().get_sub_type() != None):
+            s += '.' + self.get_type().get_sub_type()
+        else: 
+            s += ' '
+        if self.get_type().get_noreturn():
+            s += 'noreturn '
         s += str(self.get_name())
         s += '('
         if self.get_params():
@@ -89,8 +92,6 @@ class Function(object):
                     s += ','
                 s += ' ' + str(self.get_params()[i])
             s += ' '
-        s += ')\n'
-        for t in self._tokens:
-            s += str(t) + '\n'
+        s += ')'
         return s
 

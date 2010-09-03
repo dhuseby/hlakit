@@ -30,8 +30,9 @@ or implied, of David Huseby.
 from pyparsing import *
 from session import Session
 from name import Name
+from type_ import Type
 
-class FunctionType(object):
+class FunctionType(Type):
     """
     The type of a function.  Functions can be one of the following types:
         function  -- standard subroutine, cannot have parameters
@@ -56,17 +57,17 @@ class FunctionType(object):
         else:
             raise ParseFatalException('no function type specified')
 
-        name = None
+        sub_type = None
         if 'name' in tokens.keys():
             if type_ != 'interrupt':
                 raise ParseFatalException('non-interrupt function has name')
-            name = tokens.name
+            sub_type = tokens.name
 
         noreturn = False
         if 'noreturn' in tokens.keys():
             noreturn = True
         
-        return klass(type_, name, noreturn)
+        return klass(type_, sub_type, noreturn)
 
     @classmethod
     def exprs(klass):
@@ -81,24 +82,21 @@ class FunctionType(object):
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, type, name=None, noreturn=False):
-        self._type = type
-        self._name = name
+    def __init__(self, type, sub_type=None, noreturn=False):
+        super(FunctionType, self).__init__(type)
+        self._sub_type = sub_type
         self._noreturn = noreturn
 
-    def get_type(self):
-        return self._type
-
-    def get_name(self):
-        return self._name
+    def get_sub_type(self):
+        return self._sub_type
 
     def get_noreturn(self):
         return self._noreturn
 
     def __str__(self):
-        s = '%s' % self._type
-        if self._name:
-            s += '.%s' % self._name
+        s = '%s' % self.get_name()
+        if self._sub_type:
+            s += '.%s' % self._sub_type
         if self._noreturn:
             s += ' noreturn'
         return s

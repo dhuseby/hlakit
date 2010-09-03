@@ -109,6 +109,9 @@ class NumericValue(object):
     def __str__(self):
         return self._token
 
+    def __nonzero__(self):
+        return self.__int__() != 0
+
     def __repr__(self):
         return 'Number(%s) == %d' % (self._token, self._value)
 

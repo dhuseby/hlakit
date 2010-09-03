@@ -37,9 +37,11 @@ from struct import Struct
 from typedef import Typedef
 from immediate import Immediate
 from variable import Variable
+from function import Function
 from functiondecl import FunctionDecl
 from functioncall import FunctionCall
 from functionreturn import FunctionReturn
+from conditional import Conditional
 from codeblock import CodeBlock
 from filemarkers import FileBegin, FileEnd
 from scopemarkers import ScopeBegin, ScopeEnd
@@ -47,6 +49,8 @@ from symboltable import SymbolTable
 from variableinitializer import VariableInitializer
 
 class Compiler(object):
+
+    OUTSIDE, FN, INSIDE, CONDITIONAL, ERROR = range(5)
 
     @classmethod
     def exprs(klass):
@@ -92,6 +96,7 @@ class Compiler(object):
     def reset_state(self):
         self.set_exprs(self.__class__.exprs())
         self._tokens = []
+        self._state = self.OUTSIDE
 
     def get_exprs(self):
         return getattr(self, '_exprs', [])
@@ -127,8 +132,87 @@ class Compiler(object):
 
         return cc_tokens
 
+    def _next_state(self, token):
+
+        st = SymbolTable()
+
+        # outside of a function declaration
+        if self._state == self.OUTSIDE:
+            if isinstance(token, FunctionDecl):
+                if self._depth != 0:
+                    self._state = self.ERROR
+                    raise ParseFatalError('cannot declare a function here')
+                self._fn = Function(token)
+                self._state = self.FN
+            elif isinstance(token, Variable):
+                st.new_symbol(token)
+            elif isinstance(token, FileBegin):
+                st.scope_push(str(token.get_name()))
+            elif isinstance(token, FileEnd):
+                st.scope_pop()
+            else:
+                return token
+
+        # have seen a function decl, looking for {
+        elif self._state == self.FN:
+            if isinstance(token, ScopeBegin):
+                self._fn.append_token(token)
+                self._depth += 1
+                self._state = self.INSIDE
+                st.scope_push(str(self._fn.get_name()))
+            else:
+                self._state = self.ERROR
+                s = 'function decl not followed by {\n'
+                s += str(self._fn) + '\n'
+                s += str(token)
+                raise ParseFatalException(s)
+
+        # inside function decl
+        elif self._state == self.INSIDE:
+            if isinstance(token, Conditional):
+                self._fn.append_token(token)
+            elif isinstance(token, ScopeBegin):
+                self._fn.append_token(token)
+                self._depth += 1
+                st.scope_push()
+            elif isinstance(token, ScopeEnd):
+                self._fn.append_token(token)
+                self._depth -= 1
+                st.scope_pop()
+                if self._depth == 0:
+                    self._state = self.OUTSIDE
+                    st.new_symbol(self._fn)
+                    return self._fn
+            elif isinstance(token, Label):
+                # TODO: register the label with the global label list
+                self._fn.append_token(token)
+            elif isinstance(token, FunctionCall):
+                self._fn.append_token(token)
+                self._fn.add_dependency(token.get_name())
+            elif isinstance(token, FunctionReturn):
+                self._fn.append_token(token)
+            else:
+                self._state = self.ERROR
+                s = 'invalid token in body of function\n'
+                s += str(self._fn) + '\n'
+                s += '%s: %s' % (type(token), str(token))
+                raise ParseFatalException(s)
+
+        return None
+
     def _parse(self, tokens):
-        return tokens
+        """ go through the list of tokens looking for well structred functions
+        """
+        self._state = self.OUTSIDE
+        self._fn = None
+        self._depth = 0
+        out_tokens = []
+        for t in tokens:
+            token = self._next_state(t)
+            if token != None:
+                out_tokens.append(token)
+
+        return out_tokens
 
     def get_output(self):
         return self._get_tokens()
@@ -144,10 +228,7 @@ class Compiler(object):
         self._scanned_tokens = self._scan(tokens)
 
         # now we need to run the parsed tokens to the structure builder
+        # this populates the symbol table and builds complete functions
         self._tokens = self._parse(self._scanned_tokens) 
 
-        # next, make a pass over tokens and convert functions into
-        # instruction lines so that the generator doesn't need to
-        # know anything about functions or variables.
-
-
+        return self._tokens

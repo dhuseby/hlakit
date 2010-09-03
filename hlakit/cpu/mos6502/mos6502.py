@@ -32,6 +32,7 @@ from pyparsing import *
 from hlakit.common.target import Target
 from hlakit.common.preprocessor import Preprocessor
 from hlakit.common.compiler import Compiler
+from hlakit.common.generator import Generator
 from hlakit.common.type_ import Type
 from hlakit.common.label import Label
 from hlakit.common.function import Function
@@ -62,8 +63,6 @@ class MOS6502Preprocessor(Preprocessor):
 
 class MOS6502Compiler(Compiler):
 
-    OUTSIDE, FN, INSIDE, CONDITIONAL, ERROR = range(5)
-
     @classmethod
     def first_exprs(klass):
         e = []
@@ -77,86 +76,25 @@ class MOS6502Compiler(Compiler):
        
         return e
 
-
-    _shared_state = {}
-
-    def __new__(cls, *a, **k):
-        obj = object.__new__(cls, *a, **k)
-        obj.__dict__ = cls._shared_state
-        return obj
-
     def _next_state(self, token):
 
-        # outside of a function declaration
-        if self._state == self.OUTSIDE:
-            if isinstance(token, FunctionDecl):
-                if self._depth != 0:
-                    self._state = self.ERROR
-                    raise ParseFatalError('cannot declare a function here')
-                self._fn = Function(token)
-                self._state = self.FN
-            else:
-                return token
+        # we have to handle the InstructionLine here because it is
+        # a CPU specific token and the base compiler doesn't know
+        # anything about it.
+        if self._state == self.INSIDE:
+            if isinstance(token, InstructionLine):
+                self._fn.append_token(token)
+                return None
 
-        # have seen a function decl, looking for {
-        elif self._state == self.FN:
-            if isinstance(token, ScopeBegin):
-                self._fn.append_token(token)
-                self._depth += 1
-                self._state = self.INSIDE
-            else:
-                self._state = self.ERROR
-                s = 'function decl not followed by {\n'
-                s += str(self._fn) + '\n'
-                s += str(token)
-                raise ParseFatalException(s)
+        # if we aren't inside of a function decl or the token
+        # wasn't an InstructionLine, then call the base class
+        # to handle the token.
+        return super(MOS6502Compiler, self)._next_state(token)
 
-        # inside function decl
-        elif self._state == self.INSIDE:
-            if isinstance(token, Conditional):
-                self._fn.append_token(token)
-            elif isinstance(token, ScopeBegin):
-                self._fn.append_token(token)
-                self._depth += 1
-            elif isinstance(token, ScopeEnd):
-                self._fn.append_token(token)
-                self._depth -= 1
-                if self._depth == 0:
-                    self._state = self.OUTSIDE
-                    return self._fn
-            elif isinstance(token, Label):
-                # TODO: register the label with the global label list
-                self._fn.append_token(token)
-            elif isinstance(token, InstructionLine):
-                self._fn.append_token(token)
-            elif isinstance(token, FunctionCall):
-                self._fn.append_token(token)
-                self._fn.add_dependency(token.get_name())
-            elif isinstance(token, FunctionReturn):
-                self._fn.append_token(token)
-            else:
-                self._state = self.ERROR
-                s = 'invalid token in body of function\n'
-                s += str(self._fn) + '\n'
-                s += '%s: %s' % (type(token), str(token))
-                raise ParseFatalException(s)
+class MOS6502Generator(Generator):
 
-        return None
-
-    def _parse(self, tokens):
-        """ go through the list of tokens looking for well structred functions
-        """
-        self._state = self.OUTSIDE
-        self._fn = None
-        self._depth = 0
-        out_tokens = []
-        for t in tokens:
-            token = self._next_state(t)
-            if token != None:
-                out_tokens.append(token)
-
-        return out_tokens
-
+    def build_rom(self, tokens):
+        pass
 
 
 class MOS6502(Target):
@@ -191,7 +129,7 @@ class MOS6502(Target):
         return MOS6502Compiler()
 
     def generator(self):
-        return None
+        return MOS6502Generator()
 
 
 

@@ -34,7 +34,7 @@ from cStringIO import StringIO
 from hlakit.common.session import Session
 from hlakit.platform.lynx import LynxPreprocessor, LynxCompiler
 from hlakit.platform.lynx.loader import LynxLoader
-from hlakit.platform.lynx.lnx import LnxSetting
+from hlakit.platform.lynx.lnx import Lnx, LnxSetting
 from hlakit.platform.lynx.rom import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
 
 class LynxPreprocessorTester(unittest.TestCase):
@@ -391,4 +391,40 @@ class LynxCompilerTester(unittest.TestCase):
     def testLynxPreprocessor(self):
         self.assertTrue(isinstance(Session().compiler(), LynxCompiler))
 
+
+class LynxLnxTester(unittest.TestCase):
+    """
+    This class aggregates all of the tests for the Lynx .LNX header class
+    """
+
+    VALID_HEADER = 'LYNX\x00\x04\x00\x00\x01\x00CALGAMES.040\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Atari\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def testBasicLnxHeader(self):
+        lnx = Lnx()
+        lnx.set_page_size_bank0(1024)
+        lnx.set_page_size_bank1(0)
+        lnx.set_version(1)
+        lnx.set_cart_name('CALGAMES.040')
+        lnx.set_manufacturer_name('Atari')
+        lnx.set_rotation(lnx.ROTATE_NONE)
+
+        outf = StringIO()
+        lnx.save_header(outf)
+
+        self.assertEquals(self.VALID_HEADER, outf.getvalue())
+
+
+    def testRoundTrip(self):
+        inf = StringIO(self.VALID_HEADER)
+        lnx = Lnx()
+        lnx.load_header(inf)
+        outf = StringIO()
+        lnx.save_header(outf)
+        self.assertEquals(self.VALID_HEADER, outf.getvalue())
 

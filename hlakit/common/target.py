@@ -11,6 +11,7 @@ included LICENSE file or by visiting here:
 from pyparsing import *
 from preprocessor import Preprocessor
 from compiler import Compiler
+from generator import Generator
 from symboltable import SymbolTable
 
 class Target(object):
@@ -49,5 +50,5 @@ class Target(object):
         return Compiler()
 
     def generator(self):
-        return None
+        return Generator()
 

@@ -70,7 +70,10 @@ class Lnx(object):
     """
 
     ROTATE_NONE, ROTATE_LEFT, ROTATE_RIGHT = range(3)
-    ROTATIONS = ( 'None', 'Left', 'Right' )
+    ROTATIONS = ( 'none', 'left', 'right' )
+    ROTATION_BY_NAME = { 'none': ROTATE_NONE,
+                         'left': ROTATE_LEFT,
+                         'right': ROTATE_RIGHT }
 
     def __init__(self, inf=None):
         # version 1 specific
@@ -83,10 +86,12 @@ class Lnx(object):
         self._save_game_size = None
 
         # common
-        self._version = None
+        self._version = 1
         self._cart_name = ''
         self._manufacturer_name = ''
         self._rotation = self.ROTATE_NONE
+
+        self._spare = '\x00' * 5
 
         # the banks of data
         self._banks = []
@@ -99,8 +104,87 @@ class Lnx(object):
             self._unpack_banks(inf)
 
     def save(self, outf):
+        self.save_header(outf)
+        self.save_banks(outf)
+
+    def save_header(self, outf):
         self._pack_header(outf)
+
+    def save_banks(self, outf):
         self._pack_banks(outf)
+
+    def load_header(self, inf):
+        self._unpack_header(inf)
+
+    def load_banks(self, inf):
+        self._unpack_banks(inf)
+
+    def set_version(self, version):
+        if (version < 0) or (version > 2):
+            raise ValueError('valid .LNX version is 1 or 2')
+        self._version = version
+
+    def get_version(self):
+        return self._version
+
+    def set_use_cart_strobe(self, use_strobe):
+        if self._version != 2:
+            raise RuntimeError('use cart strobe is only valid in version 2 headers')
+        self._use_cart_strobe = use_strobe
+
+    def get_use_cart_strobe(self):
+        return self._use_cart_strobe
+
+    def set_save_game_size(self, save_size):
+        if self._version != 2:
+            raise RuntimeError('save game size is only valid in version 2 headers')
+        self._save_game_size = save_size
+
+    def get_save_game_size(self):
+        return self._save_game_size
+
+    def set_page_size_bank0(self, size):
+        if self._version != 1:
+            raise RuntimeError('bank0 page size is only valid in version 1 headers')
+        self._page_size_bank0 = int(size)
+
+    def get_page_size_bank0(self):
+        return self._page_size_bank0
+
+    def set_page_size_bank1(self, size):
+        if self._version != 1:
+            raise RuntimeError('bank1 page size is only valid in version 1 headers')
+        self._page_size_bank1 = int(size)
+
+    def get_page_size_bank1(self):
+        return self._page_size_bank1
+
+    def set_cart_name(self, name):
+        self._cart_name = str(name)
+
+    def get_cart_name(self):
+        return self._cart_name
+
+    def set_manufacturer_name(self, name):
+        self._manufacturer_name = str(name)
+
+    def get_manufacturer_name(self):
+        return self._manufacturer_name
+
+    def set_rotation(self, rotation):
+        if isinstance(rotation, str):
+            if rotation.lower() not in self.ROTATION_BY_NAME.keys():
+                raise ValueError('rotation must be: none, left, or right')
+            self._rotation = self.ROTATION_BY_NAME[rotation]
+        elif isinstance(rotation, int):
+            if rotation not in range(3):
+                raise ValueError('rotation must be 0 (none), 1 (left), or 2 (right)')
+            self._rotation = rotation
+        else:
+            raise TypeError('rotation value type must be int or str')
+
+    def get_rotation(self):
+        return self._rotation
 
     def _unpack_header(self, inf):
 
@@ -400,16 +484,16 @@ class LnxSetting(object):
         return self._rotation
 
     def __str__(self):
-        s = '#lnx.%s' % self.TYPE[self._type]
+        s_ = '#lnx.%s' % self.TYPE[self._type]
         if self._size:
-            s += ' %s' % self._size
+            s_ += ' %s' % self._size
         elif self._version:
-            s += ' %s' % self._version
+            s_ += ' %s' % str(self._version)
         elif self._name:
-            s += ' %s' % self._name
+            s_ += ' "%s"' % self._name
         elif self._rotation: 
-            s += ' %s' % self._rotation
-        return s
+            s_ += ' %s' % self._rotation
+        return s_
 
     __repr__ = __str__
 

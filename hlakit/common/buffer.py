@@ -27,6 +27,9 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+import sys
+import struct
+from math import floor, ceil, log
 
 class Buffer(object):
     """
@@ -34,12 +37,99 @@ class Buffer(object):
     used for building blocks of ROM data and the overall ROM image.
     """
 
-    def __init__(self):
+    BYTE_ORDER = '='
+
+    def __init__(self, org, maxsize=None):
         self._buffer = []
+        self._org = org
+        self._maxsize = maxsize
+        self._current_size = None
         self._current_write = None
         self._current_read = None
         self._padding_value = None
         self._alignment = None
+        self._buffer = []
+
+    def _pad_with_list(self, start, len, value):
+        if not isinstance(value, list):
+            raise TypeError('_pad_with_list given incorrect padding value type')
+
+        # figure out where in the padding value the start index lands
+        j = start % len(value)
+
+        # padd the buffer with the values
+        for i in range(0, len):
+            self._buffer[start + i] = value[j]
+            j = (j + 1) % len(value)
+
+    def _get_int_padding_list(self, value):
+        padding_list = []
+
+        # calculate the number of bytes needed to store the padding value
+        if value == 0:
+            num_bytes = 1
+        else:
+            num_bytes = int(ceil((floor(log(value, 2)) + 1) / 8))
+        
+        if num_bytes > 8:
+            raise TypeError('numeric padding value too large')
+
+        # pack the value into a binary string
+        packed = ''
+        if (num_bytes > 4) and (num_bytes <= 8):
+            packed = struct.pack(self.BYTE_ORDER + 'Q', value)
+        elif (num_bytes > 2) and (num_bytes <= 4):
+            packed = struct.pack(self.BYTE_ORDER + 'L', value)
+        elif num_bytes == 2:
+            packed = struct.pack(self.BYTE_ORDER + 'H', value)
+        elif num_bytes == 1:
+            packed = struct.pack(self.BYTE_ORDER + 'B', value)
+
+        
+         
+
+
+    def _get_str_padding_list(self, value):
+        pass
+
+
+    def _pad_buffer(self, start, len):
+        if isinstance(self._padding_value, str):
+            padding_list = self._get_str_padding_list(self._padding_value)
+        else:
+            padding_list = self._get_int_padding_list(self._padding_value)
+        self._pad_with_list(start, len, padding_list)
+
+    def _check_buffer_size(self):
+        if self._current_write < len(self._buffer):
+            return
+
+        # make sure we're not overrunning a buffer
+        if (self._maxsize != None) and (self._current_write >= self._maxsize):
+            raise IndexError('writing past buffer maxsize') 
+
+        # remember where to start filling with padding bytes
+        pad_start = len(self._buffer)
+
+        # figure out how much we need to extend the buffer
+        ext = self._current_write - len(self._buffer) + 1
+
+        # extend the buffer
+        self._buffer.extend([None] * ext)
+
+        # fill with padding value
+        self._pad_buffer(pad_start, ext)
+
+    def set_padding_value(self, value):
+        if isinstance(value, str) or isinstance(value, int):
+            self._padding_value = value
+            return
+
+        raise TypeError('invalid padding value type, must be a string or int')
+
+    def write_ubyte(self, value):
+        self._buffer[self._current_write] = struct.pack('B', value)
+        self._current_write += 1
 
     def __str__(self):
         return 'Buffer'

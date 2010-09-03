@@ -29,7 +29,7 @@ or implied, of David Huseby.
 
 import os
 from pyparsing import *
-from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler
+from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler, MOS6502Generator
 from loader import LynxLoader
 from lnx import Lnx, LnxSetting
 from rom import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
@@ -67,6 +67,11 @@ class LynxCompiler(MOS6502Compiler):
 
         return e
 
+class LynxGenerator(MOS6502Generator):
+
+    def build_rom(self, tokens):
+        pass
+
 
 class Lynx(MOS6502):
 
@@ -84,7 +89,7 @@ class Lynx(MOS6502):
         return LynxCompiler()
 
     def generator(self):
-        return None
+        return LynxGenerator()
 
 
 

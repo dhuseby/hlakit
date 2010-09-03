@@ -26,4 +26,4 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-from mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler
+from mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler, MOS6502Generator

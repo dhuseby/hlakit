@@ -171,10 +171,14 @@ class Immediate(object):
 
     def __str__(self):
         s = ''
-        s += self.TYPE[self._type] + ' ( '
-        for a in self._args:
-            s += str(a) + ' '
-        s += ')'
+        if self._type != self.TERMINAL:
+            s += self.TYPE[self._type] + ' ( '
+        for i in range(0, len(self._args)):
+            if i > 0:
+                s += ', '
+            s += str(self._args[i])
+        if self._type != self.TERMINAL:
+            s += ')'
         return s
 
     __repr__ = __str__

@@ -30,9 +30,10 @@ or implied, of David Huseby.
 import os
 import sys
 import optparse
+from symboltable import SymbolTable
 from codeblock import CodeBlock
 
-HLAKIT_VERSION = "0.0.2"
+HLAKIT_VERSION = "0.7"
 
 class CommandLineError(Exception):
     def __init__(self, value):
@@ -128,6 +129,9 @@ class Session(object):
             help='outputs the compiled token names to stdout')
         parser.add_option('-d', '--debug', action='store_true', dest='debug', default=False,
             help='outputs some debug output')
+        parser.add_option('-o', dest='output_file', default=None,
+            help='specify the name of the output file')
+
 
         (self._options, self._args) = parser.parse_args(args)
 
@@ -338,19 +342,39 @@ class Session(object):
                 return
 
             # compile the tokenstream
-            cc.compile(pp_tokens)
-            cc_tokens = cc.get_output()
+            cc_tokens = cc.compile(pp_tokens)
 
             # now output the CodeBlock and the tokens it 
             # parsed to
             if self._options.debug:
+                fns = []
                 for t in cc_tokens:
                     if not isinstance(t.__str__(), str):
                         import pdb; pdb.set_trace()
                     s = str(t)
-                    s += ' ' * (80 - len(s))
-                    s += str(type(t))
-                    print s
+                    tl = str(type(t))
+                    print tl + (' ' * (80 - len(tl))) + s
+                    if hasattr(t, 'get_tokens'):
+                        fns.append(t)
+                        ftokens = t.get_tokens()
+                        for ft in ftokens:
+                            ftl = str(type(ft))
+                            print '    ' + ftl + (' ' * (76 - len(ftl))) + str(ft)
+
+                print "\nFunction Tree:"
+                for fn in fns:
+                    print str(fn)
+                    for dep in fn.get_dependencies():
+                        print "+-- " + str(dep)
+
+                st = SymbolTable()
+                print "\nScopes:"
+                for (ns, sc) in st.get_scopes().iteritems():
+                    print '=' * 80
+                    print '%s:' % ns
+                    print '-' * 80
+                    for (name, symbol) in sc.iteritems():
+                        print '    %s = %s' % (name, type(symbol[1]))
 
             if self._options.output_cc:
                 for t in cc_tokens:
@@ -359,18 +383,9 @@ class Session(object):
                     if s not in ('FileBegin', 'FileEnd'):
                         print '%s,' % s
 
-            #for t in cc_tokens:
-            #    print "%s" % type(t)
-            #    print "%s" % t
-
             # link the compiled tokens into a binary
-            #ll.link(cc_tokens)
+            #rom = gen.build_rom(cc_tokens)
 
-            # dump the tokens
-            #print "TOKEN STREAM:"
-            #for t in cc_tokens:
-            #    print "%s: %s" % (type(t), t)
-
-            #TypeRegistry.instance().dump()
-            #SymbolTable.instance().dump()
+            # output the rom to file 
+            #rom.save(self._options.output_file)
 

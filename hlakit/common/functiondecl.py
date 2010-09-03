@@ -60,7 +60,7 @@ class FunctionDecl(object):
         params = None
         if 'params' in tokens.keys():
             # only inline function decl's can have params
-            if type_.get_type() != 'inline':
+            if type_.get_name() != 'inline':
                 raise ParseFatalException('non-inline function decl with params')
             params = [ p for p in tokens.params ]
 
