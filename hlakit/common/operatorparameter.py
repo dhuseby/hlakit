@@ -31,7 +31,7 @@ from pyparsing import *
 from session import Session
 from name import Name
 from type_ import Type
-from struct import Struct
+from struct_ import Struct
 from value import Value
 
 class OperatorParameter(object):

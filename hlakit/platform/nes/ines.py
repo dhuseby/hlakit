@@ -342,10 +342,13 @@ class iNESMapper(object):
         if pp.ignore():
             return []
 
-        mapper = getattr(tokens, 'name', None)
-        if not mapper:
-            mapper = getattr(tokens, 'number', None)
-        if not mapper:
+        mapper = None
+        if 'name' in tokens.keys():
+            mapper = tokens.name
+        elif 'number' in tokens.keys():
+            mapper = tokens.number
+
+        if mapper is None:
             raise ParseFatalException('#ines.mapper missing parameter')
 
         return klass(mapper)

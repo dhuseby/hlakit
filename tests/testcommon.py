@@ -29,8 +29,10 @@ or implied, of David Huseby.
 import os
 import sys
 import unittest
+from cStringIO import StringIO
 from hlakit.common.target import Target
 from hlakit.common.session import Session, CommandLineError
+from hlakit.common.buffer import Buffer
 
 class CommandLineOptionsTester(unittest.TestCase):
     """
@@ -109,4 +111,23 @@ class CommandLineOptionsTester(unittest.TestCase):
         session = Session()
         session.parse_args(['--cpu=generic', '--include=tests'])
         self.assertEquals(session.get_include_dirs(), ['tests'])
- 
+
+
+class BufferTester(unittest.TestCase):
+    """
+    This class aggregates all of the tests for the Buffer base class
+    """
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    #def testBufferPaddingInt(self):
+    #    buf = Buffer(0)
+    #    buf.set_padding_value(0xDEADBEEF)
+    #    buf.reserve(12)
+    #    outf = StringIO()
+    #    buf.save(outf)
+    #    self.assertEquals(outf.getvalue(), '')
+

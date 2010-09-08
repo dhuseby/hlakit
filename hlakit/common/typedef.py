@@ -31,7 +31,7 @@ from pyparsing import *
 from session import Session
 from type_ import Type
 from name import Name
-from struct import Struct
+from struct_ import Struct
 from numericvalue import NumericValue
 
 class Typedef(Type):

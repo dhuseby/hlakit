@@ -33,7 +33,7 @@ from pyparsing import *
 from enum import Enum
 from type_ import Type
 from label import Label
-from struct import Struct
+from struct_ import Struct
 from typedef import Typedef
 from immediate import Immediate
 from variable import Variable
@@ -146,6 +146,7 @@ class Compiler(object):
                 self._state = self.FN
             elif isinstance(token, Variable):
                 st.new_symbol(token)
+                return token
             elif isinstance(token, FileBegin):
                 st.scope_push(str(token.get_name()))
             elif isinstance(token, FileEnd):
