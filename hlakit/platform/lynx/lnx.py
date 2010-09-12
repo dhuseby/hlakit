@@ -119,6 +119,12 @@ class Lnx(object):
     def load_banks(self, inf):
         self._unpack_banks(inf)
 
+    def clear_banks(self):
+        self._banks = []
+
+    def append_bank(self, inf):
+        self._banks.append(inf.read())
+
     def set_version(self, version):
         if (version < 0) or (version > 2):
             raise ValueError('valid .LNX version is 1 or 2')

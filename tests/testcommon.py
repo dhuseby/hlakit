@@ -123,11 +123,27 @@ class BufferTester(unittest.TestCase):
     def tearDown(self):
         pass
 
-    #def testBufferPaddingInt(self):
-    #    buf = Buffer(0)
-    #    buf.set_padding_value(0xDEADBEEF)
-    #    buf.reserve(12)
-    #    outf = StringIO()
-    #    buf.save(outf)
-    #    self.assertEquals(outf.getvalue(), '')
+    def testBufferPaddingByte(self):
+        buf = Buffer(0)
+        buf.set_padding_value(0xAA)
+        buf.reserve(12)
+        outf = StringIO()
+        buf.save(outf)
+        self.assertEquals(outf.getvalue(), '\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA')
+
+    def testBufferPaddingWord(self):
+        buf = Buffer(0)
+        buf.set_padding_value(0xAA55)
+        buf.reserve(12)
+        outf = StringIO()
+        buf.save(outf)
+        self.assertEquals(outf.getvalue(), '\x55\xAA\x55\xAA\x55\xAA\x55\xAA\x55\xAA\x55\xAA')
+
+    def testBufferPaddingDWord(self):
+        buf = Buffer(0)
+        buf.set_padding_value(0xDEADBEEF)
+        buf.reserve(12)
+        outf = StringIO()
+        buf.save(outf)
+        self.assertEquals(outf.getvalue(), '\xEF\xBE\xAD\xDE\xEF\xBE\xAD\xDE\xEF\xBE\xAD\xDE')
 

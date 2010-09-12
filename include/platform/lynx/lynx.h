@@ -62,7 +62,7 @@ byte MIKEY_SYSTEM_CONTROL   :$FD87
  * from the DATA register.
  */
 byte MIKEY_IO_DIRECTION     :$FD8A      // direction control register
-byte MIKEY_IO_DATA          :$FD8B      // data I/O register
+byte MIKEY_GPIO             :$FD8B      // general purpose I/O register
 
 /* Serial Control Register
  *

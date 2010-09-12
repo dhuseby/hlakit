@@ -79,7 +79,9 @@ class Buffer(object):
         if (num_bytes > 4) and (num_bytes <= 8):
             packed = pack(self.BYTE_ORDER + 'Q', value)
         elif (num_bytes > 2) and (num_bytes <= 4):
-            packed = pack(self.BYTE_ORDER + 'L', value)
+            # NOTE: use 'I' instead of 'L' because 'L' is 8 bytes long on
+            # 64-bit systems.
+            packed = pack(self.BYTE_ORDER + 'I', value)
         elif num_bytes == 2:
             packed = pack(self.BYTE_ORDER + 'H', value)
         elif num_bytes == 1:
@@ -123,7 +125,7 @@ class Buffer(object):
         pad_start = len(self._buffer)
 
         # figure out how much we need to extend the buffer
-        ext = size - len(self._buffer) + 1
+        ext = size - len(self._buffer) 
 
         # extend the buffer
         self._buffer.extend([None] * ext)
