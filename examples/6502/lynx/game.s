@@ -41,17 +41,28 @@
 
 #include <lynx.h>
 
-// set the rom address: segment=0, counter=0, maxsize=2K
-#lynx.rom.bank      0
-#lynx.rom.org       0,0,2K
-#lynx.rom.padding   0
+// make sure we're in bank 0 and set padding to 0
+#lynx.rom.bank          0
+#lynx.rom.padding       0
+
+// set the rom address: segment=0, counter=0, maxsize=256 the 256 bytes means 
+// that our loader can be decrypted in a single call to the RSALoad system rom 
+// function.
+#lynx.rom.org           0,0,256
 
 // include the micro loader code
 #include "micro_loader.s"
 
+// end the chunk of rom with the micro loader
+#lynx.rom.end
+
 // specify which loader function needs encrypting
 #lynx.loader micro_loader
 
+// the micro loader assumes the secondary loader is in the 256 immediately 
+// following the encrypted micro loader and is no more than 256 bytes long.
+// the micro loader will load this function into upper memory and jump to it.
+#lynx.rom.org           0,0x0100,256
 /*
  * Include the secondary loader code so that it is immediately following the
  * micro loader on the ROM.  This is necessary because the micro loader doesn't
@@ -63,10 +74,22 @@
 #lynx.rom.end
 
 // set the rom address to the second segment
-#lynx.rom.org   1,0,510K
+#lynx.rom.org           1,0
 
 // include the main game code.
 #include "main.s"
 
+// TODO: hook into asset compilation system here.
+
 #lynx.rom.end
+
+#lynx.rom.org           0,0x200,512
+/* 
+ * we can use these 512 bytes for storing things like the size of the initial
+ * executable so that the secondary executable can know how much data it
+ * needs to load.  this block can also house the initial data for showing
+ * the intro and bringing up the game.
+ */
+#lynx.rom.end
+
 

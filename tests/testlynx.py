@@ -35,7 +35,7 @@ from hlakit.common.session import Session
 from hlakit.platform.lynx import LynxPreprocessor, LynxCompiler
 from hlakit.platform.lynx.loader import LynxLoader
 from hlakit.platform.lynx.lnx import Lnx, LnxSetting
-from hlakit.platform.lynx.rom import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
+from hlakit.platform.lynx.rompp import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
 
 class LynxPreprocessorTester(unittest.TestCase):
     """

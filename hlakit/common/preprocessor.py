@@ -43,8 +43,8 @@ from tell import TellBank, TellBankOffset, TellBankSize, TellBankFree, TellBankT
 from include import Include
 from incbin import Incbin
 from usepath import Usepath
-from rom import RomOrg, RomEnd, RomBanksize, RomBank
-from ram import RamOrg, RamEnd
+from rompp import RomOrg, RomEnd, RomBanksize, RomBank
+from rampp import RamOrg, RamEnd
 from setpad import SetPad
 from align import Align
 from codeline import CodeLine

@@ -93,8 +93,40 @@ class MOS6502Compiler(Compiler):
 
 class MOS6502Generator(Generator):
 
-    def build_rom(self, tokens):
+    def _process_token(self, token):
+
+        # handle 6502 specific token
+        if isinstance(token, InterruptStart):
+            pass
+        elif isinstance(token, InterruptNMI):
+            pass
+        elif isinstance(token, InterruptIRQ):
+            pass
+        elif isinstance(token, InstructionLine):
+            pass
+        elif isinstance(token, Conditional):
+            pass
+        else:
+            # pass the token along to the generic generator
+            super(MOS6502Generator, self)._process_token(token)
+
+    def _initialize_rom(self):
+        return super(MOS6502Generator, self)._initialize_rom()
+
+    def _finalize_rom(self):
         pass
+
+    def build_rom(self, tokens):
+
+        # initialize the rom output pass
+        self._initialize_rom()
+
+        # process each of the tokens
+        for t in tokens:
+            self._process_token(t)
+
+        # finalize the rom output pass
+        self._finalize_rom()
 
 
 class MOS6502(Target):

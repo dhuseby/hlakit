@@ -32,7 +32,7 @@ from pyparsing import *
 from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler, MOS6502Generator
 from loader import LynxLoader
 from lnx import Lnx, LnxSetting
-from rom import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
+from rompp import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
 
 class LynxPreprocessor(MOS6502Preprocessor):
 
@@ -69,8 +69,73 @@ class LynxCompiler(MOS6502Compiler):
 
 class LynxGenerator(MOS6502Generator):
 
-    def build_rom(self, tokens):
+    def _resolve_value(self, name, type_):
         pass
+
+    def _process_token(self, token):
+
+        # get the rom file
+        romfile = self.romfile()
+
+        # handle Lynx specific token
+        if isinstance(token, LynxLoader):
+            self._loader_fn = str(token.get_fn())
+        elif isinstance(token, LnxSetting):
+            type_ = token.get_type()
+            if type_ == LnxSetting.OFF:
+                romfile.set_no_header()
+            elif type_ == LnxSetting.PSB0:
+                romfile.set_page_size_bank0(token.get_size())
+            elif type_ == LnxSetting.PSB1:
+                romfile.set_page_size_bank1(token.get_size())
+            elif type_ == LnxSetting.VERSION:
+                romfile.set_version(token.get_version())
+            elif type_ == LnxSetting.CART_NAME:
+                romfile.set_cart_name(token.get_name())
+            elif type_ == LnxSetting.MANU_NAME:
+                romfile.set_manufacturer_name(token.get_name())
+            elif type_ == LnxSetting.ROTATION:
+                romfile.set_rotation(token.get_rotation())
+        elif isinstance(token, LynxRomOrg):
+            romfile.set_rom_org(token.get_segment(), 
+                                token.get_counter(), 
+                                token.get_maxsize())
+        elif isinstance(token, LynxRomEnd):
+            romfile.set_rom_end()
+        elif isinstance(token, LynxRomBank):
+            romfile.set_rom_bank(token.get_number())
+        elif isinstance(token, LynxRomPadding):
+            romfile.set_rom_padding(token.get_value())
+        else:
+            # pass the token along to the CPU generator
+            super(LynxGenerator, self)._process_token(token)
+
+    def _initialize_rom(self):
+        """ This function returns the RomFile to be used for this session """
+        return Lnx()
+
+    def _finalize_rom(self):
+        # look up the loader function, encrypt it and put it at the front of
+        # the rom list
+
+        # output all blocks in the rom list to the rom
+        romfile = self.romfile()
+        bufs = romfile.get_buffers()
+        print "Buffers:"
+        for b in bufs:
+            print '%s' % b
+
+    def build_rom(self, tokens):
+
+        # initialize the rom output pass
+        self._initialize_rom()
+
+        # process each of the tokens
+        for t in tokens:
+            self._process_token(t)
+
+        # finalize the rom output pass
+        self._finalize_rom()
 
 
 class Lynx(MOS6502):

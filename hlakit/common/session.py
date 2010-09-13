@@ -301,10 +301,13 @@ class Session(object):
         return None
 
     def generator(self):
-        target = getattr(self, '_generator', None)
+        target = getattr(self, '_target', None)
         if target:
             return target.generator()
         return None
+
+    def romfile(self):
+        return self.generator().romfile() 
 
 
     def build(self):
@@ -384,7 +387,7 @@ class Session(object):
                         print '%s,' % s
 
             # link the compiled tokens into a binary
-            #rom = gen.build_rom(cc_tokens)
+            rom = gen.build_rom(cc_tokens)
 
             # output the rom to file 
             #rom.save(self._options.output_file)

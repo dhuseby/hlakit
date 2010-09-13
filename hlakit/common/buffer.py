@@ -39,16 +39,19 @@ class Buffer(object):
 
     BYTE_ORDER = ''
 
-    def __init__(self, org, maxsize=None):
+    def __init__(self, org, maxsize=None, padding=None):
         self._buffer = []
         self._org = org
         self._maxsize = maxsize
         self._current_size = None
         self._current_write = None
         self._current_read = None
-        self._padding_value = None
+        self._padding_value = padding
         self._alignment = None
         self._buffer = []
+
+        if (maxsize != None) and (maxsize > 0):
+            self.reserve(maxsize)
 
     def _pad_with_value(self, start, length, value):
         if (not isinstance(value, list)) and (not isinstance(value, str)):
@@ -109,6 +112,30 @@ class Buffer(object):
         for b in self._buffer:
             outf.write(b)
 
+    def load(self, inf, size):
+        # check the maxsize 
+        if self._maxsize != None:
+            if size > self._maxsize:
+                print 'WARNING: buffer load size exceeds the specified maxsize, truncating'
+            size = min(size, maxsize)
+
+        # read in the data
+        data = inf.read(size)
+
+        # check the length of the data read against what was expected
+        if len(data) != size:
+            print 'WARNING: expected buffer size does not match the amount of data read'
+
+        # store the data in the buffer
+        for b in data:
+            self._buffer.append(b)
+
+    def seek(self, pos):
+        pos = int(pos)
+        if (pos < 0) or ((self._maxsize != None) and (pos >= self._maxsize)):
+            raise IndexError('seeking past buffer maxsize')
+        self._current_write = pos
+
     def set_padding_value(self, value):
         if isinstance(value, str) or isinstance(value, int):
             self._padding_value = value
@@ -118,7 +145,7 @@ class Buffer(object):
 
     def reserve(self, size):
         # make sure we're not overrunning a buffer
-        if (self._maxsize != None) and (size >= self._maxsize):
+        if (self._maxsize != None) and (size > self._maxsize):
             raise IndexError('writing past buffer maxsize') 
 
         # remember where to start filling with padding bytes
@@ -144,7 +171,18 @@ class Buffer(object):
         self._current_write += 1
 
     def __str__(self):
-        return 'Buffer'
+        s = 'Buffer:\n    Org:      0x%0.4x' % self._org
+        if self._maxsize != None:
+            s += '\n    Max Size: 0x%0.4x' % self._maxsize
+        else:
+            s += '\n    Max Size: None'
+        if self._padding_value != None:
+            if isinstance(self._padding_value, int):
+                s += '\n    Padding:  0x%0.4x' % self._padding_value
+            else:
+                s += '\n    Padding:  "%s"' % self._padding_value
+        s += '\n    Length:   0x%0.4x' % len(self._buffer)
+        return s
 
     __repr__ = __str__
 

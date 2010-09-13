@@ -36,8 +36,8 @@ from hlakit.common.session import Session, CommandLineError
 from hlakit.common.tell import TellBank, TellBankOffset, TellBankSize, TellBankFree, TellBankType
 from hlakit.common.incbin import Incbin
 from hlakit.common.usepath import Usepath
-from hlakit.common.ram import RamOrg, RamEnd
-from hlakit.common.rom import RomOrg, RomEnd, RomBanksize, RomBank
+from hlakit.common.rampp import RamOrg, RamEnd
+from hlakit.common.rompp import RomOrg, RomEnd, RomBanksize, RomBank
 from hlakit.common.setpad import SetPad
 from hlakit.common.align import Align
 from hlakit.common.codeblock import CodeBlock

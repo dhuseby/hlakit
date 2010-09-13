@@ -34,8 +34,10 @@ from pyparsing import *
 from hlakit.common.session import Session
 from hlakit.common.numericvalue import NumericValue
 from hlakit.common.arrayvalue import StringValue
+from hlakit.common.romfile import RomFile
+from hlakit.common.buffer import Buffer
 
-class Lnx(object):
+class Lnx(RomFile):
     """
     This class encapsulates the .lnx header that will be written with
     the ROM image.
@@ -76,6 +78,9 @@ class Lnx(object):
                          'right': ROTATE_RIGHT }
 
     def __init__(self, inf=None):
+        # no header flag
+        self._no_header = False
+
         # version 1 specific
         self._page_size_bank0 = None
         self._page_size_bank1 = None
@@ -99,13 +104,26 @@ class Lnx(object):
         # the save game data
         self._save_game_data = None
 
+        # the state of the ROM building
+        self._buffers = []
+        self._cur_bank = 0
+        self._cur_buffer = None
+        self._cur_segment = 0
+        self._cur_counter = 0
+        self._cur_maxsize = None
+        self._cur_ram_addr = 0
+        self._cur_padding = None
+
         if inf:
             self._unpack_header(inf)
             self._unpack_banks(inf)
 
     def save(self, outf):
-        self.save_header(outf)
-        self.save_banks(outf)
+        o = open(outf, 'wb+')
+        if not self._no_header:
+            self.save_header(o)
+        self.save_banks(o)
+        o.close()
 
     def save_header(self, outf):
         self._pack_header(outf)
@@ -125,7 +143,11 @@ class Lnx(object):
     def append_bank(self, inf):
         self._banks.append(inf.read())
 
+    def set_no_header(self):
+        self._no_header = True
+
     def set_version(self, version):
+        version = int(version)
         if (version < 0) or (version > 2):
             raise ValueError('valid .LNX version is 1 or 2')
         self._version = version
@@ -178,6 +200,10 @@ class Lnx(object):
         return self._manufacturer_name
 
     def set_rotation(self, rotation):
+        if isinstance(rotation, StringValue):
+            rotation = str(rotation)
+        if isinstance(rotation, NumericValue):
+            rotation = int(rotation)
         if isinstance(rotation, str):
             if rotation.lower() not in self.ROTATION_BY_NAME.keys():
                 raise ValueError('rotation must be: none, left, or right')
@@ -191,6 +217,89 @@ class Lnx(object):
 
     def get_rotation(self):
         return self._rotation
+
+    def _get_cur_bank_page_size(self):
+        if self.get_version() == 1:
+            if self._cur_bank == 0:
+                if self._page_size_bank0 == None:
+                    raise ParseFatalException('switching to a bank 0 without a defined page size')
+                return self._page_size_bank0
+            else:
+                if self._page_size_bank1 == None:
+                    raise ParseFatalException('switching to a bank 1 without a defined page size')
+                return self._page_size_bank1
+        else:
+            # version 2 .lnx files have all banks set to maximum size
+            return 2048
+
+    def _get_cur_bank_maxsize(self):
+        return 256 * self._get_cur_bank_page_size()
+
+    def _init_cur_buffer(self, org, maxsize):
+        # create the rom buffer 
+        self._cur_buffer = Buffer(org, )
+
+    def _get_cur_bank_byte_offset(self):
+        return (self._cur_segment * self._get_cur_bank_page_size()) + self._cur_counter
+
+    def set_rom_org(self, segment, counter=None, maxsize=None):
+        if self._cur_buffer != None:
+            raise ParseFatalException('cannot set rom org while in existing def')
+
+        # initialize the segment, counter, and maxsize
+        self._cur_segment = int(segment)
+        if counter != None:
+            self._cur_counter = int(counter)
+        else:
+            self._cur_counter = 0
+        if maxsize != None:
+            self._cur_maxsize = int(maxsize)
+
+        # reset state
+        self._in_rom_def = True
+        self._rom_dirty = False
+
+        # initialize the new buffer
+        org = self._get_cur_bank_byte_offset()
+        self._cur_buffer = Buffer(org, self._cur_maxsize, self._cur_padding)
+
+    def set_rom_end(self):
+        self._cur_maxsize = None
+        self._in_rom_def = False
+        self._rom_dirty = False
+        # save off the current buffer
+        self._buffers.append(self._cur_buffer)
+        self._cur_buffer = None
+        # TODO: if aligned in any way, move to the next alignment
+        # TODO: if padded, make sure that the current ROM gets padded out to either next
+        #       alignment or maxsize.
+
+    def set_rom_bank(self, bank):
+        bank = int(bank) 
+        if self.get_version() == 1:
+            if (bank < 0) or (bank > 1):
+                raise ParseFatalException('invalid bank number for a version 1 .lnx rom')
+        elif self.get_version() == 2:
+            if (bank < 0) or (bank > 255):
+                raise ParseFatalException('invalid bank number for a version 2 .lnx rom')
+
+        # store the new bank index so that page sizes are correct
+        self._cur_bank = int(bank)
+
+        if self._cur_buffer != None:
+            # if we're switching banks in a dirty rom, we'll force a rom end
+            # and reset the rom state
+            print 'WARNING: switching banks in the middle of building a ROM, resetting ROM state'
+            self._set_rom_end()
+            self._set_rom_org(0)
+     
+    def set_rom_padding(self, padding):
+        self._cur_padding = padding
+        if self._cur_buffer != None:
+            self._cur_buffer.set_padding_value(padding)
+
+    def get_buffers(self):
+        return self._buffers
 
     def _unpack_header(self, inf):
 
@@ -240,25 +349,40 @@ class Lnx(object):
     def _unpack_banks(self, inf):
         if self._version == 1:
             # load bank 0
-            self._banks.append(inf.read(256 * self._page_size_bank0))
+            banksize = 256 * self._page_size_bank0
+            b = Buffer(0, banksize)
+            b.load(inf, banksize)
+            self._banks.append(b)
 
             # load bank 1 if needed
             if self._page_size_bank1 > 0:
-                self._banks.append(inf.read(256 * self._page_size_bank1))
+                banksize = 256 * self._page_size_bank1
+                b = Buffer(0, banksize)
+                b.load(inf, banksize)
+                self._banks.append(b)
 
         elif self._version == 2:
             # load the bank 0 banks
             for i in range(0, self._num_banks):
-                self._banks.append(inf.read(256 * 2048))
+                banksize = 256 * 2048
+                b = Buffer(0, banksize)
+                b.load(inf, banksize)
+                self._banks.append(b)
 
             # load the bank 1 banks if needed
             if self._use_cart_strobe:
                 for i in range(0, self._num_banks):
-                    self._banks.append(inf.read(256 * 2048))
+                    banksize = 256 * 2048
+                    b = Buffer(0, banksize)
+                    b.load(inf, banksize)
+                    self._banks.append(b)
 
             # load the save game data if needed
             if self._save_game_size > 0:
-                self._save_game_data = inf.read(256 * self._save_game_size)
+                savesize = 256 * self._save_game_size
+                b = Buffer(0, savesize)
+                b.load(inf, savesize)
+                self._save_game_data = b
 
         else:
             raise SyntaxError(inf.name, 0, 64, 'cannot load banks, invalid .lnx version')
@@ -500,37 +624,6 @@ class LnxSetting(object):
         elif self._rotation: 
             s_ += ' %s' % self._rotation
         return s_
-
-    __repr__ = __str__
-
-
-
-class LnxOff(object):
-    """
-    This defines the rules for parsing a #lnx.off line 
-    """
-
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        if pp.ignore():
-            return []
-
-        return klass()
-
-    @classmethod
-    def exprs(klass):
-        kw = Keyword('#lnx.off')
-
-        expr = Suppress(kw) + \
-               Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
-
-        return expr
-
-    def __str__(self):
-        return 'LnxOff'
 
     __repr__ = __str__
 
