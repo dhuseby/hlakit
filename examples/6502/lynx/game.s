@@ -45,6 +45,10 @@
 #lynx.rom.bank          0
 #lynx.rom.padding       0
 
+
+///////////////////////////////////////////////////////////////////////////////
+// 1ST STAGE MICRO-LOADER SEGMENT
+//
 // set the rom address: segment=0, counter=0, maxsize=256 the 256 bytes means 
 // that our loader can be decrypted in a single call to the RSALoad system rom 
 // function.
@@ -59,6 +63,10 @@
 // specify which loader function needs encrypting
 #lynx.loader micro_loader
 
+
+///////////////////////////////////////////////////////////////////////////////
+// 2ND STAGE SECONDARY LOADER SEGMENT
+//
 // the micro loader assumes the secondary loader is in the 256 immediately 
 // following the encrypted micro loader and is no more than 256 bytes long.
 // the micro loader will load this function into upper memory and jump to it.
@@ -73,6 +81,47 @@
 
 #lynx.rom.end
 
+
+///////////////////////////////////////////////////////////////////////////////
+// STARTUP VALUES SEGMENT
+//
+// we use the 512 bytes after the 1st and 2nd stage loader to store startup
+// values that the secondary loader and the main game executable use.
+#lynx.rom.org           0,0x200,512
+
+// each startup variable is defined using a byte to specify where it should
+// get loaded into the zero page, and the value that should get loaded there
+
+// the size of the game executable
+byte    GAME_EXE_SIZE_LO_ADDR   = $80
+byte    GAME_EXE_SIZE_LO        = lo(sizeof(main) + sizeof(irq))
+byte    GAME_EXE_SIZE_HI_ADDR   = $81
+byte    GAME_EXE_SIZE_HI        = hi(sizeof(main) + sizeof(irq))
+
+// the location where the game executable should be loaded
+byte    GAME_EXE_LOC_LO_ADDR    = $82
+word    GAME_EXE_LOC_LO         = lo($0200)
+byte    GAME_EXE_LOC_LO_ADDR    = $83
+word    GAME_EXE_LOC_LO         = hi($0200)
+
+// the cart segment address of the game executable
+byte    GAME_EXE_SEGMENT_ADDR   = $84
+byte    GAME_EXE_SEGMENT        = $01
+
+// the number of chunks per cart segment
+byte    CART_CHUNKS_PER_SEG_ADDR = $85
+byte    CART_CHUNKS_PER_SEG     = $08
+
+// the end marker
+byte    END_ADDR                = $00
+byte    END                     = $00
+
+#lynx.rom.end
+
+
+///////////////////////////////////////////////////////////////////////////////
+// MAIN EXECUTABLE SEGMENT
+//
 // set the rom address to the second segment
 #lynx.rom.org           1,0
 
@@ -81,15 +130,6 @@
 
 // TODO: hook into asset compilation system here.
 
-#lynx.rom.end
-
-#lynx.rom.org           0,0x200,512
-/* 
- * we can use these 512 bytes for storing things like the size of the initial
- * executable so that the secondary executable can know how much data it
- * needs to load.  this block can also house the initial data for showing
- * the intro and bringing up the game.
- */
 #lynx.rom.end
 
 

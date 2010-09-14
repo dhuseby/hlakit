@@ -49,17 +49,7 @@ interrupt irq()
 {
 }
 
-interrupt reset()
-{
-}
-
-interrupt nmi()
-{
-}
-
 #interrupt.irq irq
-#interrupt.start reset
-#interrupt.nmi nmi
 
 #ram.end
 

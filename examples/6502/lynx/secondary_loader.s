@@ -48,64 +48,140 @@
 
 #include <lynx.h>
 
-/* 
- * This tells the compiler that this code will be located in RAM, starting at
- * the address: 0x0200.  Since the Lynx doesn't execute any code from the ROM
- * directly, all code will get loaded into RAM before being executed.  That 
- * means the #ram.org declaration helps the compiler with relative jump
- * addresses.
- */
 #ram.org 0xFB00
 
-/*
- * The RAM location where the secondary loader will load the game executable.
- */
-#define GAME_EXECUTABLE $0200
-
-/*
- * Zero page variable used to store the RAM page address the secondary loader
- * is currently loading the game executable into.  The game executable get
- * loaded into RAM at 0x0200.
- */
-byte LOAD_PAGE_ADDR_LSB :$0080 = 0x00
-byte LOAD_PAGE_ADDR_MSB :$0081 = 0x02
-byte CART_SEGMENT_ADDR  :$0082 = 0x01
-
-function noreturn secondary_loader()
+inline load_startup_values()
 {
-    /* 
-     * TODO: figure out a way to dynamically calculate the game executable
-     *       size and pass it to the secondary_loader so that it knows how
-     *       much data it needs to load.
-     */
-     
-    // only load 8 pages which is 1 ROM segment
-    ldx #8
-
-    // the game executable resides in segment 1
-    set_cart_segment_address(0x01)
-
-    do 
+    do
     {
-        ldy #0
+        // load the destination address
+        ldx CART_BANK_0
 
-        // this loop loads 256 bytes of data
-        do
-        {
-            lda CART_BANK_0
-            sta (LOAD_PAGE_ADDR_LSB),y
-            iny
-        } while(not zero)
+        // load the value
+        lda CART_BANK_0
 
-        // move the load page address to the next page
-        inc LOAD_PAGE_ADDR_MSB
+        // store the value
+        sta $00,x
 
+        // test to see if we have the end marker
+        and $00,x
+
+    } while(not zero)
+}
+
+inline calculate_number_of_segs(size, segs, chunks_per_seg)
+{
+    // initialize y
+    ldy #0
+
+    // load the number of 256 byte chunks in the exe
+    lda hi(size)
+
+    // divide by the number of chunks in the segment
+    ldx chunks_per_seg
+    while (not zero) {
+        lsr
+
+        // set y to true if any bits are set
+        if (carry) {
+            ldy #1
+        }
+
+        dex
+    }
+
+    // decrement y, the zero flag will be set if y was true
+    dey
+    if(zero) {
+        // we need to increment the number of segments by one
+        inc
+    }
+
+    // store the number of segments
+    sta segs
+}
+
+
+// load 256 byte from the cart and store it at the address specified by dest
+// NOTE: dest must be a 16-bit address stored in the zero page
+inline load_chunk(dest)
+{
+    ldy #0
+
+    // this loop loads 256 bytes of data
+    do
+    {
+        lda CART_BANK_0
+        sta dest
+        inc_16(dest)
+        iny
+    } while(not zero)
+}
+
+inline load_segment(seg, dest, chunks_per_seg)
+{
+    // reset x to have the number of 256 byte chunks per segment
+    ldx chunks_per_seg
+
+    // set the cart segment address 
+    set_cart_segment_address(seg)
+
+    do
+    {
+        // load a 256 byte chunk from the cart and store it in RAM
+        load_chunk(dest) 
+
+        // decrement the chunk per segment counter
         dex
 
     } while(not zero)
+}
+
+function noreturn secondary_loader()
+{
+    // zero page variables that get initialized with the startup values
+    word exe_size       :$80    // the total number of bytes of the exe
+    word exe_location   :$82    // the RAM location of the exe
+    byte exe_segment    :$84    // the starting ROM segment number of the exe
+    byte chunks_per_seg :$85    // the number of 256 byte chunks per segment
+
+    // when we get here, the cart segment is 0, the counter is 512. now is the
+    // time to read in the startup variables.  this will initialize the values
+    // for the variables defined above.
+    load_startup_values()
+
+    // temporary variables used for loading the exe
+    byte num_segs       :$86
+    byte cur_seg        :$87
+    word cur_write      :$88
+
+    // initialize the number of segments to load
+    calculate_number_of_segments(exe_size, num_segs, chunks_per_seg)
+
+    // initialize the current segment we're loading
+    lda exe_segment
+    sta cur_seg
+
+    // initialize write pointer
+    lda exe_location
+    sta cur_write
+
+    // load all of the segments
+    do 
+    {
+        // load a segment
+        load_segment(cur_seg, cur_write, chunks_per_seg)
+      
+        // increment the segment address
+        inc cur_seg
+
+        // decrement the segment counter
+        dec num_segs
+
+    } while(not zero)
     
-    // do a blind jmp to the game executable
-    jmp GAME_EXECUTABLE
+    // the exe is loaded so do a blind jmp to run it
+    jmp (exe_location)
 }
 
 #ram.end
