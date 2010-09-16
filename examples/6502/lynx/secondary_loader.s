@@ -75,12 +75,14 @@ inline calculate_number_of_segs(size, segs, chunks_per_seg)
     ldy #0
 
     // load the number of 256 byte chunks in the exe
-    lda hi(size)
+    lda size+1
 
     // divide by the number of chunks in the segment
     ldx chunks_per_seg
     while (not zero) {
-        lsr
+
+        // divide by 2
+        lsr reg.a
 
         // set y to true if any bits are set
         if (carry) {
@@ -94,7 +96,9 @@ inline calculate_number_of_segs(size, segs, chunks_per_seg)
     dey
     if(zero) {
         // we need to increment the number of segments by one
-        inc
+        tay
+        iny
+        tya
     }
 
     // store the number of segments

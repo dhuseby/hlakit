@@ -40,7 +40,11 @@ class Operand(object):
     This encapsulates a 6502 operand
     """
 
-    IMP, ACC, IMM, ADDR, INDEXED, INDIRECT, IDX_IND, ZP_IND = range(8)
+    # the full addressing modes
+    ACC, IMP, IMM, ABS, ZP, REL, IND, ABS_X, ABS_Y, ZP_X, ZP_Y, ABS_IDX_IND, \
+    ZP_IDX_IND, ZP_IND_IDX, UNK = range(15)
+    MODES = [ 'ACC', 'IMP', 'IMM', 'ABS', 'ZP', 'REL', 'IND', 'ABS_X', 'ABS_Y', 
+              'ZP_X', 'ZP_Y', 'ABS_IDX_IND', 'ZP_IDX_IND', 'ZP_IND_IDX', 'UNK' ]
 
     @classmethod
     def parse(klass, pstring, location, tokens):
@@ -49,22 +53,104 @@ class Operand(object):
         if pp.ignore():
             return []
 
-        if 'imp' in tokens.keys():
-            return klass(Operand.IMP)
-        elif 'acc' in tokens.keys():
+        if 'acc' in tokens.keys():
             return klass(Operand.ACC)
+        elif 'imp' in tokens.keys():
+            return klass(Operand.IMP)
         elif 'imm' in tokens.keys():
-            return klass(Operand.IMM, value=tokens.imm[0])
+            v = tokens.imm[0]
+            op = Operand.IMM
+            if isinstance(v, Immediate):
+                try:
+                    v = v.resolve()
+                except:
+                    op = Operand.UNK
+
+            return klass(op, value=v)
+
         elif 'addr' in tokens.keys():
-            return klass(Operand.ADDR, addr=tokens.addr[0])
+            a = tokens.addr[0]
+            op = Operand.ABS
+
+            # try to resolve the immediate
+            if isinstance(a, Immediate):
+                try:
+                    a = a.resolve()
+                except:
+                    op = Operand.UNK
+
+            if op != Operand.UNK:
+                if int(a) < 256:
+                    op = Operand.ZP
+
+            return klass(op, addr=a)
+
         elif 'indexed' in tokens.keys():
-            return klass(Operand.INDEXED, addr=tokens.indexed[0], reg=tokens.indexed[1])
+            (a, r) = tokens.indexed
+            ind_x = (str(tokens.indexed[1]).lower() == 'x')
+            op = None
+           
+            # try to resolve the immediate if we get one
+            if isinstance(a, Immediate):
+                try:
+                    a = a.resolve()
+                except:
+                    op = Operand.UNK
+
+            # figure out which addressing mode to use
+            if op != Operand.UNK:
+                if int(a) < 256:
+                    if ind_x:
+                        op = Operand.ZP_X
+                    else:
+                        op = Operand.ZP_Y
+                else:
+                    if ind_x:
+                        op = Operand.ABS_X
+                    else:
+                        op = Operand.ABS_Y
+
+            return klass(op, addr=a, reg=r)
+
         elif 'indirect' in tokens.keys():
-            return klass(Operand.INDIRECT, addr=tokens.indirect[0])
+            a = tokens.indirect[0]
+            op = Operand.IND
+
+            if isinstance(a, Immediate):
+                try:
+                    a = a.resolve()
+                except:
+                    op = Operand.UNK
+
+            return klass(op, addr=a)
+
         elif 'idx_ind' in tokens.keys():
-            return klass(Operand.IDX_IND, addr=tokens.idx_ind[0], reg=tokens.idx_ind[1])
+            (a, r) = tokens.idx_ind
+            op = Operand.ABS_IDX_IND
+
+            if isinstance(a, Immediate):
+                try:
+                    a = a.resolve()
+                except:
+                    op = Operand.UNK
+
+            if op != Operand.UNK:
+                if int(a) < 256:
+                    op = Operand.ZP_IDX_IND
+
+            return klass(op, addr=a, reg=r)
+
         elif 'zp_ind' in tokens.keys():
-            return klass(Operand.ZP_IND, addr=tokens.zp_ind[0], reg=tokens.zp_ind[1])
+            (a, r) = tokens.zp_ind
+            op = Operand.ZP_IND_IDX
+
+            if isinstance(a, Immediate):
+                try:
+                    a = a.resolve()
+                except:
+                    op = Operand.UNK
+
+            return klass(op, addr=a, reg=r)
        
         raise ParseFatalException('invalid operand')
 
@@ -126,6 +212,9 @@ class Operand(object):
         self._reg = reg
         self._value = value
 
+    def unresolved(self):
+        return (self._mode == self.UNK)
+
     def get_mode(self):
         return self._mode
 
@@ -139,22 +228,36 @@ class Operand(object):
         return self._value
 
     def __str__(self):
-        if self._mode is Operand.IMP:
-            return '<implied>'
-        elif self._mode is Operand.ACC:
+        if self._mode is Operand.ACC:
             return '<accumulator>'
-        elif self._mode is Operand.ADDR:
-           return str(self._addr)
+        elif self._mode is Operand.IMP:
+            return '<implied>'
         elif self._mode is Operand.IMM:
             return '#' + str(self._value)
-        elif self._mode is Operand.INDEXED:
-            return '%s,%s' % (self._addr, self._reg)
-        elif self._mode is Operand.INDIRECT:
-            return '(%s)' % (self._addr)
-        elif self._mode is Operand.IDX_IND:
-            return '(%s,%s)' % (self._addr, self._reg)
-        elif self._mode is Operand.ZP_IND:
-            return '(%s),%s' % (self._addr, self._reg)
+        elif self._mode is Operand.ABS:
+            return str(self._addr)
+        elif self._mode is Operand.ZP:
+            return str(self._addr)
+        elif self._mode is Operand.REL:
+            return str(self._addr)
+        elif self._mode is Operand.IND:
+            return '(%s)' % self._addr
+        elif self._mode is Operand.ABS_X:
+            return '%s,x' % self._addr
+        elif self._mode is Operand.ABS_Y:
+            return '%s,y' % self._addr
+        elif self._mode is Operand.ZP_X:
+            return '%s,x' % self._addr
+        elif self._mode is Operand.ZP_Y:
+            return '%s,y' % self._addr
+        elif self._mode is Operand.ABS_IDX_IND:
+            return '(%s, x)' % self._addr
+        elif self._mode is Operand.ZP_IDX_IND:
+            return '(%s, x)' % self._addr
+        elif self._mode is Operand.ZP_IND_IDX:
+            return '(%s), y' % self._addr
+        elif self._mode is Operand.UNK:
+            return '<unresolved>'
         return 'invalid operand'
 
     __repr__ = __str__

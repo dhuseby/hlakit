@@ -43,9 +43,13 @@ class InstructionLine(object):
 
         if pp.ignore():
             return []
-
-        if 'opcode' not in tokens.keys():
+        
+        opcode = None
+        if 'opcode' in tokens.keys():
+            opcode = tokens.opcode
+        else:
             raise ParseFatalException('instruction line missing opcode')
+
         operand = None
         if 'operand' in tokens.keys():
             operand = tokens.operand
@@ -63,7 +67,7 @@ class InstructionLine(object):
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, opcode, operand=None):
+    def __init__(self, opcode, operand):
         self._opcode = opcode
         self._operand = operand
 

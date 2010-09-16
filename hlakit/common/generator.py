@@ -52,41 +52,46 @@ class Generator(object):
         if not hasattr(self, '_romfile'):
             self._romfile = self._initialize_rom()
 
+    def _process_variable(self, var):
+        pass
+
     def _process_token(self, token):
+
+        romfile = self.romfile()
 
         # handle generic token
         if isinstance(token, Variable):
-            pass
+            self._process_variable(token)
         elif isinstance(token, Function):
             pass
         elif isinstance(token, TellBank):
-            pass
+            print 'MESSAGE: Current bank is %d' % romfile.get_current_bank()
         elif isinstance(token, TellBankOffset):
-            pass
+            print 'MESSAGE: Current offset is 0x%0.4x' % romfile.get_current_offset()
         elif isinstance(token, TellBankSize):
-            pass
+            print 'MESSAGE: Current bank size is 0x%0.4x' % romfile.get_current_banksize()
         elif isinstance(token, TellBankFree):
-            pass
+            print 'MESSAGE: Current bank free is 0x%0.4x' % romfile.get_current_bankfree()
         elif isinstance(token, TellBankType):
-            pass
+            print 'MESSAGE: Current bank type is %s' % romfile.get_current_banktype()
         elif isinstance(token, Incbin):
-            pass
+            romfile.incbin(token.get_data())
         elif isinstance(token, RomOrg):
-            pass
+            romfile.set_rom_org(token.get_address(), token.get_maxsize())
         elif isinstance(token, RomEnd):
-            pass
+            romfile.set_rom_end()
         elif isinstance(token, RomBanksize):
-            pass
+            romfile.set_rom_banksize(token.get_size())
         elif isinstance(token, RomBank):
-            pass
+            romfile.set_rom_bank(token.get_number(), token.get_maxsize())
         elif isinstance(token, RamOrg):
-            pass
+            romfile.set_ram_org(token.get_address(), token.get_maxsize())
         elif isinstance(token, RamEnd):
-            pass
+            romfile.set_ram_end()
         elif isinstance(token, SetPad):
-            pass
+            romfile.set_padding(token.get_value())
         elif isinstance(token, Align):
-            pass
+            romfile.set_align(token.get_value())
         else:
             raise ParseFatalException('Unknown token type: %s' % type(token))
 

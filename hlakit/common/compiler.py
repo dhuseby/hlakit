@@ -51,6 +51,11 @@ from variableinitializer import VariableInitializer
 class Compiler(object):
 
     OUTSIDE, FN, INSIDE, CONDITIONAL, ERROR = range(5)
+    STATE_NAME = { OUTSIDE:     'OUTSIDE',
+                   FN:          'FN',
+                   INSIDE:      'INSIDE',
+                   CONDITIONAL: 'CONDITIONAL',
+                   ERROR:       'ERROR' }
 
     @classmethod
     def exprs(klass):
@@ -92,6 +97,8 @@ class Compiler(object):
             self.set_exprs(self.__class__.exprs())
         if not hasattr(self, '_tokens'):
             self._tokens = []
+        if not hasattr(self, '_debug'):
+            self._debug = False
 
     def reset_state(self):
         self.set_exprs(self.__class__.exprs())
@@ -132,6 +139,13 @@ class Compiler(object):
 
         return cc_tokens
 
+    def _debug_state(self, token, state=None):
+        if self._debug:
+            if state is None:
+                print '%s (%s) %s' % (self.STATE_NAME[self._state], type(token), token)
+            else:
+                print '%s -> %s (%s) %s' % (self.STATE_NAME[self._state], self.STATE_NAME[state], type(token), token)
+
     def _next_state(self, token):
 
         st = SymbolTable()
@@ -140,16 +154,21 @@ class Compiler(object):
         if self._state == self.OUTSIDE:
             if isinstance(token, FunctionDecl):
                 if self._depth != 0:
+                    self._debug_state(token, self.ERROR)
                     self._state = self.ERROR
                     raise ParseFatalError('cannot declare a function here')
                 self._fn = Function(token)
+                self._debug_state(token)
                 self._state = self.FN
             elif isinstance(token, Variable):
+                self._debug_state(token)
                 st.new_symbol(token)
                 return token
             elif isinstance(token, FileBegin):
+                self._debug_state(token)
                 st.scope_push(str(token.get_name()))
             elif isinstance(token, FileEnd):
+                self._debug_state(token)
                 st.scope_pop()
             else:
                 return token
@@ -159,9 +178,12 @@ class Compiler(object):
             if isinstance(token, ScopeBegin):
                 self._fn.append_token(token)
                 self._depth += 1
+                self._debug_state(token, self.INSIDE)
                 self._state = self.INSIDE
+                self._debug_state(token)
                 st.scope_push(str(self._fn.get_name()))
             else:
+                self._debug_state(token, self.ERROR)
                 self._state = self.ERROR
                 s = 'function decl not followed by {\n'
                 s += str(self._fn) + '\n'
@@ -171,8 +193,10 @@ class Compiler(object):
         # inside function decl
         elif self._state == self.INSIDE:
             if isinstance(token, Conditional):
+                self._debug_state(token)
                 self._fn.append_token(token)
             elif isinstance(token, ScopeBegin):
+                self._debug_state(token)
                 self._fn.append_token(token)
                 self._depth += 1
                 st.scope_push()
@@ -181,18 +205,28 @@ class Compiler(object):
                 self._depth -= 1
                 st.scope_pop()
                 if self._depth == 0:
+                    self._debug_state(token, self.OUTSIDE)
                     self._state = self.OUTSIDE
                     st.new_symbol(self._fn)
                     return self._fn
             elif isinstance(token, Label):
                 # TODO: register the label with the global label list
+                self._debug_state(token)
                 self._fn.append_token(token)
             elif isinstance(token, FunctionCall):
+                self._debug_state(token)
                 self._fn.append_token(token)
                 self._fn.add_dependency(token.get_name())
             elif isinstance(token, FunctionReturn):
+                self._debug_state(token)
+                self._fn.append_token(token)
+            elif isinstance(token, Variable):
+                self._debug_state(token)
+                self._debug_state(token)
+                st.new_symbol(token)
                 self._fn.append_token(token)
             else:
+                self._debug_state(token, self.ERROR)
                 self._state = self.ERROR
                 s = 'invalid token in body of function\n'
                 s += str(self._fn) + '\n'
@@ -224,12 +258,15 @@ class Compiler(object):
     def get_parser_output(self):
         return self._parsed_tokens
 
-    def compile(self, tokens):
+    def compile(self, tokens, debug=False):
         # first we tokenize
         self._scanned_tokens = self._scan(tokens)
 
         # now we need to run the parsed tokens to the structure builder
         # this populates the symbol table and builds complete functions
+        tmp = self._debug
+        self._debug = debug
         self._tokens = self._parse(self._scanned_tokens) 
+        self._debug = tmp
 
         return self._tokens

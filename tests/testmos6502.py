@@ -182,7 +182,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'ldx')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ADDR)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ABS)
         self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0xD010)
 
     def testLineImm(self):
@@ -194,10 +194,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'ldx')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], NumericValue))
-        self.assertEquals(int(cc.get_output()[0].get_operand().get_value().get_args()[0]), 0x22)
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 0x22)
 
     def testLineIndexed(self):
         cc = Session().compiler()
@@ -207,7 +205,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.INDEXED)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ABS_X)
         self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0x2200)
         self.assertEquals(str(cc.get_output()[0].get_operand().get_reg()), 'x')
 
@@ -219,7 +217,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'jmp')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IDX_IND)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ABS_IDX_IND)
         self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0x2200)
         self.assertEquals(str(cc.get_output()[0].get_operand().get_reg()), 'x')
 
@@ -231,7 +229,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'lsr')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ZP_IND)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ZP_IND_IDX)
         self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0x22)
         self.assertEquals(str(cc.get_output()[0].get_operand().get_reg()), 'y')
 
@@ -244,9 +242,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 1)
 
     def testImmVariable(self):
         cc = Session().compiler()
@@ -256,7 +253,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.TERMINAL)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Name))
@@ -270,10 +267,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.ADD)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], NumericValue))
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[1], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 2)
 
     def testImmSignNumber(self):
         cc = Session().compiler()
@@ -284,9 +279,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.SIGN)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), -1)
 
     def testImmSignVariable(self):
         cc = Session().compiler()
@@ -296,10 +290,10 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.SIGN)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Name))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[1], Name))
 
     def testImmSignMath(self):
         cc = Session().compiler()
@@ -310,12 +304,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.SIGN)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.ADD)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], NumericValue))
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[1], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), -2)
 
     def testImmSizeofNumber(self):
         cc = Session().compiler()
@@ -326,11 +316,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.SIZEOF)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 1)
 
     def testImmSizeofVariable(self):
         cc = Session().compiler()
@@ -340,12 +327,13 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.SIZEOF)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], Name))
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0], 'sizeof')
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[1], Immediate))
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[1].get_type(), Immediate.TERMINAL)
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[1].get_args()[0], Name))
 
     def testImmSizeofMath(self):
         cc = Session().compiler()
@@ -356,12 +344,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.SIZEOF)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.ADD)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], NumericValue))
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[1], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 1)
 
     def testImmLoNumber(self):
         cc = Session().compiler()
@@ -372,11 +356,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.LO)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 1)
 
     def testImmLoVariable(self):
         cc = Session().compiler()
@@ -386,12 +367,13 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.LO)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], Name))
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0], 'lo')
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[1], Immediate))
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[1].get_type(), Immediate.TERMINAL)
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[1].get_args()[0], Name))
 
     def testImmLoMath(self):
         cc = Session().compiler()
@@ -402,12 +384,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.LO)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.ADD)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], NumericValue))
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[1], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 2)
 
     def testImmHiNumber(self):
         cc = Session().compiler()
@@ -418,11 +396,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.HI)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 0)
 
     def testImmHiVariable(self):
         cc = Session().compiler()
@@ -432,12 +407,13 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.HI)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], Name))
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0], 'hi')
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[1], Immediate))
+        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[1].get_type(), Immediate.TERMINAL)
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[1].get_args()[0], Name))
 
     def testImmHiMath(self):
         cc = Session().compiler()
@@ -448,13 +424,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.HI)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0].get_type(), Immediate.ADD)
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[0], NumericValue))
-        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0].get_args()[1], NumericValue))
-
+        self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_operand().get_value()), 0)
 
     def testImpliedAddress(self):
         cc = Session().compiler()
@@ -804,9 +775,10 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_mode(), Conditional.CASE)
         self.assertTrue(isinstance(cc.get_output()[0].get_condition(), Immediate))
         self.assertEquals(cc.get_output()[0].get_condition().get_type(), Immediate.SIZEOF)
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[0], Immediate))
-        self.assertEquals(cc.get_output()[0].get_condition().get_args()[0].get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[0].get_args()[0], Name))
+        self.assertEquals(cc.get_output()[0].get_condition().get_args()[0], 'sizeof')
+        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[1], Immediate))
+        self.assertEquals(cc.get_output()[0].get_condition().get_args()[1].get_type(), Immediate.TERMINAL)
+        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[1].get_args()[0], Name))
         self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
         self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
 
@@ -818,8 +790,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_mode(), Conditional.CASE)
         self.assertTrue(isinstance(cc.get_output()[0].get_condition(), Immediate))
         self.assertEquals(cc.get_output()[0].get_condition().get_type(), Immediate.ADD)
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[0], NumericValue))
         self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[1], NumericValue))
+        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[2], NumericValue))
         self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
         self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
 

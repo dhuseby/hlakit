@@ -34,10 +34,10 @@ from pyparsing import *
 from hlakit.common.session import Session
 from hlakit.common.numericvalue import NumericValue
 from hlakit.common.arrayvalue import StringValue
-from hlakit.common.romfile import RomFile
+from hlakit.cpu.mos6502.romfile import MOS6502RomFile
 from hlakit.common.buffer import Buffer
 
-class Lnx(RomFile):
+class Lnx(MOS6502RomFile):
     """
     This class encapsulates the .lnx header that will be written with
     the ROM image.
@@ -113,6 +113,7 @@ class Lnx(RomFile):
         self._cur_maxsize = None
         self._cur_ram_addr = 0
         self._cur_padding = None
+        self._loader_fn = None
 
         if inf:
             self._unpack_header(inf)
@@ -242,7 +243,16 @@ class Lnx(RomFile):
     def _get_cur_bank_byte_offset(self):
         return (self._cur_segment * self._get_cur_bank_page_size()) + self._cur_counter
 
-    def set_rom_org(self, segment, counter=None, maxsize=None):
+    def set_loader(self, loader):
+        self._loader_fn = str(loader)
+
+    def get_loader(self):
+        return self._loader_fn
+
+    def set_rom_org(self, addr, maxsize=None):
+        raise ParseFatalException('invalid use of #rom.org in Lynx mode')
+
+    def set_lnx_rom_org(self, segment, counter=None, maxsize=None):
         if self._cur_buffer != None:
             raise ParseFatalException('cannot set rom org while in existing def')
 

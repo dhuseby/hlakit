@@ -27,6 +27,7 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from math import *
 from pyparsing import *
 from session import Session
 from name import Name
@@ -35,6 +36,12 @@ from arrayvalue import ArrayValue
 
 # turn on faster operatorPrecedence parsing
 ParserElement.enablePackrat()
+
+class UnresolvedSymbolError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return str(self.value)
 
 class bind1(object):
 
@@ -93,13 +100,13 @@ class Immediate(object):
                        klass.LO,   klass.HI, \
                        klass.NYLO, klass.NYHI, \
                        klass.NEG,  klass.NOT):
-            args_ = get_args(tokens[0])
-            if args_ is None:
-                if len(tokens[0]) != 2:
-                    raise ParseFatalException('invalid number of op args')
-                if isinstance(tokens[0][1], Immediate):
-                    args_ = tokens[0][1]
-            return klass(type_, args_)
+            if len(tokens[0]) != 2:
+                raise ParseFatalException('invalid number of op args')
+            op_ = tokens[0][0]
+            arg_ = get_args(tokens[0])
+            if arg_ is None:
+                arg_ = tokens[0][1]
+            return klass(type_, op_, arg_)
 
         # handle double-argument, left-associative operators
         elif type_ in (klass.MULT,  klass.ADD, \
@@ -109,7 +116,7 @@ class Immediate(object):
             # tokens[0][0] == left sub-expression
             # tokens[0][1] == operator string
             # tokens[0][2] == right sub-expression
-            return klass(type_, tokens[0][0], tokens[0][2])
+            return klass(type_, tokens[0][1], tokens[0][0], tokens[0][2])
 
         raise ParseFatalException('invalid immediate expression')
 
@@ -168,6 +175,175 @@ class Immediate(object):
 
     def get_args(self):
         return self._args
+
+    def _sign(self, sign, value):
+        if sign == '-':
+            v = -int(value)
+        else:
+            v = int(value)
+        
+        return NumericValue('%d' % v, v)
+
+    def _sizeof(self, value):
+        # TODO: this function needs to handle variables too
+
+        if isinstance(value, NumericValue):
+            # get the number
+            v = int(value)
+            
+            # figure out how many bytes it takes to store it
+            num_bytes = int(ceil((floor(log(v, 2)) + 1) / 8))
+
+            # round up to nearest dword or qword boundary
+            if (num_bytes > 4) and (num_bytes <= 8):
+                num_bytes = 8
+            elif (num_bytes > 2) and (num_bytes <= 4):
+                num_bytes = 4
+     
+            # return a NumericValue containing the size of the number
+            return NumericValue('0x%x' % num_bytes, num_bytes)
+        
+        raise UnresolvedSymbolError()
+
+    def _lo(self, value):
+        # get the number
+        v = int(value)
+        
+        # figure out how many bytes it takes to store it
+        num_bytes = int(ceil((floor(log(v, 2)) + 1) / 8))
+
+        # check for range
+        if num_bytes > 8:
+            raise ArithmeticError('immediate integer is larger than 64-bits')
+
+        # mask the lower half of the number
+        if (num_bytes > 4) and (num_bytes <= 8):
+            v = (v & 0xFFFFFFFF)
+        elif (num_bytes > 2) and (num_bytes <= 4):
+            v = (v & 0xFFFF)
+        elif num_bytes == 2:
+            v = (v & 0xFF)
+        elif num_bytes == 1:
+            v = (v & 0x0F)
+ 
+        # return a NumericValue containing the number
+        return NumericValue('0x%x' % v, v)
+
+    def _hi(self, value):
+        # get the number
+        v = int(value)
+        
+        # figure out how many bytes it takes to store it
+        num_bytes = int(ceil((floor(log(v, 2)) + 1) / 8))
+
+        # check for range
+        if num_bytes > 8:
+            raise ArithmeticError('immediate integer is larger than 64-bits')
+
+        # mask the upper half of the number
+        if (num_bytes > 4) and (num_bytes <= 8):
+            v = ((v & 0xFFFFFFFF00000000) >> 32)
+        elif (num_bytes > 2) and (num_bytes <= 4):
+            v = ((v & 0xFFFF0000) >> 16)
+        elif num_bytes == 2:
+            v = ((v & 0xFF00) >> 8)
+        elif num_bytes == 1:
+            v = ((v & 0xF0) >> 4)
+ 
+        # return a NumericValue containing the number
+        return NumericValue('0x%x' % v, v)
+
+    def _add(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = l + r
+        return NumericValue('0x%x' % v, v)
+        
+    def _sub(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = l - r
+        return NumericValue('0x%x' % v, v)
+ 
+    def _numeric_arg(self, arg):
+        if isinstance(arg, NumericValue):
+            return arg
+        elif isinstance(arg, Immediate):
+            return arg.resolve()
+
+        # throwing this here causes the stack to unwind up to the top
+        # of the Immediate processing/parsing and it will be marked as
+        # having an UNK addressing mode which means it has an argument
+        # that is a variable/symbol reference and needs to be resolved
+        # later.
+        raise UnresolvedSymbolError()
+
+    def _symbol_arg(self, arg):
+        # throwing this here causes the stack to unwind up to the top
+        # of the Immediate processing/parsing and it will be marked as
+        # having an UNK addressing mode which means it has an argument
+        # that is a variable/symbol reference and needs to be resolved
+        # later.
+        raise UnresolvedSymbolError()
+
+
+
+    def resolve(self):
+        """ this function attempts to resolve the immediate to a known value """
+        if self._type == self.SIGN:
+            return self._sign(self._args[0], self._numeric_arg(self._args[1]))
+        elif self._type == self.SIZEOF:
+            try:
+                return self._sizeof(self._numeric_arg(self._args[1]))
+            except:
+                try:
+                    return self._sizeof(self._symbol_arg(self._args[1]))
+                except:
+                    pass
+            raise UnresolvedSymbolError()
+        elif self._type == self.LO:
+            return self._lo(self._numeric_arg(self._args[1]))
+        elif self._type == self.HI:
+            return self._hi(self._numeric_arg(self._args[1]))
+        elif self._type == self.NYLO:
+            pass
+        elif self._type == self.NYHI:
+            pass
+        elif self._type == self.NEG:
+            pass
+        elif self._type == self.NOT:
+            pass
+        elif self._type == self.MULT:
+            # self._args[0] is the operator string
+            pass
+        elif self._type == self.ADD:
+            # self._args[0] is the operator string
+            if self._args[0] == '-':
+                return self._sub(self._numeric_arg(self._args[1]),
+                                 self._numeric_arg(self._args[2]))
+            else:
+                return self._add(self._numeric_arg(self._args[1]),
+                                 self._numeric_arg(self._args[2]))
+        elif self._type == self.SHIFT:
+            # self._args[0] is the operator string
+            pass
+        elif self._type == self.CMP:
+            # self._args[0] is the operator string
+            pass
+        elif self._type == self.EQ:
+            # self._args[0] is the operator string
+            pass
+        elif self._type == self.AND:
+            pass
+        elif self._type == self.EXOR:
+            pass
+        elif self._type == self.OR:
+            pass
+        elif self._type == self.TERMINAL:
+            # TODO: this should handle both numeric and symbol terminals
+            return self._numeric_arg(self._args[0])
+
+        raise UnresolvedSymbolError()
 
     def __str__(self):
         s = ''

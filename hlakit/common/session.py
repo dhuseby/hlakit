@@ -345,7 +345,7 @@ class Session(object):
                 return
 
             # compile the tokenstream
-            cc_tokens = cc.compile(pp_tokens)
+            cc_tokens = cc.compile(pp_tokens, self._options.debug)
 
             # now output the CodeBlock and the tokens it 
             # parsed to
@@ -381,12 +381,16 @@ class Session(object):
 
             if self._options.output_cc:
                 for t in cc_tokens:
-                    s = str(type(t))
-                    s = s[s.rfind('.')+1:-2]
+                    s = str(t)
+                    s += ' ' * (80 - len(s))
+                    ts = str(type(t))
+                    ts = ts[ts.rfind('.')+1:-2]
+                    s += ts
                     if s not in ('FileBegin', 'FileEnd'):
                         print '%s,' % s
 
             # link the compiled tokens into a binary
+            print 'Building ROM'
             rom = gen.build_rom(cc_tokens)
 
             # output the rom to file 

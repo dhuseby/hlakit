@@ -83,6 +83,7 @@ class MOS6502Compiler(Compiler):
         # anything about it.
         if self._state == self.INSIDE:
             if isinstance(token, InstructionLine):
+                self._debug_state(token)
                 self._fn.append_token(token)
                 return None
 
@@ -91,19 +92,48 @@ class MOS6502Compiler(Compiler):
         # to handle the token.
         return super(MOS6502Compiler, self)._next_state(token)
 
+
 class MOS6502Generator(Generator):
+
+    def _process_instruction_line(self, line):
+        output = []
+        opcode = line.get_opcode()
+        operand = line.get_operand()
+
+        #output.append(opcode.emit(operand.get_mode()))
+
+        # figure out the addressing mode
+        if operand.get_mode() == Operand.IMP:
+            pass
+        if operand.get_mode() == Operand.ACC:
+            pass
+        if operand.get_mode() == Operand.IMM:
+            pass
+        if operand.get_mode() == Operand.ADDR:
+            pass
+        if operand.get_mode() == Operand.INDEXED:
+            pass
+        if operand.get_mode() == Operand.INDIRECT:
+            pass
+        if operand.get_mode() == Operand.IDX_IND:
+            pass
+        if operand.get_mode() == Operand.ZP_IND:
+            pass
 
     def _process_token(self, token):
 
+        # get the rom file
+        romfile = self.romfile()
+
         # handle 6502 specific token
         if isinstance(token, InterruptStart):
-            pass
+            romfile.set_reset_interrupt(token.get_fn())
         elif isinstance(token, InterruptNMI):
-            pass
+            romfile.set_nmi_interrupt(token.get_fn())
         elif isinstance(token, InterruptIRQ):
-            pass
+            romfile.set_irq_interrupt(token.get_fn())
         elif isinstance(token, InstructionLine):
-            pass
+            self._process_instruction_line(token)
         elif isinstance(token, Conditional):
             pass
         else:

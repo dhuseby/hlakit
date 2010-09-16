@@ -53,6 +53,8 @@ class Opcode(object):
                 'sec', 'sed', 'sei', 'tax', 'tay', 'tsx', 'txa', 'txs', 
                 'tya']
 
+    RELATIVE =[ 'bcc', 'bcs', 'beq', 'bmi', 'bne', 'bpl', 'bvc', 'bvs' ]
+
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -88,6 +90,9 @@ class Opcode(object):
 
     def get_op(self):
         return self._op
+
+    def is_relative(self):
+        return self._op in self.RELATIVE
 
     def __str__(self):
         return '%s' % self._op

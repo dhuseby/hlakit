@@ -79,7 +79,7 @@ class LynxGenerator(MOS6502Generator):
 
         # handle Lynx specific token
         if isinstance(token, LynxLoader):
-            self._loader_fn = str(token.get_fn())
+            romfile.set_loader(token.get_fn())
         elif isinstance(token, LnxSetting):
             type_ = token.get_type()
             if type_ == LnxSetting.OFF:
@@ -97,7 +97,7 @@ class LynxGenerator(MOS6502Generator):
             elif type_ == LnxSetting.ROTATION:
                 romfile.set_rotation(token.get_rotation())
         elif isinstance(token, LynxRomOrg):
-            romfile.set_rom_org(token.get_segment(), 
+            romfile.set_lnx_rom_org(token.get_segment(), 
                                 token.get_counter(), 
                                 token.get_maxsize())
         elif isinstance(token, LynxRomEnd):
