@@ -187,24 +187,28 @@ class Immediate(object):
     def _sizeof(self, value):
         # TODO: this function needs to handle variables too
 
-        if isinstance(value, NumericValue):
-            # get the number
-            v = int(value)
-            
-            # figure out how many bytes it takes to store it
-            num_bytes = int(ceil((floor(log(v, 2)) + 1) / 8))
+        if not isinstance(value, NumericValue):
+            # try to look the symbol up...
+            st = SymbolTable()
+            value = st[value]
+            if value is None:
+                raise UnresolvedSymbolError('unknown variable %s' % value)
 
-            # round up to nearest dword or qword boundary
-            if (num_bytes > 4) and (num_bytes <= 8):
-                num_bytes = 8
-            elif (num_bytes > 2) and (num_bytes <= 4):
-                num_bytes = 4
-     
-            # return a NumericValue containing the size of the number
-            return NumericValue('0x%x' % num_bytes, num_bytes)
+        # get the number
+        v = int(value)
         
-        raise UnresolvedSymbolError()
+        # figure out how many bytes it takes to store it
+        num_bytes = int(ceil((floor(log(v, 2)) + 1) / 8))
 
+        # round up to nearest dword or qword boundary
+        if (num_bytes > 4) and (num_bytes <= 8):
+            num_bytes = 8
+        elif (num_bytes > 2) and (num_bytes <= 4):
+            num_bytes = 4
+ 
+        # return a NumericValue containing the size of the number
+        return NumericValue('0x%x' % num_bytes, num_bytes)
+    
     def _lo(self, value):
         # get the number
         v = int(value)
@@ -253,6 +257,56 @@ class Immediate(object):
         # return a NumericValue containing the number
         return NumericValue('0x%x' % v, v)
 
+    def _nylo(self, value):
+        # get the number
+        v = int(value)
+        
+        # figure out how many bytes it takes to store it
+        num_bytes = int(ceil((floor(log(v, 2)) + 1) / 8))
+
+        # check for range
+        if num_bytes != 1:
+            raise ArithmeticError('nylo() on value larger than 1 byte')
+
+        # mask out the upper nybble
+        v = (v & 0x0F)
+
+        return NumericValue('0x%x' % v, v)
+
+    def _nyhi(self, value):
+        # get the number
+        v = int(value)
+        
+        # figure out how many bytes it takes to store it
+        num_bytes = int(ceil((floor(log(v, 2)) + 1) / 8))
+
+        # check for range
+        if num_bytes != 1:
+            raise ArithmeticError('nylo() on value larger than 1 byte')
+
+        # mask out the lower nybble
+        v = ((v & 0xF0) >> 4)
+
+        return NumericValue('0x%x' % v, v)
+
+    def _mul(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = l * r
+        return NumericValue('0x%x' % v, v)
+
+    def _div(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = l / r
+        return NumericValue('0x%x' % v, v)
+ 
+    def _mod(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = l % r
+        return NumericValue('0x%x' % v, v)
+
     def _add(self, lhs, rhs):
         l = int(lhs)
         r = int(rhs)
@@ -263,6 +317,18 @@ class Immediate(object):
         l = int(lhs)
         r = int(rhs)
         v = l - r
+        return NumericValue('0x%x' % v, v)
+
+    def _shift_left(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = l << r
+        return NumericValue('0x%x' % v, v)
+ 
+    def _shift_right(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = l >> r
         return NumericValue('0x%x' % v, v)
  
     def _numeric_arg(self, arg):
@@ -286,8 +352,6 @@ class Immediate(object):
         # later.
         raise UnresolvedSymbolError()
 
-
-
     def resolve(self):
         """ this function attempts to resolve the immediate to a known value """
         if self._type == self.SIGN:
@@ -306,16 +370,24 @@ class Immediate(object):
         elif self._type == self.HI:
             return self._hi(self._numeric_arg(self._args[1]))
         elif self._type == self.NYLO:
-            pass
+            return self._nylo(self._numeric_arg(self._args[1]))
         elif self._type == self.NYHI:
-            pass
+            return self._nyhi(self._numeric_arg(self._args[1]))
         elif self._type == self.NEG:
             pass
         elif self._type == self.NOT:
             pass
         elif self._type == self.MULT:
             # self._args[0] is the operator string
-            pass
+            if self._args[0] == '*':
+                return self._mul(self._numeric_arg(self._args[1]),
+                                 self._numeric_arg(self._args[2]))
+            elif self._args[0] == '/':
+                return self._div(self._numeric_arg(self._args[1]),
+                                 self._numeric_arg(self._args[2]))
+            else:
+                return self._mod(self._numeric_arg(self._args[1]),
+                                 self._numeric_arg(self._args[2]))
         elif self._type == self.ADD:
             # self._args[0] is the operator string
             if self._args[0] == '-':
@@ -326,12 +398,28 @@ class Immediate(object):
                                  self._numeric_arg(self._args[2]))
         elif self._type == self.SHIFT:
             # self._args[0] is the operator string
-            pass
+            if self._args[0] == '<<':
+                return self._shift_left(self._numeric_arg(self._args[1]),
+                                        self._numeric_arg(self._args[2]))
+            else: # >>
+                return self._shift_right(self._numeric_arg(self._args[1]),
+                                         self._numeric_arg(self._args[2]))
         elif self._type == self.CMP:
             # self._args[0] is the operator string
-            pass
+            if self._args[0] == '>=':
+                pass
+            elif self._args[0] == '<=':
+                pass
+            elif self._args[0] == '>':
+                pass
+            elif self._args[0] == '<':
+                pass
         elif self._type == self.EQ:
             # self._args[0] is the operator string
+            if self._args[0] == '!=':
+                pass
+            else:
+                pass
             pass
         elif self._type == self.AND:
             pass

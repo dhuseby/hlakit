@@ -54,6 +54,7 @@ from hlakit.common.functiondecl import FunctionDecl
 from hlakit.common.functioncall import FunctionCall
 from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 from hlakit.common.immediate import Immediate
+from hlakit.common.variable import Variable
 
 class MOS6502PreprocessorTester(unittest.TestCase):
     """
@@ -321,6 +322,11 @@ class MOS6502CompilerTester(unittest.TestCase):
 
     def testImmSizeofVariable(self):
         cc = Session().compiler()
+
+        # pre-define the function 'foo'
+        st = SymbolTable()
+        st.reset_state()
+        st.new_symbol(Variable(Name('foo'), FunctionType('function')))
 
         cc.compile([CodeBlock([CodeLine('adc #sizeof(foo)')])])
         self.assertTrue(isinstance(cc.get_output()[0], InstructionLine))

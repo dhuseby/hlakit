@@ -47,6 +47,7 @@ from hlakit.common.name import Name
 from hlakit.common.struct_ import Struct
 from hlakit.common.typedef import Typedef
 from hlakit.common.variable import Variable
+from hlakit.common.variableinitializer import VariableInitializer
 from hlakit.common.numericvalue import NumericValue
 from hlakit.common.arrayvalue import ArrayValue, StringValue
 from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
@@ -237,6 +238,18 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_name(), 'w')
         self.assertTrue(cc.get_output()[0].is_array())
         self.assertEquals(cc.get_output()[0].get_array_size(), 7)
+
+    def testVarWithAssignment(self):
+        cc = Session().compiler()
+
+        cc.compile([CodeBlock([CodeLine('byte f = 1')])])
+        self.assertTrue(isinstance(cc.get_output()[0], Variable))
+        self.assertTrue(isinstance(cc.get_output()[1], VariableInitializer))
+        self.assertEquals(cc.get_output()[0].get_type(), 'byte')
+        self.assertEquals(cc.get_output()[0].get_name(), 'f')
+        self.assertTrue(isinstance(cc.get_output()[1].get_value(), Immediate))
+        self.assertTrue(isinstance(cc.get_output()[1].get_value().resolve(), NumericValue))
+        self.assertEquals(int(cc.get_output()[1].get_value().resolve()), 1)
 
     def testVarWithAddress(self):
         cc = Session().compiler()

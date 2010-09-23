@@ -27,46 +27,38 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from struct import pack, unpack
+from binascii import crc32
+from ctypes import c_uint32
 from pyparsing import *
-from session import Session
-from immediate import Immediate
-from arrayvalue import ArrayValue, StringValue
+from hlakit.common.session import Session
+from hlakit.common.numericvalue import NumericValue
+from hlakit.common.arrayvalue import StringValue
+from hlakit.common.romfile import RomFile
+from hlakit.common.buffer import Buffer
 
-class VariableInitializer(object):
-    """
-    Variable initializer
-    """
+class MOS6502RomFile(RomFile):
 
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
+    def __init__(self):
+        self._reset_interrupt = None
+        self._nmi_interrupt = None
+        self._irq_interrupt = None
 
-        if pp.ignore():
-            return []
+    def set_reset_interrupt(self, reset):
+        self._reset_interrupt = str(reset)
 
-        if 'value' not in tokens.keys():
-            raise ParseFatalException('invalid varaible initializer')
+    def set_nmi_interrupt(self, nmi):
+        self._nmi_interrupt = str(nmi)
 
-        return klass(tokens.value)
-       
+    def set_irq_interrupt(self, irq):
+        self._irq_interrupt = str(irq)
 
-    @classmethod
-    def exprs(klass):
-        value_initializer = MatchFirst([StringValue.exprs(),
-                                        ArrayValue.exprs(),
-                                        Optional(Suppress('#')) + Immediate.exprs()]).setResultsName('value')
-        expr = Suppress('=') + value_initializer
-        expr.setParseAction(klass.parse)
-        return expr
+    def get_reset_interrupt(self):
+        return self._reset_interrupt
 
-    def __init__(self, value):
-        self._value = value
+    def get_nmi_interrupt(self):
+        return self._nmi_interrupt
 
-    def get_value(self):
-        return self._value
-
-    def __str__(self):
-        return ' = ' + str(self._value)
-
-    __repr__ = __str__
-
+    def get_irq_interrupt(self):
+        return self._irq_interrupt
+ 
