@@ -72,10 +72,10 @@ class Immediate(object):
     """
 
     SIGN, SIZEOF, LO, HI, NYLO, NYHI, NEG, NOT, MULT, ADD, SHIFT, CMP, EQ, \
-    AND, EXOR, OR, TERMINAL = range(17)
+    AND, XOR, OR, TERMINAL = range(17)
 
     TYPE = [ 'SIGN', 'SIZEOF', 'LO', 'HI', 'NYLO', 'NYHI', 'NEG', 'NOT',
-             'MULT', 'ADD', 'SHIFT', 'CMP', 'EQ', 'AND', 'EXOR', 'OR',
+             'MULT', 'ADD', 'SHIFT', 'CMP', 'EQ', 'AND', 'XOR', 'OR',
              'TERMINAL' ]
 
     @classmethod
@@ -112,7 +112,7 @@ class Immediate(object):
         elif type_ in (klass.MULT,  klass.ADD, \
                        klass.SHIFT, klass.CMP, \
                        klass.EQ,    klass.AND, \
-                       klass.EXOR,  klass.OR):
+                       klass.XOR,   klass.OR):
             # tokens[0][0] == left sub-expression
             # tokens[0][1] == operator string
             # tokens[0][2] == right sub-expression
@@ -136,7 +136,7 @@ class Immediate(object):
         cmpeqop = oneOf('< > <= >=')
         eqop = oneOf('!= ==')
         andop = Literal('&')
-        exorop = Literal('^')
+        xorop = Literal('^')
         orop = Literal('|')
 
         variable_ref = Group(delimitedList(Name.exprs(), delim='.'))
@@ -159,7 +159,7 @@ class Immediate(object):
                   (cmpeqop, 2, opAssoc.LEFT, bind1(klass.parse, klass.CMP)),
                   (eqop,    2, opAssoc.LEFT, bind1(klass.parse, klass.EQ)),
                   (andop,   2, opAssoc.LEFT, bind1(klass.parse, klass.AND)),
-                  (exorop,  2, opAssoc.LEFT, bind1(klass.parse, klass.EXOR)),
+                  (xorop,   2, opAssoc.LEFT, bind1(klass.parse, klass.XOR)),
                   (orop,    2, opAssoc.LEFT, bind1(klass.parse, klass.OR)) 
                 ])
 
@@ -330,7 +330,145 @@ class Immediate(object):
         r = int(rhs)
         v = l >> r
         return NumericValue('0x%x' % v, v)
+
+    def _not_equal(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = (l != r)
+        if v:
+            return NumericValue('true', 1)
+        else:
+            return NumericValue('false', 0)
+
+    def _equal(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = (l == r)
+        if v:
+            return NumericValue('true', 1)
+        else:
+            return NumericValue('false', 0)
+
+    def _gte(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = (l >= r)
+        if v:
+            return NumericValue('true', 1)
+        else:
+            return NumericValue('false', 0)
+
+    def _lte(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = (l <= r)
+        if v:
+            return NumericValue('true', 1)
+        else:
+            return NumericValue('false', 0)
+
+    def _gt(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = (l > r)
+        if v:
+            return NumericValue('true', 1)
+        else:
+            return NumericValue('false', 0)
+
+    def _lt(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+        v = (l < r)
+        if v:
+            return NumericValue('true', 1)
+        else:
+            return NumericValue('false', 0)
+
+    def _neg(self, value):
+        v = int(value)
+        if v:
+            return NumericValue('false', 0)
+        else:
+            return NumericValue('true', 1)
+
+    def _nbytes(self, value):
+        if value == 0:
+            num_bytes = 1
+        else: 
+            num_bytes = int(ceil((floor(log(value, 2)) + 1) / 8))
+
+        if num_bytes > 8:
+            raise TypeError('numeric padding value too large')
+
+        return num_bytes
+
+    def _not(self, value):
+        v = int(value)
+        num_bytes = self._nbytes(v)
+        
+        if num_bytes == 1:
+            v = (~v & 0xFF)
+        elif num_bytes == 2:
+            v = (~v & 0xFFFF)
+        elif (num_bytes > 2) and (num_bytes <= 4):
+            v = (~v & 0xFFFFFFFF)
+        else:
+            v = (~v & 0xFFFFFFFFFFFFFFFF)
+
+        return NumericValue('~%d' % int(value), v)
  
+    def _and(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+
+        num_bytes = max(self._nbytes(l), self._nbytes(r))
+
+        if num_bytes == 1:
+            v = (((l & 0xFF) & (r & 0xFF)) & 0xFF)
+        elif num_bytes == 2:
+            v = (((l & 0xFFFF) & (r & 0xFFFF)) & 0xFFFF)
+        elif (num_bytes > 2) and (num_bytes <= 4):
+            v = (((l & 0xFFFFFFFF) & (r & 0xFFFFFFFF)) & 0xFFFFFFFF)
+        else:
+            v = (((l & 0xFFFFFFFFFFFFFFFF) & (r & 0xFFFFFFFFFFFFFFFF)) & 0xFFFFFFFFFFFFFFFF)
+
+        return NumericValue('%d & %d' % (int(lhs), int(rhs)), v)
+
+    def _xor(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+
+        num_bytes = max(self._nbytes(l), self._nbytes(r))
+
+        if num_bytes == 1:
+            v = (((l & 0xFF) ^ (r & 0xFF)) & 0xFF)
+        elif num_bytes == 2:
+            v = (((l & 0xFFFF) ^ (r & 0xFFFF)) & 0xFFFF)
+        elif (num_bytes > 2) and (num_bytes <= 4):
+            v = (((l & 0xFFFFFFFF) ^ (r & 0xFFFFFFFF)) & 0xFFFFFFFF)
+        else:
+            v = (((l & 0xFFFFFFFFFFFFFFFF) ^ (r & 0xFFFFFFFFFFFFFFFF)) & 0xFFFFFFFFFFFFFFFF)
+
+        return NumericValue('%d ^ %d' % (int(lhs), int(rhs)), v)
+
+    def _or(self, lhs, rhs):
+        l = int(lhs)
+        r = int(rhs)
+
+        num_bytes = max(self._nbytes(l), self._nbytes(r))
+
+        if num_bytes == 1:
+            v = (((l & 0xFF) | (r & 0xFF)) & 0xFF)
+        elif num_bytes == 2:
+            v = (((l & 0xFFFF) | (r & 0xFFFF)) & 0xFFFF)
+        elif (num_bytes > 2) and (num_bytes <= 4):
+            v = (((l & 0xFFFFFFFF) | (r & 0xFFFFFFFF)) & 0xFFFFFFFF)
+        else:
+            v = (((l & 0xFFFFFFFFFFFFFFFF) | (r & 0xFFFFFFFFFFFFFFFF)) & 0xFFFFFFFFFFFFFFFF)
+
+        return NumericValue('%d | %d' % (int(lhs), int(rhs)), v)
+
     def _numeric_arg(self, arg):
         if isinstance(arg, NumericValue):
             return arg
@@ -374,9 +512,11 @@ class Immediate(object):
         elif self._type == self.NYHI:
             return self._nyhi(self._numeric_arg(self._args[1]))
         elif self._type == self.NEG:
-            pass
+            # boolean negation
+            return self._neg(self._numeric_arg(self._args[1]))
         elif self._type == self.NOT:
-            pass
+            # bit inverse
+            return self._not(self._numeric_arg(self._args[1]))
         elif self._type == self.MULT:
             # self._args[0] is the operator string
             if self._args[0] == '*':
@@ -407,26 +547,37 @@ class Immediate(object):
         elif self._type == self.CMP:
             # self._args[0] is the operator string
             if self._args[0] == '>=':
-                pass
+                return self._gte(self._numeric_arg(self._args[1]),
+                                 self._numeric_arg(self._args[2]))
             elif self._args[0] == '<=':
-                pass
+                return self._lte(self._numeric_arg(self._args[1]),
+                                 self._numeric_arg(self._args[2]))
             elif self._args[0] == '>':
-                pass
+                return self._gt(self._numeric_arg(self._args[1]),
+                                self._numeric_arg(self._args[2]))
             elif self._args[0] == '<':
-                pass
+                return self._lt(self._numeric_arg(self._args[1]),
+                                self._numeric_arg(self._args[2]))
         elif self._type == self.EQ:
             # self._args[0] is the operator string
             if self._args[0] == '!=':
-                pass
-            else:
-                pass
-            pass
+                return self._not_equal(self._numeric_arg(self._args[1]),
+                                       self._numeric_arg(self._args[2]))
+            else: # ==
+                return self._equal(self._numeric_arg(self._args[1]),
+                                   self._numeric_arg(self._args[2]))
         elif self._type == self.AND:
-            pass
-        elif self._type == self.EXOR:
-            pass
+            # bitwise and
+            return self._and(self._numeric_arg(self._args[1]),
+                             self._numeric_arg(self._args[2]))
+        elif self._type == self.XOR:
+            # bitwise xor
+            return self._xor(self._numeric_arg(self._args[1]),
+                             self._numeric_arg(self._args[2]))
         elif self._type == self.OR:
-            pass
+            # bitwise or
+            return self._or(self._numeric_arg(self._args[1]),
+                            self._numeric_arg(self._args[2]))
         elif self._type == self.TERMINAL:
             # TODO: this should handle both numeric and symbol terminals
             return self._numeric_arg(self._args[0])
