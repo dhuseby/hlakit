@@ -182,7 +182,7 @@ class Operand(object):
                      Immediate.exprs()).setResultsName('imm')
 
         # relative
-        rel = Group(Optional(Suppress('*')) + \
+        rel = Group(Suppress('*') + \
                     Immediate.exprs()).setResultsName('rel')
 
         # zero page and full absolute address
