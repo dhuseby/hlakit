@@ -28,71 +28,107 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
-from session import Session
-from symboltable import SymbolTable
-from name import Name
 from functioncall import FunctionCall
-from numericvalue import NumericValue
-from immediate import Immediate
+from variable import Variable
+from conditionaldecl import ConditionalDecl
+
+class ConditionalBlock(object):
+
+    def __init__(self, decl):
+        self._decl = decl
+        self._tokens = []
+        self._open = True
+
+    def append_token(self, token):
+        self._tokens.append(token)
+
+        # let functions and variables know what their scope is
+        if isinstance(token, FunctionCall):
+            token.set_scope(self.get_scope())
+        elif isinstance(token, Variable):
+            token.set_scope(self.get_scope())
+
+    def get_tokens(self, token):
+        return self._tokens
+
+    def set_scope(self, name):
+        self._scope_name = name
+
+    def get_scope(self):
+        return self._scope_name
+
+    def get_mode(self):
+        return self._decl.get_mode()
+
+    def close(self):
+        self._open = False
+
+    def is_open(self):
+        return self._open
+
 
 class Conditional(object):
     """
-    This encapsulates a conditional statement
+    This encapsulates a conditional block
     """
 
-    IF, ELSE, WHILE, DO, FOREVER, SWITCH, CASE, DEFAULT = range(8)
+    # these are the different types of conditional blocks
+    IF, IF_ELSE, WHILE, DO_WHILE, FOREVER, SWITCH, SWITCH_DEFAULT, UNK = range(8)
+    NAMES = [ 'IF', 'IF_ELSE', 'WHILE', 'DO_WHILE', 'FOREVER', 'SWITCH', 'SWITCH_DEFAULT', 'UNKNOWN' ]
 
-    @classmethod
-    def exprs(klass):
-        cond = klass._get_conditions()
-        regs = klass._get_switch_registers()
-        if_ = Group(Suppress('if') + \
-                        Suppress('(') + \
-                        cond.setResultsName('cond') + \
-                        Suppress(')')).setResultsName('if_')
-        else_ = Group(Suppress('else')).setResultsName('else_')
-        while_ = Group(Suppress('while') + \
-                           Suppress('(') + \
-                           cond + \
-                           Suppress(')')).setResultsName('while_')
-        do_ = Group(Suppress('do')).setResultsName('do_')
-        forever_ = Group(Suppress('forever')).setResultsName('forever_')
-        switch_ = Group(Suppress('switch') + \
-                            Suppress('(') + \
-                            regs + \
-                            Suppress(')')).setResultsName('switch_')
-        case_ = Group(Suppress('case') + \
-                          Suppress('#') + \
-                          Immediate.exprs()).setResultsName('case_')
-        default_ = Group(Suppress('default')).setResultsName('default_')
+    def __init__(self, depth):
+        self._type = self.UNK
+        self._blocks = []
+        self._depth = depth
 
-        expr = Or([if_, else_, while_, do_, forever_, switch_, case_, default_])
-        expr.setParseAction(klass.parse)
-        return expr
+    def get_depth(self):
+        return self._depth
 
-    def __init__(self, mode, cond=None):
-        self._mode = mode
-        self._cond = cond
+    def get_name(self):
+        return self.NAMES[self._type]
 
-    def get_mode(self):
-        return self._mode
+    def append_token(self, token):
+        self._blocks[0].append_token(token)
 
-    def get_cond(self):
-        return self._cond
+    def set_scope(self, name):
+        self._blocks[0].set_scope(name)
 
-    output = { IF: 'if',
-               ELSE: 'else',
-               WHILE: 'while',
-               DO: 'do',
-               FOREVER: 'forever',
-               SWITCH: 'switch',
-               CASE: 'case',
-               DEFAULT: 'default' }
+    def get_scope(self):
+        return self._blocks[0].get_scope()
+
+    def new_block(self, token):
+        if not isinstance(token, ConditionalDecl):
+            raise ParseFatalException('can only start a conditional block with a ConditionalDecl')
+        cb = ConditionalBlock(token)
+
+        # put it at the front of the list
+        self._blocks.insert(0, cb)
+
+    def close_block(self):
+        self._blocks[0].close()
+
+    def is_block_open(self):
+        if len(self._token_blocks) > 0:
+            return self._blocks[0].is_open()
+        return False
+
+    def replace_block_decl(self, decl):
+        self._blocks[0]._decl = decl
+
+    def get_blocks(self):
+        return self._blocks
+
+    def get_tokens(self, block=0):
+        return self._blocks[block]
+
+    def set_type(self, type_):
+        if type_ not in (self.IF, self.IF_ELSE, self.WHILE, self.DO_WHILE, self.FOREVER, self.SWITCH, self.SWITCH_DEFAULT):
+            raise ParseFatalException('invalid conditional type')
+        self._type = type_
+
+    def get_type(self):
+        return self._type
 
     def __str__(self):
-        s = self.output[self.get_mode()]
-        if self.get_mode() in (self.IF, self.WHILE, self.SWITCH, self.CASE):
-            s += '(' + str(self.get_cond()) + ')'
-        return s
+        return self.NAMES[self.get_type()]
 
-    __repr__ = __str__

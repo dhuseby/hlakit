@@ -68,6 +68,17 @@ class Operand(object):
 
             return klass(op, value=v)
 
+        elif 'rel' in tokens.keys():
+            v = tokens.rel[0]
+            op = Operand.REL
+            if isinstance(v, Immediate):
+                try:
+                    v = v.resolve()
+                except:
+                    op = Operand.UNK
+
+            return klass(op, value=v)
+
         elif 'addr' in tokens.keys():
             a = tokens.addr[0]
             op = Operand.ABS
@@ -170,6 +181,10 @@ class Operand(object):
         imm  = Group(Suppress('#') + \
                      Immediate.exprs()).setResultsName('imm')
 
+        # relative
+        rel = Group(Optional(Suppress('*')) + \
+                    Immediate.exprs()).setResultsName('rel')
+
         # zero page and full absolute address
         addr = Group(Or([NumericValue.exprs(),
                          Immediate.exprs()])).setResultsName('addr')
@@ -202,7 +217,7 @@ class Operand(object):
                        Suppress(',') + \
                        CaselessLiteral('y')).setResultsName('zp_ind')
 
-        expr = Or([acc, imm, addr, indirect, idx_ind, zp_ind, indexed])
+        expr = Or([acc, imm, rel, addr, indirect, idx_ind, zp_ind, indexed])
         expr.setParseAction(klass.parse)
         return expr
 

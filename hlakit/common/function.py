@@ -30,6 +30,8 @@ or implied, of David Huseby.
 from pyparsing import *
 from session import Session
 from symbol import Symbol
+from variable import Variable
+from functioncall import FunctionCall
 
 class Function(Symbol):
     """
@@ -41,6 +43,7 @@ class Function(Symbol):
         self._decl = decl
         self._tokens = []
         self._dependencies = []
+        self._scope_name = None
 
     def get_noreturn(self):
         return self._decl.get_type().get_noreturn()
@@ -58,9 +61,20 @@ class Function(Symbol):
 
     def get_name(self):
         return self._decl.get_name()
+    
+    def set_scope(self, name):
+        self._scope_name = name
+
+    def get_scope(self):
+        return self._scope_name
 
     def append_token(self, token):
         self._tokens.append(token)
+        if isinstance(token, FunctionCall):
+            token.set_scope(self.get_scope())
+            self.add_depenency(token)
+        elif isinstance(token, Variable):
+            token.set_scope(self.get_scope())
 
     def get_tokens(self):
         return self._tokens
@@ -69,6 +83,8 @@ class Function(Symbol):
         fnname = str(fn.get_name())
         if fnname in self._dependencies:
             return
+
+        # add it to the list
         self._dependencies.append(fn)
 
     def get_dependencies(self):

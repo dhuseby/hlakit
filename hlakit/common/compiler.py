@@ -28,6 +28,7 @@ or implied, of David Huseby.
 """
 
 import os
+import copy
 from cStringIO import StringIO
 from pyparsing import *
 from enum import Enum
@@ -42,6 +43,7 @@ from functiondecl import FunctionDecl
 from functioncall import FunctionCall
 from functionreturn import FunctionReturn
 from conditional import Conditional
+from conditionaldecl import ConditionalDecl
 from codeblock import CodeBlock
 from filemarkers import FileBegin, FileEnd
 from scopemarkers import ScopeBegin, ScopeEnd
@@ -49,13 +51,6 @@ from symboltable import SymbolTable
 from variableinitializer import VariableInitializer
 
 class Compiler(object):
-
-    OUTSIDE, FN, INSIDE, CONDITIONAL, ERROR = range(5)
-    STATE_NAME = { OUTSIDE:     'OUTSIDE',
-                   FN:          'FN',
-                   INSIDE:      'INSIDE',
-                   CONDITIONAL: 'CONDITIONAL',
-                   ERROR:       'ERROR' }
 
     @classmethod
     def exprs(klass):
@@ -97,13 +92,10 @@ class Compiler(object):
             self.set_exprs(self.__class__.exprs())
         if not hasattr(self, '_tokens'):
             self._tokens = []
-        if not hasattr(self, '_debug'):
-            self._debug = False
 
     def reset_state(self):
         self.set_exprs(self.__class__.exprs())
         self._tokens = []
-        self._state = self.OUTSIDE
 
     def get_exprs(self):
         return getattr(self, '_exprs', [])
@@ -139,115 +131,237 @@ class Compiler(object):
 
         return cc_tokens
 
-    def _debug_state(self, token, state=None):
-        if self._debug:
-            if state is None:
-                print '%s (%s) %s' % (self.STATE_NAME[self._state], type(token), token)
-            else:
-                print '%s -> %s (%s) %s' % (self.STATE_NAME[self._state], self.STATE_NAME[state], type(token), token)
+    def _push_scope(self, scope):
+        self._scope_stack.insert(0, [scope, 0])
 
-    def _next_state(self, token):
+    def _pop_scope(self):
+        scope = self._scope_stack.pop(0)
+        return (scope[0], scope[1])
+
+    def _increment_depth(self):
+        self._scope_stack[0][1] += 1
+
+    def _decrement_depth(self):
+        self._scope_stack[0][1] -= 1
+
+    def _get_depth(self):
+        return self._scope_stack[0][1]
+
+    def _get_scope_context(self):
+        return self._scope_stack[0][0]
+
+    def _append_token_to_scope(self, token):
+        self._get_scope_context().append_token(token)
+
+    def _scope_depth(self):
+        return len(self._scope_stack)
+
+    def _peek_token(self):
+        return self._in_tokens[0]
+
+    def _get_token(self):
+        return self._in_tokens.pop(0)
+
+    def _put_token(self, token):
+        self._in_tokens.insert(0, token)
+
+    def _parse_next(self):
 
         st = SymbolTable()
 
-        # outside of a function declaration
-        if self._state == self.OUTSIDE:
-            if isinstance(token, FunctionDecl):
-                if self._depth != 0:
-                    self._debug_state(token, self.ERROR)
-                    self._state = self.ERROR
-                    raise ParseFatalError('cannot declare a function here')
-                self._fn = Function(token)
-                self._debug_state(token)
-                self._state = self.FN
-            elif isinstance(token, Variable):
-                self._debug_state(token)
-                st.new_symbol(token)
-                return token
-            elif isinstance(token, FileBegin):
-                self._debug_state(token)
-                st.scope_push(str(token.get_name()))
-            elif isinstance(token, FileEnd):
-                self._debug_state(token)
-                st.scope_pop()
-            else:
-                return token
+        # NOTE: we handle adding the symbols to the symbol table here rather
+        # than in the Variable/Function classes themeselve so that we can
+        # define them in the proper scope.  This function uses a state machine
+        # to track the scope and therefore properly define the symbols...
 
-        # have seen a function decl, looking for {
-        elif self._state == self.FN:
+        # get the next token
+        token = self._get_token()
+
+        if isinstance(token, FunctionDecl):
+
+            # make sure all functions are declared at file scope
+            if self._scope_depth() != 0:
+                raise ParseFatalError('cannot declare a function here')
+
+            # create the function container
+            fn = Function(token)
+
+            self._push_scope(fn)
+
+            # get the next token, it should be ScopeBegin
+            token = self._get_token()
             if isinstance(token, ScopeBegin):
-                self._fn.append_token(token)
-                self._depth += 1
-                self._debug_state(token, self.INSIDE)
-                self._state = self.INSIDE
-                self._debug_state(token)
-                st.scope_push(str(self._fn.get_name()))
+                self._append_token_to_scope(token)
+                self._increment_depth()
+
+                # set the current symbol table scope to the function
+                st.scope_push(str(fn.get_name()))
+
+                # set the function's full scope name to the current scope
+                fn.set_scope(st.current_scope_name())
             else:
-                self._debug_state(token, self.ERROR)
-                self._state = self.ERROR
                 s = 'function decl not followed by {\n'
-                s += str(self._fn) + '\n'
+                s += str(fn) + '\n'
                 s += str(token)
                 raise ParseFatalException(s)
 
-        # inside function decl
-        elif self._state == self.INSIDE:
-            if isinstance(token, Conditional):
-                self._debug_state(token)
-                self._fn.append_token(token)
-            elif isinstance(token, ScopeBegin):
-                self._debug_state(token)
-                self._fn.append_token(token)
-                self._depth += 1
-                st.scope_push()
-            elif isinstance(token, ScopeEnd):
-                self._fn.append_token(token)
-                self._depth -= 1
+        elif isinstance(token, Variable):
+            st.new_symbol(token)
+
+            # peek at the next token to see if it is an initializer
+            next_token = self._peek_token()
+            if isinstance(next_token, VariableInitializer):
+                # assign the value to the variable
+                token.set_value(next_token.get_value())
+                # consume the initializer token
+                self._get_token()
+
+            # return the Variable token
+            return token
+        
+        elif isinstance(token, FileBegin):
+            # set the symbol table scope to the file
+            st.scope_push(str(token.get_name()))
+            return None
+        
+        elif isinstance(token, FileEnd):
+            # end the file scope 
+            st.scope_pop()
+            return None
+       
+        # this is a standalone { token to localize names
+        elif isinstance(token, ScopeBegin):
+            self._increment_depth()
+            self._append_token_to_scope(token)
+
+            # start a new symbol table scope but not a fn/cond scope
+            st.scope_push()
+            return None
+
+        elif isinstance(token, ScopeEnd):
+            self._append_token_to_scope(token)
+            self._decrement_depth()
+            if self._get_depth() == 0:
+
+                # end the symbol table scope 
                 st.scope_pop()
-                if self._depth == 0:
-                    self._debug_state(token, self.OUTSIDE)
-                    self._state = self.OUTSIDE
-                    st.new_symbol(self._fn)
-                    return self._fn
-            elif isinstance(token, Label):
-                # TODO: register the label with the global label list
-                self._debug_state(token)
-                self._fn.append_token(token)
-            elif isinstance(token, FunctionCall):
-                self._debug_state(token)
-                self._fn.append_token(token)
-                self._fn.add_dependency(token.get_name())
-            elif isinstance(token, FunctionReturn):
-                self._debug_state(token)
-                self._fn.append_token(token)
-            elif isinstance(token, Variable):
-                self._debug_state(token)
-                self._debug_state(token)
-                st.new_symbol(token)
-                self._fn.append_token(token)
-            else:
-                self._debug_state(token, self.ERROR)
-                self._state = self.ERROR
-                s = 'invalid token in body of function\n'
-                s += str(self._fn) + '\n'
-                s += '%s: %s' % (type(token), str(token))
-                raise ParseFatalException(s)
+
+                (token, depth) = self._pop_scope()
+
+                # if we were defining a function, then add it as a symbol
+                if isinstance(token, Function):
+                    st.new_symbol(token)
+
+                # if we're back to the top level of scope (file scope),
+                # then return the token, otherwise add it to the 
+                # containing scope...
+                if self._scope_depth() == 0: 
+                    return token
+                else:
+                    self._append_token_to_scope(token)
+            return None
+
+        elif isinstance(token, Label):
+            # pass labels through unchanged because they will be resolved
+            # into an address during the resolve phase
+            self._append_token_to_scope(token)
+            return None
+
+        elif isinstance(token, FunctionCall):
+            self._append_token_to_scope(token)
+            return None
+
+        elif isinstance(token, FunctionReturn):
+            self._append_token_to_scope(token)
+            return None
+
+        else:
+            # this allows all other tokens to pass through...thus we can
+            # let the ROM building preprocessr tokens to get through to
+            # the ROM building phase.
+            return token
 
         return None
 
     def _parse(self, tokens):
         """ go through the list of tokens looking for well structred functions
         """
-        self._state = self.OUTSIDE
-        self._fn = None
-        self._depth = 0
-        out_tokens = []
-        for t in tokens:
-            token = self._next_state(t)
+        self._scope_stack = []
+        self._in_tokens = copy.copy(tokens)
+        self._parsed_tokens = []
+        while True:
+            token = self._parse_next()
             if token != None:
-                out_tokens.append(token)
+                self._parsed_tokens.append(token)
 
-        return out_tokens
+            if len(self._in_tokens) == 0:
+                break
+
+    def _resolve_token(self, token):
+        st = SymbolTable()
+
+        if isinstance(token, Function):
+            tokens = []
+            fn = token
+
+            # start all functions with a label
+            tokens.append(Label(fn.get_name()))
+
+            # then append it's tokens and count them as unresolved
+            tokens.extend(fn.get_tokens())
+
+            # return the tokens and let
+            return (tokens, len(fn.get_tokens()))
+
+        elif isinstance(token, FunctionCall):
+            tokens = []
+
+            # look up the function call
+            fn = st[token.get_name()]
+            fn_type = fn.get_type().get_name()
+
+            if fn_type == 'inline':
+                # paste the body of the inline function here, alias
+                # the function parameters to the function variables
+                # so they can be resolved.
+                pass
+            elif fn_type == 'function':
+                # create an instruction line that calls the function
+                pass
+            else:
+                raise ParseFatalException('invalid function type called')
+
+        return (token, 0)
+
+
+    def _resolve(self, tokens):
+        """ go through the parsed tokens and convert to all instruction lines
+        and iterate through, resolving references until everything is resolved
+        as much as can be.
+        """
+        out_tokens = tokens
+        while True:
+            left_to_resolve = 0
+            round_tokens = []
+            for t in out_tokens:
+                # try to resolve the token
+                (token, unresolved) = self._resolve_token(t)
+
+                # count how many are left to resolve
+                left_to_resolve = left_to_resolve + unresolved
+
+                # process what we get back
+                if isinstance(token, list):
+                    round_tokens.extend(token)
+                else:
+                    out_tokens.append(token)
+
+            # if nothing left to resolve, then we are done
+            if left_to_resolve == 0:
+                return round_tokens
+
+            # otherwise, go around for another pass 
+            out_tokens = round_tokens
 
     def get_output(self):
         return self._get_tokens()
@@ -258,15 +372,18 @@ class Compiler(object):
     def get_parser_output(self):
         return self._parsed_tokens
 
+    def get_resolver_output(self):
+        return self._resolved_tokens
+
     def compile(self, tokens, debug=False):
         # first we tokenize
         self._scanned_tokens = self._scan(tokens)
 
         # now we need to run the parsed tokens to the structure builder
         # this populates the symbol table and builds complete functions
-        tmp = self._debug
-        self._debug = debug
-        self._tokens = self._parse(self._scanned_tokens) 
-        self._debug = tmp
+        self._parse(self._scanned_tokens)
 
-        return self._tokens
+        # now resolve all references and convert everything to instruction lines
+        #self._resolved_tokens = self._resolve(self._parsed_tokens)
+
+        #return self._resolved_tokens

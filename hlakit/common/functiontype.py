@@ -38,10 +38,6 @@ class FunctionType(Type):
         function  -- standard subroutine, cannot have parameters
         inline    -- macros that can have parameters
         interrupt -- interrupt handler, uses return from interrupt opcode to return
-        operator  -- compile time operator.  used for sizeof, hi, lo, nyhi, nylo on
-                     immediate values.  when parameter is not an immediate, it
-                     devolves to an inline macro
-
     """
 
     @classmethod

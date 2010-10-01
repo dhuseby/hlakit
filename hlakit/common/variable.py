@@ -126,6 +126,8 @@ class Variable(Symbol):
         self._array = array_
         self._size = size
         self._address = address
+        self._scope_name = '__anonymous__'
+        self._value = None
 
     def is_shared(self):
         return self._shared
@@ -140,6 +142,18 @@ class Variable(Symbol):
 
     def get_address(self):
         return self._address
+
+    def set_scope(self, name):
+        self._scope_name = name
+
+    def get_scope(self):
+        return self._scope_name
+
+    def set_value(self, value):
+        self._value = value
+
+    def get_value(self):
+        return self._value
 
     def __str__(self):
         s = ''

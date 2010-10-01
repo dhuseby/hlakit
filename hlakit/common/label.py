@@ -34,8 +34,21 @@ class Label(object):
     """
     encapsulates a label
     """
+   
+    NUM = 0
+
+    # generates a new globally unique label name
+    @classmethod
+    def gen(klass):
+        n = klass.NUM
+        klass.NUM += 1
+        return klass('HLA%d' % n)
+
     def __init__(self, name):
         self._name = name
+
+    def get_name(self):
+        return self._name
 
     def __str__(self):
         return '%s:' % self._name

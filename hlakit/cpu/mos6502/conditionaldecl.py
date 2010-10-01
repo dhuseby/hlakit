@@ -29,9 +29,9 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from hlakit.common.session import Session
-from hlakit.common.conditional import Conditional as CommonConditional
+from hlakit.common.conditionaldecl import ConditionalDecl as CommonConditionalDecl
 
-class Conditional(CommonConditional):
+class ConditionalDecl(CommonConditionalDecl):
     """
     This is the 6502 CPU specific implementation of the conditional block.
     Each CPU has to have its own because the thing that is tested is CPU
@@ -86,28 +86,28 @@ class Conditional(CommonConditional):
             return []
 
         if 'if_' in tokens.keys():
-           return klass(Conditional.IF, tokens.if_)
+           return klass(klass.IF, tokens.if_)
 
         if 'else_' in tokens.keys():
-            return klass(Conditional.ELSE)
+            return klass(klass.ELSE)
 
         if 'while_' in tokens.keys():
-            return klass(Conditional.WHILE, tokens.while_)
+            return klass(klass.WHILE, tokens.while_)
 
         if 'do_' in tokens.keys():
-            return klass(Conditional.DO)
+            return klass(klass.DO)
 
         if 'forever_' in tokens.keys():
-            return klass(Conditional.FOREVER)
+            return klass(klass.FOREVER)
 
         if 'switch_' in tokens.keys():
-            return klass(Conditional.SWITCH, tokens.switch_)
+            return klass(klass.SWITCH, tokens.switch_)
 
         if 'case_' in tokens.keys():
-            return klass(Conditional.CASE, tokens.case_)
+            return klass(klass.CASE, tokens.case_)
 
         if 'default_' in tokens.keys():
-            return klass(Conditional.DEFAULT)
+            return klass(klass.DEFAULT)
 
         raise ParseFatalException('invalid conditional')
 
@@ -146,7 +146,7 @@ class Conditional(CommonConditional):
         return expr
 
     def __init__(self, mode, cond=None):
-        super(Conditional, self).__init__(mode, cond)
+        super(ConditionalDecl, self).__init__(mode, cond)
 
         self._distance = self.NEAR
         self._modifier = self.NORMAL
@@ -180,7 +180,6 @@ class Conditional(CommonConditional):
                 raise ParseFatalException('case must take an immediate')
             self._condition = cond[0]
 
-
     def get_distance(self):
         return self._distance
 
@@ -189,5 +188,17 @@ class Conditional(CommonConditional):
 
     def get_condition(self):
         return self._condition
+
+    def _get_if_opcode(self):
+        pass
+        #if self._distance == self.NEAR:
+        #    if self._condition =
+        #else:
+        #    pass
+
+    def get_opcode(self):
+        pass
+        #if mode in (self.IF):
+        #    if self._distance ==
 
 

@@ -38,6 +38,10 @@ class InstructionLine(object):
     """
 
     @classmethod
+    def build(klass, opcode, mode, addr=None, reg=None, value=None):
+        return klass(Opcode(opcode), Operand(mode, addr=addr, reg=reg, value=value))
+
+    @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
 

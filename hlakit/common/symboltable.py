@@ -28,6 +28,7 @@ or implied, of David Huseby.
 """
 
 import os
+import copy
 from pyparsing import *
 
 class Scope(dict):
@@ -47,7 +48,7 @@ class SymbolTable(object):
         obj.__dict__ = cls._shared_state
         return obj
 
-    def _current_scope_name(self):
+    def current_scope_name(self):
         # build the name
         name = ''
         for i in range(0, len(self._scope_stack)):
@@ -59,14 +60,14 @@ class SymbolTable(object):
         return name
 
     def _save_scope(self):
-        name = self._current_scope_name()
+        name = self.current_scope_name()
 
         if self._scopes.has_key(name):
             raise ParseFatalException('redefining scope: %s' % name)
 
         # build a dict of all symbols valid for the given scope
         merged = Scope(name)
-        lscope = self._scope_stack
+        lscope = copy.copy(self._scope_stack)
         lscope.reverse()
         for s in lscope:
             merged.update(s)
@@ -111,9 +112,9 @@ class SymbolTable(object):
         # this is for updating an already defined symbol 
         for i in range(0, len(self._scope_stack)):
             if self._scope_stack[i].has_key(name):
-                self._scope_stack[i][name] = (self._current_scope_name(), symbol)
+                self._scope_stack[i][name] = (self.current_scope_name(), symbol)
 
     def new_symbol(self, symbol):
         # This is used to define a new symbol in the current scope
-        self._scope_stack[0][symbol.get_name()] = (self._current_scope_name(), symbol)
+        self._scope_stack[0][symbol.get_name()] = (self.current_scope_name(), symbol)
 

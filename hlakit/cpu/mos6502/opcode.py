@@ -64,7 +64,7 @@ class Opcode(object):
 
         if 'op' not in tokens.keys():
             raise ParseFatalException('opcode missing')
-       
+
         return klass(tokens.op)
 
     @classmethod
@@ -86,7 +86,13 @@ class Opcode(object):
         return expr
 
     def __init__(self, op=None):
-        self._op = op.lower()
+        op = op.lower()
+        if (op not in self.OPCODES) and \
+           (op not in self.OPERANDS) and \
+           (op not in self.IMPLIED) and \
+           (op not in self.RELATIVE):
+               raise ParseFatalException('invalid opcode')
+        self._op = op
 
     def get_op(self):
         return self._op
