@@ -46,6 +46,7 @@ from interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from instructionline import InstructionLine
 from conditionaldecl import ConditionalDecl
 from opcode import Opcode
+from operand import Operand
 
 class MOS6502Preprocessor(Preprocessor):
 
@@ -278,7 +279,9 @@ class MOS6502Compiler(Compiler):
         cond.set_type(Conditional.SWITCH)
         self._push_scope(cond)
        
-        # switch decls don't start a block...
+        # switch decls start with an empty block that contains the switch decl
+        cond.new_block(token)
+        cond.close_block()
 
         # now we have to check the next token to figure out what
         # to do next...
@@ -378,7 +381,10 @@ class MOS6502Compiler(Compiler):
 
         # add instruction lines to the current scope
         if isinstance(token, InstructionLine):
-            self._append_token_to_scope(token)
+            if self._scope_depth() == 0: 
+                return token
+            else:
+                self._append_token_to_scope(token)
             return None
 
         # handle the different types of conditional decls
@@ -462,32 +468,369 @@ class MOS6502Compiler(Compiler):
         self._put_token(token)
         return super(MOS6502Compiler, self)._parse_next()
 
+    def _resolve_if(self, cond):
+        tokens = []
+
+        # get the blocks from the conditional
+        blocks = cond.get_blocks()
+        if len(blocks) != 1:
+            raise ParseFatalException('invalid number of conditional blocks')
+
+        # get all of the details for the conditional test
+        decl = blocks[0].get_decl()
+        distance = decl.get_distance()
+        modifier = decl.get_modifier()
+        test = decl.get_condition()
+
+        # create label L1 as the branch target after the if block
+        L1 = Label()
+        
+        # look up the opcode string
+        opcode = ConditionalDecl.OPCODES[distance][modifier][test]
+
+        # build the instruction lines
+        if distance == ConditionalDecl.NEAR:
+            # use relative addressing
+
+            # if the test passes, it will branch over the if body
+            tokens.append(InstructionLine.new(opcode, Operand.REL, lbl=L1))
+        else:
+            # use a hard jmp instructions
+
+            # create a label for the start of the if body
+            L2 = Label()
+
+            # if the test passes, it will branch over the jmp to the start of the if body
+            tokens.append(InstructionLine.new(opcode, Operand.REL, lbl=L2))
+
+            # if the test fails, it will execute this jmp to jump over the if body
+            tokens.append(InstructionLine.new('jmp', Operand.ABS, lbl=L1))
+
+            # add in the label for the start of the if body
+            tokens.append(L2)
+
+        # add in the if body
+        tokens.extend(blocks[0].get_tokens())
+
+        # add in the label for after the if body
+        tokens.append(L1)
+
+        # return the tokens and the number of tokens left to resolve
+        return (tokens, len(tokens))
+
+    def _resolve_if_else(self, cond):
+        tokens = []
+
+        # get the blocks from the conditional
+        blocks = cond.get_blocks()
+        if len(blocks) != 2:
+            raise ParseFatalException('invalid number of conditional blocks')
+
+        # get all of the details for the conditional test
+        decl = blocks[0].get_decl()
+        distance = decl.get_distance()
+        modifier = decl.get_modifier()
+        test = decl.get_condition()
+       
+        # L1 is the branch target at the start of the else block
+        L1 = Label()
+ 
+        # look up the opcode string
+        opcode = ConditionalDecl.OPCODES[distance][modifier][test]
+
+        # build the instruction lines
+        if distance == ConditionalDecl.NEAR:
+            # use relative addressing
+
+            # if the test passes, it will branch to the start of the else body
+            tokens.append(InstructionLine.new(opcode, Operand.REL, lbl=L1))
+        else:
+            # use a hard jmp instructions
+
+            # create a label for the start of the if body
+            L2 = Label()
+
+            # if the test passes, it will branch over the jmp to the start of the if body
+            tokens.append(InstructionLine.new(opcode, Operand.REL, lbl=L2))
+
+            # if the above test fails, it will execute this jmp to jump over the if body
+            # to the else body start   
+            tokens.append(InstructionLine.new('jmp', Operand.ABS, lbl=L1))
+
+            # add in the label for the start of the if body
+            tokens.append(L2)
+
+        # add in the if body
+        tokens.extend(blocks[0].get_tokens())
+
+        # create the label for after the else body
+        L3 = Label()
+
+        # add in the branch/jmp over the else body
+        tokens.append(InstructionLine.new('jmp', Operand.ABS, lbl=L3))
+
+        # add in the label for the start of the else body
+        tokens.append(L1)
+
+        # add in the else body
+        tokens.extend(blocks[1].get_tokens())
+
+        # add in the label for the end of the else body
+        tokens.append(L3)
+
+        # return the tokens and the number of tokens left to resolve
+        return (tokens, len(tokens))
+
+    def _resolve_while(self, cond):
+        tokens = []
+
+        # get the blocks from the conditional
+        blocks = cond.get_blocks()
+        if len(blocks) != 1:
+            raise ParseFatalException('invalid number of conditional blocks')
+
+        # get all of the details for the conditional test
+        decl = blocks[0].get_decl()
+        distance = decl.get_distance()
+        modifier = decl.get_modifier()
+        test = decl.get_condition()
+
+        # create label for the start of the while loop
+        L1 = Label()
+
+        # append the label for the start of the while loop
+        tokens.append(L1)
+
+        # create label for the end of while loop
+        L2 = Label()
+        
+        # look up the opcode string
+        opcode = ConditionalDecl.OPCODES[distance][modifier][test]
+
+        # build the instruction lines
+        if distance == ConditionalDecl.NEAR:
+            # use relative addressing
+
+            # if the test passes, it will branch over the while body
+            tokens.append(InstructionLine.new(opcode, Operand.REL, lbl=L2))
+        else:
+            # use a hard jmp instructions
+
+            # create a label for the start of the while body
+            L3 = Label()
+
+            # if the test passes, it will branch over the jmp to the start of the while body
+            tokens.append(InstructionLine.new(opcode, Operand.REL, lbl=L3))
+
+            # if the test fails, it will execute this jmp to jump over the while body
+            tokens.append(InstructionLine.new('jmp', Operand.ABS, lbl=L2))
+
+            # add in the label for the start of the if body
+            tokens.append(L3)
+
+        # add in the while body
+        tokens.extend(blocks[0].get_tokens())
+
+        # add in the label for after the if body
+        tokens.append(L2)
+
+        # return the tokens and the number of tokens left to resolve
+        return (tokens, len(tokens))
+
+    def _resolve_do_while(self, cond):
+        tokens = []
+
+        # get the blocks from the conditional
+        blocks = cond.get_blocks()
+        if len(blocks) != 1:
+            raise ParseFatalException('invalid number of conditional blocks')
+
+        # get all of the details for the conditional test
+        decl = blocks[0].get_decl()
+        distance = decl.get_distance()
+        modifier = decl.get_modifier()
+        test = decl.get_condition()
+
+        # create label for the start of the do..while loop
+        L1 = Label()
+
+        # append the label for the start of the do..while loop
+        tokens.append(L1)
+
+        # add in the do..while body
+        tokens.extend(blocks[0].get_tokens())
+
+        # look up the opcode string
+        opcode = ConditionalDecl.OPCODES[distance][modifier][test]
+
+        # build the instruction lines
+        if distance == ConditionalDecl.NEAR:
+            # use relative addressing
+
+            # if the test passes, it will branch to the beginning of the while loop
+            tokens.append(InstructionLine.new(opcode, Operand.REL, lbl=L1))
+        else:
+            # use a hard jmp instructions
+
+            # create a label for the start of the while body
+            L2 = Label()
+
+            # if the test passes, it will branch over the jmp to the start of the while body
+            tokens.append(InstructionLine.new(opcode, Operand.REL, lbl=L2))
+
+            # if the test fails, it will execute this jmp to jump over the while body
+            tokens.append(InstructionLine.new('jmp', Operand.ABS, lbl=L1))
+
+            # add in the label for the start of the if body
+            tokens.append(L2)
+
+        # return the tokens and the number of tokens left to resolve
+        return (tokens, len(tokens))
+
+    def _resolve_forever(self, cond):
+        tokens = []
+
+        # start the loop with a label
+        L1 = Label()
+        tokens.append(L1)
+
+        # get the conditional blocks
+        blocks = cond.get_blocks()
+        if len(blocks) != 1:
+            raise ParseFatalException('invalid number of blocks in conditional')
+
+        # append the tokens of the forever body
+        tokens.extend(blocks[0].get_tokens())
+
+        # then append the hard jmp (6502 doesn't have 'bra')
+        tokens.append(InstructionLine.new('jmp', Operand.ABS, lbl=L1))
+
+        # return the tokens and the number left to resolve
+        return (tokens, len(tokens))
+
+    def _resolve_switch(self, cond):
+        """ switch statements resolve to a series of if/else if blocks """
+        tokens = []
+
+        # get the blocks from the conditional
+        blocks = cond.get_blocks()
+
+        # the first block of a switch/case statement is an empty block
+        # with just the switch decl.  we need to get the register we're
+        # switching on...
+        decl = blocks[0].get_decl()
+        reg = decl.get_condition()
+        
+        # get the comparison opcode, NOTE: there is no distance or modifiers 
+        # with switches
+        compare_opcode = ConditionalDecl.SWITCH_OPCODES[reg]
+
+        # add in the case blocks
+        for i in range(1, len(blocks)):
+            block = blocks[i]
+
+            # add the instruction to compare the reg with the immediate value
+            # if the values are equal, the Z flag will be set
+            imm = block.get_decl().get_condition()
+            if not isinstance(imm, NumericValue):
+                import pdb; pdb.set_trace()
+            
+            tokens.append(InstructionLine.new(compare_opcode, Operand.IMM, value=imm))
+
+            # create a label for the beginning of the next case
+            L1 = Label()
+
+            # add in the branch instruction.  if the Z flag is set, the case
+            # body will get executed, otherwise it will branch to the beginning
+            # of the next case block
+            tokens.append(InstructionLine.new('bne', Operand.REL, lbl=L1))
+
+            # append the case block body
+            tokens.extend(block.get_tokens())
+
+            # append the label for the start of the next case
+            tokens.append(L1)
+
+        # return the tokens and the number of tokens left to resolve
+        return (tokens, len(tokens))
+
+
     def _resolve_token(self, token):
         st = SymbolTable()
 
         if isinstance(token, InstructionLine):
+            # TODO: resolve the instruction lines...
             return (token, 0)
+
         elif isinstance(token, Conditional):
             tokens = []
             cond = token
 
-            if cond.get_mode() == ConditionalDecl.FOREVER:
-                # start the loop with a label
-                lbl = Label.gen()
-                tokens.append(lbl)
+            if cond.get_type() == Conditional.IF:
+                return self._resolve_if(cond)
+           
+            elif cond.get_type() == Conditional.IF_ELSE:
+                return self._resolve_if_else(cond)
 
-                # then append it's tokens and count them as unresolved
-                tokens.extend(cond.get_tokens())
+            elif cond.get_type() == Conditional.WHILE:
+                return self._resolve_while(cond)
 
-                # then append the hard jmp
-                addr = Immediate(Immediate.TERMINAL, (Name(lbl.get_name())))
-                tokens.append(InstructionLine.gen('jmp', Operand.ABS, addr=addr))
+            elif cond.get_type() == Conditional.DO_WHILE:
+                return self._resolve_do_while(cond)
 
-                return (tokens, len(cond.get_tokens()) + 1)
+            elif cond.get_type() == Conditional.FOREVER:
+                return self._resolve_forever(cond)
+
+            elif cond.get_type() in (Conditional.SWITCH,
+                                     Conditional.SWITCH_DEFAULT):
+                return self._resolve_switch(cond)
             else:
-                raise ParseFatalException("unimplimented")
+                raise ParseFatalException("unimplimented conditional type")
 
             return (token, 0)
+
+        elif isinstance(token, Function):
+            tokens = []
+            fn = token
+
+            # start all functions with a label
+            tokens.append(Label(fn.get_name()))
+
+            # then append it's tokens and count them as unresolved
+            tokens.extend(fn.get_tokens())
+
+            # add rts if the function isn't declared as 'noreturn'
+            if not fn.get_noreturn():
+                tokens.append(InstructionLine.new('rts'))
+
+            # return the tokens and let
+            return (tokens, len(tokens))
+
+        elif isinstance(token, FunctionCall):
+            tokens = []
+
+            # look up the function call
+            fn = st[token.get_name()]
+            if fn is None:
+                import pdb; pdb.set_trace()
+            fn_type = fn.get_type().get_name()
+
+            if fn_type == 'inline':
+                # paste the body of the inline function here, alias
+                # the function parameters to the function variables
+                # so they can be resolved.
+                import pdb; pdb.set_trace()
+            elif fn_type == 'function':
+                # create the label we want to jump to
+                L1 = Label(fn.get_name())
+
+                # create an instruction line that calls the function
+                tokens.append(InstructionLine.new('jsr', Operand.ABS, lbl=L1))
+            else:
+                raise ParseFatalException('invalid function type called')
+            
+            return (tokens, len(tokens))
+
 
         # if the token wasn't an InstructionLine, then call the base class to
         # handle the token.

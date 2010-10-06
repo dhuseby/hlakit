@@ -72,7 +72,7 @@ class Function(Symbol):
         self._tokens.append(token)
         if isinstance(token, FunctionCall):
             token.set_scope(self.get_scope())
-            self.add_depenency(token)
+            self.add_dependency(token)
         elif isinstance(token, Variable):
             token.set_scope(self.get_scope())
 

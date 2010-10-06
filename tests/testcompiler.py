@@ -244,12 +244,11 @@ class CompilerTester(unittest.TestCase):
 
         cc.compile([CodeBlock([CodeLine('byte f = 1')])])
         self.assertTrue(isinstance(cc.get_output()[0], Variable))
-        self.assertTrue(isinstance(cc.get_output()[1], VariableInitializer))
         self.assertEquals(cc.get_output()[0].get_type(), 'byte')
         self.assertEquals(cc.get_output()[0].get_name(), 'f')
-        self.assertTrue(isinstance(cc.get_output()[1].get_value(), Immediate))
-        self.assertTrue(isinstance(cc.get_output()[1].get_value().resolve(), NumericValue))
-        self.assertEquals(int(cc.get_output()[1].get_value().resolve()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_value(), Immediate))
+        self.assertTrue(isinstance(cc.get_output()[0].get_value().resolve(), NumericValue))
+        self.assertEquals(int(cc.get_output()[0].get_value().resolve()), 1)
 
     def testVarWithAddress(self):
         cc = Session().compiler()

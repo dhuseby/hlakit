@@ -157,7 +157,9 @@ class Compiler(object):
         return len(self._scope_stack)
 
     def _peek_token(self):
-        return self._in_tokens[0]
+        if len(self._in_tokens):
+            return self._in_tokens[0]
+        return None
 
     def _get_token(self):
         return self._in_tokens.pop(0)
@@ -166,7 +168,6 @@ class Compiler(object):
         self._in_tokens.insert(0, token)
 
     def _parse_next(self):
-
         st = SymbolTable()
 
         # NOTE: we handle adding the symbols to the symbol table here rather
@@ -264,15 +265,24 @@ class Compiler(object):
         elif isinstance(token, Label):
             # pass labels through unchanged because they will be resolved
             # into an address during the resolve phase
-            self._append_token_to_scope(token)
+            if self._scope_depth() == 0: 
+                return token
+            else:
+                self._append_token_to_scope(token)
             return None
 
         elif isinstance(token, FunctionCall):
-            self._append_token_to_scope(token)
+            if self._scope_depth() == 0: 
+                return token
+            else:
+                self._append_token_to_scope(token)
             return None
 
         elif isinstance(token, FunctionReturn):
-            self._append_token_to_scope(token)
+            if self._scope_depth() == 0: 
+                return token
+            else:
+                self._append_token_to_scope(token)
             return None
 
         else:
@@ -298,38 +308,12 @@ class Compiler(object):
                 break
 
     def _resolve_token(self, token):
-        st = SymbolTable()
-
-        if isinstance(token, Function):
-            tokens = []
-            fn = token
-
-            # start all functions with a label
-            tokens.append(Label(fn.get_name()))
-
-            # then append it's tokens and count them as unresolved
-            tokens.extend(fn.get_tokens())
-
-            # return the tokens and let
-            return (tokens, len(fn.get_tokens()))
-
-        elif isinstance(token, FunctionCall):
-            tokens = []
-
-            # look up the function call
-            fn = st[token.get_name()]
-            fn_type = fn.get_type().get_name()
-
-            if fn_type == 'inline':
-                # paste the body of the inline function here, alias
-                # the function parameters to the function variables
-                # so they can be resolved.
-                pass
-            elif fn_type == 'function':
-                # create an instruction line that calls the function
-                pass
-            else:
-                raise ParseFatalException('invalid function type called')
+        if isinstance(token, ScopeBegin):
+            # eat the token
+            return ([], 0)
+        elif isinstance(token, ScopeEnd):
+            # eat the token
+            return ([], 0)
 
         return (token, 0)
 
@@ -354,7 +338,7 @@ class Compiler(object):
                 if isinstance(token, list):
                     round_tokens.extend(token)
                 else:
-                    out_tokens.append(token)
+                    round_tokens.append(token)
 
             # if nothing left to resolve, then we are done
             if left_to_resolve == 0:
@@ -384,6 +368,8 @@ class Compiler(object):
         self._parse(self._scanned_tokens)
 
         # now resolve all references and convert everything to instruction lines
-        #self._resolved_tokens = self._resolve(self._parsed_tokens)
+        self._resolved_tokens = self._resolve(self._parsed_tokens)
 
-        #return self._resolved_tokens
+        self._tokens = self._resolved_tokens
+
+        return self._resolved_tokens

@@ -53,13 +53,14 @@ from hlakit.common.type_ import Type
 from hlakit.common.variable import Variable
 from hlakit.common.variableinitializer import VariableInitializer
 from hlakit.common.label import Label
+from hlakit.common.conditional import Conditional
 from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
 from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from hlakit.cpu.mos6502.register import Register
 from hlakit.cpu.mos6502.opcode import Opcode
 from hlakit.cpu.mos6502.operand import Operand
 from hlakit.cpu.mos6502.instructionline import InstructionLine
-from hlakit.cpu.mos6502.conditional import Conditional
+from hlakit.cpu.mos6502.conditionaldecl import ConditionalDecl
 from hlakit.platform.nes import NESPreprocessor, NESCompiler
 from hlakit.platform.nes.chr import ChrBanksize, ChrBank, ChrLink, ChrEnd
 from hlakit.platform.nes.ines import iNESMapper, iNESMirroring, iNESFourscreen, iNESBattery, iNESTrainer, iNESPrgRepeat, iNESChrRepeat, iNESOff

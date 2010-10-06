@@ -40,6 +40,8 @@ from hlakit.common.variable import Variable
 from hlakit.common.function import Function
 from hlakit.common.functiondecl import FunctionDecl
 from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
+from hlakit.common.label import Label
+from hlakit.common.conditional import Conditional
 from hlakit.cpu.mos6502.instructionline import InstructionLine
 from hlakit.cpu.mos6502.conditionaldecl import ConditionalDecl
 from hlakit.platform.lynx import LynxPreprocessor, LynxCompiler
@@ -622,7 +624,42 @@ jmp $FB00
             (RamEnd, 'RamEnd'),
             (LynxRomEnd, 'LynxRomEnd')
         ]
-        expected_resolved_tokens = [ ]
+        expected_resolved_tokens = [ 
+            (LnxSetting, '#lnx.page_size_bank0 2K'),
+            (LnxSetting, '#lnx.page_size_bank1'),
+            (LnxSetting, '#lnx.version 1'),
+            (LnxSetting, '#lnx.cart_name "CGD Demo Game"'),
+            (LnxSetting, '#lnx.manufacturer_name "ClassGameDev.com"'),
+            (LnxSetting, '#lnx.rotation none'),
+            (LynxRomBank, 'LynxRomBank <0>'),
+            (LynxRomPadding, 'LynxRomPadding <0>'),
+            (LynxRomOrg, 'LynxRomOrg <0x0>,<0x100>'),
+            (RamOrg, 'RamOrg <0x200>'),
+            (Variable, 'byte CART_BANK_0 :$FCB2'),
+            (Variable, 'byte MIKEY_SYSTEM_CONTROL :$FD87'),
+            (Variable, 'byte MIKEY_IO_DIRECTION :$FD8A'),
+            (Variable, 'byte MIKEY_GPIO :$FD8B'),
+            (Variable, 'byte MIKEY_SERIAL_CONTROL :$FD8C'),
+            (Variable, 'byte MIKEY_MEMORY_MAP_CONTROL :$FFF9'),
+            (Label, 'micro_loader:'),
+            (InstructionLine, 'lda #0'),
+            (InstructionLine, 'sta <unresolved>'),
+            (InstructionLine, 'lda #%00010011'),
+            (InstructionLine, 'sta <unresolved>'),
+            (InstructionLine, 'lda #%00000100'),
+            (InstructionLine, 'sta <unresolved>'),
+            (InstructionLine, 'lda #%00001000'),
+            (InstructionLine, 'sta <unresolved>'),
+            (InstructionLine, 'ldx #0'),
+            (Label, 'HLA0:'),
+            (InstructionLine, 'lda <unresolved>'),
+            (InstructionLine, 'sta $FB00,x'),
+            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'bne HLA0'),
+            (InstructionLine, 'jmp $FB00'),
+            (RamEnd, 'RamEnd'),
+            (LynxRomEnd, 'LynxRomEnd')
+        ]
         cc = Session().compiler()
         
         cc.compile(pp_tokens, True)
@@ -641,7 +678,12 @@ jmp $FB00
             self.assertTrue(isinstance(parsed_tokens[i], expected_parsed_tokens[i][0]))
             self.assertEqual(str(parsed_tokens[i]), expected_parsed_tokens[i][1])
 
-        #resolved_tokens = cc.get_resolver_output()
+        # check the resolver pass
+        resolved_tokens = cc.get_resolver_output()
+        self.assertEquals(len(resolved_tokens), len(expected_resolved_tokens))
+        for i in range(0, len(expected_resolved_tokens)):
+            self.assertTrue(isinstance(resolved_tokens[i], expected_resolved_tokens[i][0]))
+            self.assertEqual(str(resolved_tokens[i]), expected_resolved_tokens[i][1])
 
         # GENERATOR PASS
         #expected_rom = [ ]
@@ -649,7 +691,7 @@ jmp $FB00
 
         # build the rom and save it
         #outf = StringIO()
-        #lnx = gen.build_rom(parsed_tokens)
+        #lnx = gen.build_rom(resolved_tokens)
         #lnx.save(outf)
 
         # check the rom

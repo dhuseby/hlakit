@@ -78,6 +78,97 @@ class ConditionalDecl(CommonConditionalDecl):
                   'no': NEGATED,
                   'not': NEGATED }
 
+    SWITCH_OPCODES = [ 'cmp', 'cpx', 'cpy' ]
+
+    OPCODES = [
+        [ # NEAR distance
+            [ # NORMAL logic
+                'bpl',  # PLUS
+                'bpl',  # POSITIVE
+                'bpl',  # GREATER
+                'bmi',  # MINUS
+                'bmi',  # NEGATIVE
+                'bmi',  # LESS
+                'bvc',  # OVERFLOW
+                'bcs',  # CARRY
+                'bne',  # NONZERO
+                'bne',  # SET
+                'bne',  # TRUE
+                'bne',  # ONE
+                'beq',  # EQUAL
+                'beq',  # ZERO
+                'beq',  # FALSE
+                'bne',  # UNSET
+                'bne'   # CLEAR 
+            ],
+
+            [ # NEGATED logic
+                'bmi',  # PLUS
+                'bmi',  # POSITIVE
+                'bmi',  # GREATER
+                'bpl',  # MINUS
+                'bpl',  # NEGATIVE
+                'bpl',  # LESS
+                'bvs',  # OVERFLOW
+                'bcc',  # CARRY
+                'beq',  # NONZERO
+                'beq',  # SET
+                'beq',  # TRUE
+                'beq',  # ONE
+                'bne',  # EQUAL
+                'bne',  # ZERO
+                'bne',  # FALSE
+                'beq',  # UNSET
+                'beq'   # CLEAR 
+            ]
+        ],
+        
+        # The FAR distance is exactly opposite of the logic above because the
+        # way to do a long jmp is to test the opposite case to branch over a
+        # jmp instruction.
+
+        [ # FAR distance
+            [ # NORMAL logic
+                'bmi',  # PLUS
+                'bmi',  # POSITIVE
+                'bmi',  # GREATER
+                'bpl',  # MINUS
+                'bpl',  # NEGATIVE
+                'bpl',  # LESS
+                'bvs',  # OVERFLOW
+                'bcc',  # CARRY
+                'beq',  # NONZERO
+                'beq',  # SET
+                'beq',  # TRUE
+                'beq',  # ONE
+                'bne',  # EQUAL
+                'bne',  # ZERO
+                'bne',  # FALSE
+                'beq',  # UNSET
+                'beq'   # CLEAR 
+            ],
+            [ # NORMAL logic
+                'bpl',  # PLUS
+                'bpl',  # POSITIVE
+                'bpl',  # GREATER
+                'bmi',  # MINUS
+                'bmi',  # NEGATIVE
+                'bmi',  # LESS
+                'bvc',  # OVERFLOW
+                'bcs',  # CARRY
+                'bne',  # NONZERO
+                'bne',  # SET
+                'bne',  # TRUE
+                'bne',  # ONE
+                'beq',  # EQUAL
+                'beq',  # ZERO
+                'beq',  # FALSE
+                'bne',  # UNSET
+                'bne'   # CLEAR 
+            ]
+        ]
+    ]
+
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -136,6 +227,7 @@ class ConditionalDecl(CommonConditionalDecl):
                    Keyword('nonzero'),
                    Keyword('set'),
                    Keyword('true'),
+                   Keyword('one'),
                    Keyword('1'),
                    Keyword('equal'),
                    Keyword('zero'),
@@ -188,17 +280,5 @@ class ConditionalDecl(CommonConditionalDecl):
 
     def get_condition(self):
         return self._condition
-
-    def _get_if_opcode(self):
-        pass
-        #if self._distance == self.NEAR:
-        #    if self._condition =
-        #else:
-        #    pass
-
-    def get_opcode(self):
-        pass
-        #if mode in (self.IF):
-        #    if self._distance ==
 
 

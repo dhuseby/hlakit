@@ -37,15 +37,13 @@ class Label(object):
    
     NUM = 0
 
-    # generates a new globally unique label name
-    @classmethod
-    def gen(klass):
-        n = klass.NUM
-        klass.NUM += 1
-        return klass('HLA%d' % n)
-
-    def __init__(self, name):
-        self._name = name
+    def __init__(self, name=None):
+        if name == None:
+            n = Label.NUM
+            Label.NUM += 1
+            self._name = 'HLA%d' % n
+        else:
+            self._name = name
 
     def get_name(self):
         return self._name

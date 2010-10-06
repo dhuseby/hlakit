@@ -41,13 +41,14 @@ from hlakit.common.typeregistry import TypeRegistry
 from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.numericvalue import NumericValue
+from hlakit.common.function import Function
 from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
 from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from hlakit.cpu.mos6502.register import Register
 from hlakit.cpu.mos6502.opcode import Opcode
 from hlakit.cpu.mos6502.operand import Operand
 from hlakit.cpu.mos6502.instructionline import InstructionLine
-from hlakit.cpu.mos6502.conditional import Conditional
+from hlakit.cpu.mos6502.conditionaldecl import ConditionalDecl
 from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
 from hlakit.common.functiondecl import FunctionDecl
@@ -457,30 +458,25 @@ class MOS6502CompilerTester(unittest.TestCase):
                adc #sizeof(SPR_OBJ)
                lda #lo(pproc)
                ora #hi(pproc)
-               assign_16i(_jsrind_temp, pproc)
                jsrind_f()
                """
         types = [ InstructionLine,
                   InstructionLine,
                   InstructionLine,
                   InstructionLine,
-                  FunctionCall,
-                  FunctionCall ]
+                  InstructionLine ]
 
         cc = Session().compiler()
 
         st = SymbolTable()
         st.reset_state()
         # pre-define the function 'jsrind_f'
-        st.new_symbol(FunctionDecl(Name('jsrind_f'), FunctionType('function'), []))
-        # pre-define the macro 'assign_16i'
-        st.new_symbol(FunctionDecl(Name('assign_16i'), FunctionType('inline'), 
-                               [FunctionParameter('one'), FunctionParameter('two')]))
+        st.new_symbol(Function(FunctionDecl(Name('jsrind_f'), FunctionType('function'), [])))
 
         cb = build_code_block(code)
         cc.compile([cb])
         self.assertEquals(len(cc.get_output()), len(types))
-        for i in range(0,6):
+        for i in range(0,len(types)):
             self.assertTrue(isinstance(cc.get_output()[i], types[i]), 
                             '%s != %s' % (type(cc.get_output()[i]), types[i]))
 
@@ -757,57 +753,6 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0], Conditional))
         self.assertEquals(cc.get_output()[0].get_mode(), Conditional.SWITCH)
         self.assertEquals(cc.get_output()[0].get_condition(), Conditional.X)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
-    def testCaseDecimalConditional(self):
-        cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('case #32')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.CASE)
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_condition().get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[0], NumericValue))
-        self.assertEquals(int(cc.get_output()[0].get_condition().get_args()[0]), 32)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
-    def testCaseFunctionCallConditional(self):
-        cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('case #sizeof(foo)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.CASE)
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_condition().get_type(), Immediate.SIZEOF)
-        self.assertEquals(cc.get_output()[0].get_condition().get_args()[0], 'sizeof')
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[1], Immediate))
-        self.assertEquals(cc.get_output()[0].get_condition().get_args()[1].get_type(), Immediate.TERMINAL)
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[1].get_args()[0], Name))
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
-    def testCaseVariableConditional(self):
-        cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('case #(1+1)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.CASE)
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition(), Immediate))
-        self.assertEquals(cc.get_output()[0].get_condition().get_type(), Immediate.ADD)
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[1], NumericValue))
-        self.assertTrue(isinstance(cc.get_output()[0].get_condition().get_args()[2], NumericValue))
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
-    def testDefaultConditional(self):
-        cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('default')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.DEFAULT)
-        self.assertEquals(cc.get_output()[0].get_condition(), None)
         self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
         self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
 

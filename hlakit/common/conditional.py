@@ -48,7 +48,7 @@ class ConditionalBlock(object):
         elif isinstance(token, Variable):
             token.set_scope(self.get_scope())
 
-    def get_tokens(self, token):
+    def get_tokens(self):
         return self._tokens
 
     def set_scope(self, name):
@@ -65,6 +65,9 @@ class ConditionalBlock(object):
 
     def is_open(self):
         return self._open
+
+    def get_decl(self):
+        return self._decl
 
 
 class Conditional(object):

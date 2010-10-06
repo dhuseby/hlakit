@@ -29,6 +29,9 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from hlakit.common.session import Session
+from hlakit.common.label import Label
+from hlakit.common.immediate import Immediate
+from hlakit.common.name import Name
 from opcode import Opcode
 from operand import Operand
 
@@ -38,8 +41,32 @@ class InstructionLine(object):
     """
 
     @classmethod
-    def build(klass, opcode, mode, addr=None, reg=None, value=None):
-        return klass(Opcode(opcode), Operand(mode, addr=addr, reg=reg, value=value))
+    def new(klass, opcode, mode=None, lbl=None, addr=None, reg=None, value=None):
+        if lbl != None:
+            # generate a label and use it as the addr in the operand
+            name = str(lbl)
+            if isinstance(lbl, Label):
+                name = str(lbl.get_name())
+            l = Immediate(Immediate.TERMINAL, Name(name))
+            
+            # create the instruction line
+            return klass(Opcode(opcode), Operand(mode, addr=l))
+
+        elif addr != None:
+            import pdb; pdb.set_trace()
+        elif reg != None:
+            import pdb; pdb.set_trace()
+        elif value != None:
+            # create the immediate value
+            v = Immediate(Immediate.TERMINAL, value)
+            
+            # create the instruction line
+            return klass(Opcode(opcode), Operand(mode, value=v))
+
+            pass
+        else:
+            # handles instructions lines with no oerands
+            return klass(Opcode(opcode), None)
 
     @classmethod
     def parse(klass, pstring, location, tokens):
