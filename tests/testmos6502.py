@@ -42,6 +42,8 @@ from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.numericvalue import NumericValue
 from hlakit.common.function import Function
+from hlakit.common.conditional import Conditional
+from hlakit.common.label import Label
 from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
 from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from hlakit.cpu.mos6502.register import Register
@@ -144,6 +146,26 @@ class MOS6502CompilerTester(unittest.TestCase):
         Session().compiler().reset_state()
         TypeRegistry().reset_state()
         SymbolTable().reset_state()
+        Label.reset_state()
+
+    def _checkScannerParserResolver(self, cc, scanner, parser, resolver):
+        # check the scanner output
+        self.assertEquals(len(cc.get_scanner_output()), len(scanner))
+        for i in range(0,len(scanner)):
+            self.assertTrue(isinstance(cc.get_scanner_output()[i], scanner[i][0]), '%d' % i)
+            self.assertEquals(str(cc.get_scanner_output()[i]), scanner[i][1], '%d' % i)
+
+        # check the parser output
+        self.assertEquals(len(cc.get_parser_output()), len(parser))
+        for i in range(0,len(parser)):
+            self.assertTrue(isinstance(cc.get_parser_output()[i], parser[i][0]), '%d' % i)
+            self.assertEquals(str(cc.get_parser_output()[i]), parser[i][1], '%d' % i)
+
+        # check the resolver output
+        self.assertEquals(len(cc.get_resolver_output()), len(resolver))
+        for i in range(0,len(resolver)):
+            self.assertTrue(isinstance(cc.get_resolver_output()[i], resolver[i][0]), '%d' % i)
+            self.assertEquals(str(cc.get_resolver_output()[i]), resolver[i][1], '%d' % i)
 
     def testCompiler(self):
         session = Session()
@@ -460,11 +482,27 @@ class MOS6502CompilerTester(unittest.TestCase):
                ora #hi(pproc)
                jsrind_f()
                """
-        types = [ InstructionLine,
-                  InstructionLine,
-                  InstructionLine,
-                  InstructionLine,
-                  InstructionLine ]
+        scanner = [ 
+            (InstructionLine, 'clc <implied>'),
+            (InstructionLine, 'adc <unresolved>'),
+            (InstructionLine, 'lda <unresolved>'),
+            (InstructionLine, 'ora <unresolved>'),
+            (FunctionCall, 'jsrind_f()')
+        ]
+        parser = [
+            (InstructionLine, 'clc <implied>'),
+            (InstructionLine, 'adc <unresolved>'),
+            (InstructionLine, 'lda <unresolved>'),
+            (InstructionLine, 'ora <unresolved>'),
+            (FunctionCall, 'jsrind_f()')
+        ]
+        resolver = [
+            (InstructionLine, 'clc <implied>'),
+            (InstructionLine, 'adc <unresolved>'),
+            (InstructionLine, 'lda <unresolved>'),
+            (InstructionLine, 'ora <unresolved>'),
+            (InstructionLine, 'jsr jsrind_f')
+        ]
 
         cc = Session().compiler()
 
@@ -475,10 +513,7 @@ class MOS6502CompilerTester(unittest.TestCase):
 
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
-        for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]), 
-                            '%s != %s' % (type(cc.get_output()[i]), types[i]))
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testSimpleCompleteFunctionDecl(self):
         code = """
@@ -490,20 +525,31 @@ class MOS6502CompilerTester(unittest.TestCase):
                    inx
                }
                """
-        types = [ FunctionDecl,
-                  ScopeBegin,
-                  InstructionLine,
-                  InstructionLine,
-                  InstructionLine,
-                  InstructionLine,
-                  ScopeEnd ]
+        scanner = [
+            (FunctionDecl, 'function foo()'),
+            (ScopeBegin, '{'),
+            (InstructionLine, 'lda 0x0200,x'),
+            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'ora 0x0200,x'),
+            (InstructionLine, 'inx <implied>'),
+            (ScopeEnd, '}')
+        ]
+        parser = [
+            (Function, 'function foo()')
+        ]
+        resolver = [
+            (Label, 'foo:'),
+            (InstructionLine, 'lda 0x0200,x'),
+            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'ora 0x0200,x'),
+            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'rts')
+        ]
 
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_scanner_output()), len(types))
-        for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_scanner_output()[i], types[i]))
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testSimpleCompleteMacroDecl(self):
         code = """
@@ -516,74 +562,156 @@ class MOS6502CompilerTester(unittest.TestCase):
                    inx
                }
                """
-        types = [ FunctionDecl,
-                  ScopeBegin,
-                  InstructionLine,
-                  InstructionLine,
-                  InstructionLine,
-                  FunctionCall,
-                  InstructionLine,
-                  ScopeEnd ]
+        scanner = [
+            (FunctionDecl, 'inline foo( addr )'),
+            (ScopeBegin, '{'),
+            (InstructionLine, 'lda <unresolved>'),
+            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'ora <unresolved>'),
+            (FunctionCall, 'jsrind_f()'),
+            (InstructionLine, 'inx <implied>'),
+            (ScopeEnd, '}'),
+        ]
+        parser = [
+            (Function, 'inline foo( addr )'),
+        ]
+        resolver = [
+            (Label, 'foo:'),
+            (InstructionLine, 'lda <unresolved>'),
+            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'ora <unresolved>'),
+            (InstructionLine, 'jsr jsrind_f'),
+            (InstructionLine, 'inx <implied>'),
+        ]
+
+        # pre-define the function 'jsrind_f'
+        st = SymbolTable()
+        st.new_symbol(FunctionDecl(Name('jsrind_f'), FunctionType('function'), []))
 
         cc = Session().compiler()
-        st = SymbolTable()
-        # pre-define the function 'jsrind_f'
-        st.new_symbol(FunctionDecl(Name('jsrind_f'), FunctionType('function'), []))
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_scanner_output()), len(types))
-        for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_scanner_output()[i], types[i]))
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testIfConditional(self):
+        code = """
+            if(set)
+                inx
+        """
+        scanner = [
+            (ConditionalDecl, "if(['set'])"),
+            (InstructionLine, "inx <implied>"),
+        ]
+        parser = [
+            (Conditional, "IF"),
+        ]
+        resolver = [
+            (InstructionLine, "bne HLA0"),
+            (InstructionLine, "inx <implied>"),
+            (Label, "HLA0:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('if(set)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.IF)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.SET)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testIfNegatedConditional(self):
+        code = """
+            if(not 1)
+                inx
+        """
+        scanner = [
+            (ConditionalDecl, "if(['not', '1'])"),
+            (InstructionLine, "inx <implied>"),
+        ]
+        parser = [
+            (Conditional, "IF"),
+        ]
+        resolver = [
+            (InstructionLine, "beq HLA0"),
+            (InstructionLine, "inx <implied>"),
+            (Label, "HLA0:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('if(not 1)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.IF)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.ONE)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NEGATED)
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testIfFarConditional(self):
+        code = """
+            if(far carry)
+                inx
+        """
+        scanner = [
+            (ConditionalDecl, "if(['far', 'carry'])"),
+            (InstructionLine, "inx <implied>"),
+        ]
+        parser = [
+            (Conditional, "IF"),
+        ]
+        resolver = [
+            (InstructionLine, "bcc HLA1"),
+            (InstructionLine, "jmp HLA0"),
+            (Label, "HLA1:"),
+            (InstructionLine, "inx <implied>"),
+            (Label, "HLA0:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('if(far carry)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.IF)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.CARRY)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.FAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testIfFarNegatedConditional(self):
+        code = """
+            if(far not overflow)
+                inx
+        """
+        scanner = [
+            (ConditionalDecl, "if(['far', 'not', 'overflow'])"),
+            (InstructionLine, "inx <implied>"),
+        ]
+        parser = [
+            (Conditional, "IF"),
+        ]
+        resolver = [
+            (InstructionLine, "bvc HLA1"),
+            (InstructionLine, "jmp HLA0"),
+            (Label, "HLA1:"),
+            (InstructionLine, "inx <implied>"),
+            (Label, "HLA0:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('if(far not overflow)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.IF)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.OVERFLOW)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.FAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NEGATED)
-        
-    def testElseConditional(self):
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+       
+    def testIfOneLinersConditional(self):
+        code = """
+               if (set)
+                   if (zero)
+                       inx
+               """
+
+        scanner = [
+            (ConditionalDecl, 'if([\'set\'])'),
+            (ConditionalDecl, 'if([\'zero\'])'),
+            (InstructionLine, 'inx <implied>'),
+        ]
+        parser = [
+            (Conditional, 'IF'),
+        ]
+        resolver = [
+            (InstructionLine, 'bne HLA0'),
+            (InstructionLine, 'beq HLA1'),
+            (InstructionLine, 'inx <implied>'),
+            (Label, 'HLA1:'),
+            (Label, 'HLA0:'),
+        ]
+
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('else')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.ELSE)
-        self.assertEquals(cc.get_output()[0].get_condition(), None)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testIfElseConditional(self):
         code = """
@@ -596,62 +724,130 @@ class MOS6502CompilerTester(unittest.TestCase):
                    dex
                }
                """
-        types = [ Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  ScopeEnd,
-                  Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  ScopeEnd ]
+
+        scanner = [
+            (ConditionalDecl, 'if([\'set\'])'),
+            (ScopeBegin, '{'),
+            (InstructionLine, 'inx <implied>'),
+            (ScopeEnd, '}'),
+            (ConditionalDecl, 'else'),
+            (ScopeBegin, '{'),
+            (InstructionLine, 'dex <implied>'),
+            (ScopeEnd, '}'),
+        ]
+        parser = [
+            (Conditional, 'IF_ELSE'),
+        ]
+        resolver = [
+            (InstructionLine, 'bne HLA0'),
+            (InstructionLine, 'dex <implied>'),
+            (InstructionLine, 'jmp HLA1'),
+            (Label, 'HLA0:'),
+            (InstructionLine, 'inx <implied>'),
+            (Label, 'HLA1:'),
+        ]
 
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
-        for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testWhileConditional(self):
+        code = """
+            while(true)
+                inx
+        """
+        scanner = [
+            (ConditionalDecl, "while(['true'])"),
+            (InstructionLine, "inx <implied>"),
+        ]
+        parser = [
+            (Conditional, "WHILE"),
+        ]
+        resolver = [
+            (Label, "HLA0:"),
+            (InstructionLine, "bne HLA1"),
+            (InstructionLine, "inx <implied>"),
+            (Label, "HLA1:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('while(true)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.WHILE)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.TRUE)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+        
     def testWhileNegatedConditional(self):
+        code = """
+            while (not 0)
+                inx
+        """
+        scanner = [
+            (ConditionalDecl, "while(['not', '0'])"),
+            (InstructionLine, "inx <implied>"),
+        ]
+        parser = [
+            (Conditional, "WHILE"),
+        ]
+        resolver = [
+            (Label, "HLA0:"),
+            (InstructionLine, "bne HLA1"),
+            (InstructionLine, "inx <implied>"),
+            (Label, "HLA1:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('while (not 0)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.WHILE)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.ZERO)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NEGATED)
-
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+        
     def testWhileFarConditional(self):
+        code = """
+            while(far unset)
+                inx
+        """
+        scanner = [
+            (ConditionalDecl, "while(['far', 'unset'])"),
+            (InstructionLine, "inx <implied>"),
+        ]
+        parser = [
+            (Conditional, "WHILE"),
+        ]
+        resolver = [
+            (Label, "HLA0:"),
+            (InstructionLine, "beq HLA2"),
+            (InstructionLine, "jmp HLA1"),
+            (Label, "HLA2:"),
+            (InstructionLine, "inx <implied>"),
+            (Label, "HLA1:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('while(far unset)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.WHILE)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.UNSET)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.FAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+        
     def testWhileFarNegatedConditional(self):
+        code = """
+            while(far not clear)
+                inx
+        """
+        scanner = [
+            (ConditionalDecl, "while(['far', 'not', 'clear'])"),
+            (InstructionLine, "inx <implied>"),
+        ]
+        parser = [
+            (Conditional, "WHILE"),
+        ]
+        resolver = [
+            (Label, "HLA0:"),
+            (InstructionLine, "bne HLA2"),
+            (InstructionLine, "jmp HLA1"),
+            (Label, "HLA2:"),
+            (InstructionLine, "inx <implied>"),
+            (Label, "HLA1:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('while(far not clear)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.WHILE)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.CLEAR)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.FAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NEGATED)
-
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+        
     def testWhileBlockConditional(self):
         code = """
                while (plus)
@@ -660,28 +856,27 @@ class MOS6502CompilerTester(unittest.TestCase):
                    dex
                }
                """
-        types = [ Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  InstructionLine,
-                  ScopeEnd ]
-
+        scanner = [
+            (ConditionalDecl, "while(['plus'])"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "dex <implied>"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Conditional, "WHILE"),
+        ]
+        resolver = [
+            (Label, "HLA0:"),
+            (InstructionLine, "bpl HLA1"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "dex <implied>"),
+            (Label, "HLA1:"),
+        ]
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
-        for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
-
-    def testDoConditional(self):
-        cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('do')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.DO)
-        self.assertEquals(cc.get_output()[0].get_condition(), None)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testDoWhileBlockConditional(self):
         code = """
@@ -692,70 +887,179 @@ class MOS6502CompilerTester(unittest.TestCase):
                }
                while (positive)
                """
-        types = [ Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  InstructionLine,
-                  ScopeEnd,
-                  Conditional ]
+        scanner = [
+            ( ConditionalDecl, 'do'),
+            ( ScopeBegin, '{'),
+            ( InstructionLine, 'inx <implied>'),
+            ( InstructionLine, 'dex <implied>'),
+            ( ScopeEnd, '}'),
+            ( ConditionalDecl, 'while([\'positive\'])' )
+        ]
+        parser = [
+            ( Conditional, 'DO_WHILE')
+        ]
+        resolver = [
+            ( Label, 'HLA0:'),
+            ( InstructionLine, 'inx <implied>'),
+            ( InstructionLine, 'dex <implied>'),
+            ( InstructionLine, 'bpl HLA0')
+        ]
 
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
-        for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testForeverConditional(self):
+        code = """
+            forever
+            {
+                inx
+            }
+        """
+        scanner = [
+            (ConditionalDecl, "forever"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "inx <implied>"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Conditional, "FOREVER"),
+        ]
+        resolver = [
+            (Label, "HLA0:"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "jmp HLA0"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('forever')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.FOREVER)
-        self.assertEquals(cc.get_output()[0].get_condition(), None)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+        
     def testSwitchConditional(self):
+        code = """
+            switch(x)
+            {
+                case #1
+                    inx
+            }
+        """
+        scanner = [
+            (ConditionalDecl, "switch(['x'])"),
+            (ScopeBegin, "{"),
+            (ConditionalDecl, "case([1])"),
+            (InstructionLine, "inx <implied>"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Conditional, "SWITCH"),
+        ]
+        resolver = [
+            (InstructionLine, "cpx #1"),
+            (InstructionLine, "bne HLA1"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "jmp HLA0"),
+            (Label, "HLA1:"),
+            (Label, "HLA0:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('switch(x)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.SWITCH)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.X)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+        
     def testSwitchCapitalConditional(self):
+        code = """
+            switch(A)
+            {
+                case #1
+                    inx
+            }
+        """
+        scanner = [
+            (ConditionalDecl, "switch(['a'])"),
+            (ScopeBegin, "{"),
+            (ConditionalDecl, "case([1])"),
+            (InstructionLine, "inx <implied>"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Conditional, "SWITCH"),
+        ]
+        resolver = [
+            (InstructionLine, "cmp #1"),
+            (InstructionLine, "bne HLA1"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "jmp HLA0"),
+            (Label, "HLA1:"),
+            (Label, "HLA0:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('switch(A)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.SWITCH)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.A)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testSwitchRegDotConditional(self):
+        code = """
+            switch(reg.y)
+            {
+                case #1
+                    inx
+            }
+        """
+        scanner = [
+            (ConditionalDecl, "switch(['y'])"),
+            (ScopeBegin, "{"),
+            (ConditionalDecl, "case([1])"),
+            (InstructionLine, "inx <implied>"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Conditional, "SWITCH"),
+        ]
+        resolver = [
+            (InstructionLine, "cpy #1"),
+            (InstructionLine, "bne HLA1"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "jmp HLA0"),
+            (Label, "HLA1:"),
+            (Label, "HLA0:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('switch(reg.y)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.SWITCH)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.Y)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+        
     def testSwitchRegDotCapitalConditional(self):
+        code = """
+            switch(REG.X)
+            {
+                case #1
+                    inx
+            }
+        """
+        scanner = [
+            (ConditionalDecl, "switch(['x'])"),
+            (ScopeBegin, "{"),
+            (ConditionalDecl, "case([1])"),
+            (InstructionLine, "inx <implied>"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Conditional, "SWITCH"),
+        ]
+        resolver = [
+            (InstructionLine, "cpx #1"),
+            (InstructionLine, "bne HLA1"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "jmp HLA0"),
+            (Label, "HLA1:"),
+            (Label, "HLA0:"),
+        ]
         cc = Session().compiler()
-        cc.compile([CodeBlock([CodeLine('switch(REG.X)')])])
-        self.assertEquals(len(cc.get_output()), 1)
-        self.assertTrue(isinstance(cc.get_output()[0], Conditional))
-        self.assertEquals(cc.get_output()[0].get_mode(), Conditional.SWITCH)
-        self.assertEquals(cc.get_output()[0].get_condition(), Conditional.X)
-        self.assertEquals(cc.get_output()[0].get_distance(), Conditional.NEAR)
-        self.assertEquals(cc.get_output()[0].get_modifier(), Conditional.NORMAL)
-
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+        
     def testSwitchCaseDefaultConditional(self):
         code = """
                switch(X)
@@ -772,30 +1076,47 @@ class MOS6502CompilerTester(unittest.TestCase):
                    }
                }
                """
-        types = [ Conditional,
-                  ScopeBegin,
-                  Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  ScopeEnd,
-                  Conditional,
-                  InstructionLine,
-                  Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  ScopeEnd,
-                  ScopeEnd ]
+        scanner = [
+            (ConditionalDecl, 'switch([\'x\'])'),
+            (ScopeBegin, '{'),
+            (ConditionalDecl, 'case([sizeof(bar)])'),
+            (ScopeBegin, '{'),
+            (InstructionLine, 'inx <implied>'),
+            (ScopeEnd, '}'),
+            (ConditionalDecl, 'case([0x0200])'),
+            (InstructionLine, 'dex <implied>'),
+            (ConditionalDecl, 'default'),
+            (ScopeBegin, '{'),
+            (InstructionLine, 'lda $0300'),
+            (ScopeEnd, '}'),
+            (ScopeEnd, '}'),
+        ]
+        parser = [
+            (Conditional, 'SWITCH_DEFAULT'),
+        ]
+        resolver = [
+            (InstructionLine, 'cpx #sizeof(bar)'),
+            (InstructionLine, 'bne HLA1'),
+            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'jmp HLA0'),
+            (Label, 'HLA1:'),
+            (InstructionLine, 'cpx #0x0200'),
+            (InstructionLine, 'bne HLA2'),
+            (InstructionLine, 'dex <implied>'),
+            (InstructionLine, 'jmp HLA0'),
+            (Label, 'HLA2:'),
+            (InstructionLine, 'lda $0300'),
+            (Label, 'HLA0:'),
+        ]
 
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_output()), len(types))
-        for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
     def testFunctionRunloopDecl(self):
         code = """
-               interrupt main()
+               interrupt noreturn main()
                {
                    forever
                    {
@@ -813,7 +1134,7 @@ class MOS6502CompilerTester(unittest.TestCase):
                            {
                                case #1K
                                {
-                                   cpy  1024
+                                   cpy  #1024
                                    if(equal)
                                    {
                                        dec $4400,X
@@ -826,43 +1147,67 @@ class MOS6502CompilerTester(unittest.TestCase):
                    }
                }
                """
-        types = [ FunctionDecl,
-                  ScopeBegin,
-                  Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  InstructionLine,
-                  InstructionLine,
-                  InstructionLine,
-                  ScopeEnd,
-                  Conditional,
-                  ScopeBegin,
-                  Conditional,
-                  ScopeBegin,
-                  Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  Conditional,
-                  ScopeBegin,
-                  InstructionLine,
-                  ScopeEnd,
-                  ScopeEnd,
-                  Conditional,
-                  InstructionLine,
-                  ScopeEnd,
-                  ScopeEnd,
-                  ScopeEnd,
-                  ScopeEnd ]
-
+        scanner = [
+            (FunctionDecl, "interrupt noreturn main()"),
+            (ScopeBegin, "{"),
+            (ConditionalDecl, "forever"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "cpx #$44"),
+            (ConditionalDecl, "if(['not', 'equal'])"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "lda 0x0200,x"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "ora 0x0200,x"),
+            (InstructionLine, "inx <implied>"),
+            (ScopeEnd, "}"),
+            (ConditionalDecl, "else"),
+            (ScopeBegin, "{"),
+            (ConditionalDecl, "switch(['y'])"),
+            (ScopeBegin, "{"),
+            (ConditionalDecl, "case([1K])"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "cpy #1024"),
+            (ConditionalDecl, "if(['equal'])"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "dec $4400,x"),
+            (ScopeEnd, "}"),
+            (ScopeEnd, "}"),
+            (ConditionalDecl, "default"),
+            (InstructionLine, "dec 0x4400"),
+            (ScopeEnd, "}"),
+            (ScopeEnd, "}"),
+            (ScopeEnd, "}"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Function, "interrupt noreturn main()"),
+        ]
+        resolver = [
+            (Label, "main:"),
+            (Label, "HLA0:"),
+            (InstructionLine, "cpx #$44"),
+            (InstructionLine, "bne HLA1"),
+            (InstructionLine, "cpy #1K"),
+            (InstructionLine, "bne HLA4"),
+            (InstructionLine, "cpy #1024"),
+            (InstructionLine, "beq HLA5"),
+            (InstructionLine, "dec $4400,x"),
+            (Label, "HLA5:"),
+            (InstructionLine, "jmp HLA3"),
+            (Label, "HLA4:"),
+            (InstructionLine, "dec 0x4400"),
+            (Label, "HLA3:"),
+            (InstructionLine, "jmp HLA2"),
+            (Label, "HLA1:"),
+            (InstructionLine, "lda 0x0200,x"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "ora 0x0200,x"),
+            (InstructionLine, "inx <implied>"),
+            (Label, "HLA2:"),
+            (InstructionLine, "jmp HLA0"),
+        ]
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
-        self.assertEquals(len(cc.get_scanner_output()), len(types))
-        for i in range(0,len(types)):
-            self.assertTrue(isinstance(cc.get_scanner_output()[i], types[i]))
-
-
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 

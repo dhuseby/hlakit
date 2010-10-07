@@ -46,7 +46,7 @@ class Function(Symbol):
         self._scope_name = None
 
     def get_noreturn(self):
-        return self._decl.get_type().get_noreturn()
+        return self._decl.get_noreturn()
 
     def get_params(self):
         return self._decl.get_params()
@@ -91,23 +91,5 @@ class Function(Symbol):
         return self._dependencies
 
     def __str__(self):
-        s = ''
-        s += self.get_type().get_name() 
-        if (self.get_type().get_name() == 'interrupt') and \
-           (self.get_type().get_sub_type() != None):
-            s += '.' + self.get_type().get_sub_type()
-        else: 
-            s += ' '
-        if self.get_type().get_noreturn():
-            s += 'noreturn '
-        s += str(self.get_name())
-        s += '('
-        if self.get_params():
-            for i in range(0, len(self.get_params())):
-                if i > 0:
-                    s += ','
-                s += ' ' + str(self.get_params()[i])
-            s += ' '
-        s += ')'
-        return s
+        return str(self._decl)
 

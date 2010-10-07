@@ -419,11 +419,10 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[0], FunctionDecl))
         self.assertTrue(isinstance(cc_tokens[1], ScopeBegin))
         self.assertTrue(isinstance(cc_tokens[2], ScopeEnd))
-        self.assertTrue(isinstance(cc_tokens[0].get_type(), FunctionType))
+        self.assertEquals(cc_tokens[0].get_type(), FunctionType.SUBROUTINE)
         self.assertTrue(isinstance(cc_tokens[0].get_name(), Name))
         self.assertFalse(cc_tokens[0].get_noreturn())
         self.assertEquals(cc_tokens[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc_tokens[0].get_type().get_name(), 'function')
 
     def testFunctionInlineDecl(self):
         cc = Session().compiler()
@@ -434,10 +433,9 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[0], FunctionDecl))
         self.assertTrue(isinstance(cc_tokens[1], ScopeBegin))
         self.assertTrue(isinstance(cc_tokens[2], ScopeEnd))
-        self.assertTrue(isinstance(cc_tokens[0].get_type(), FunctionType))
+        self.assertEquals(cc_tokens[0].get_type(), FunctionType.MACRO)
         self.assertTrue(isinstance(cc_tokens[0].get_name(), Name))
         self.assertEquals(cc_tokens[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc_tokens[0].get_type().get_name(), 'inline')
 
     def testFunctionInterruptDecl(self):
         cc = Session().compiler()
@@ -448,10 +446,9 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[0], FunctionDecl))
         self.assertTrue(isinstance(cc_tokens[1], ScopeBegin))
         self.assertTrue(isinstance(cc_tokens[2], ScopeEnd))
-        self.assertTrue(isinstance(cc_tokens[0].get_type(), FunctionType))
+        self.assertEquals(cc_tokens[0].get_type(), FunctionType.INTERRUPT)
         self.assertTrue(isinstance(cc_tokens[0].get_name(), Name))
         self.assertEquals(cc_tokens[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc_tokens[0].get_type().get_name(), 'interrupt')
 
     def testFunctionInterruptWithNameDecl(self):
         cc = Session().compiler()
@@ -462,12 +459,11 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[0], FunctionDecl))
         self.assertTrue(isinstance(cc_tokens[1], ScopeBegin))
         self.assertTrue(isinstance(cc_tokens[2], ScopeEnd))
-        self.assertTrue(isinstance(cc_tokens[0].get_type(), FunctionType))
+        self.assertEquals(cc_tokens[0].get_type(), FunctionType.INTERRUPT)
         self.assertTrue(isinstance(cc_tokens[0].get_name(), Name))
         self.assertTrue(isinstance(cc_tokens[0].get_type().get_name(), str))
         self.assertEquals(cc_tokens[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc_tokens[0].get_type().get_name(), 'interrupt')
-        self.assertEquals(cc_tokens[0].get_type().get_sub_type().get_name(), 'start')
+        self.assertEquals(cc_tokens[0].get_sub_type().get_name(), 'start')
 
     def testFunctionBadFunctionDecl(self):
         cc = Session().compiler()
@@ -514,11 +510,10 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[0], FunctionDecl))
         self.assertTrue(isinstance(cc_tokens[1], ScopeBegin))
         self.assertTrue(isinstance(cc_tokens[2], ScopeEnd))
-        self.assertTrue(isinstance(cc_tokens[0].get_type(), FunctionType))
+        self.assertEquals(cc_tokens[0].get_type(), FunctionType.SUBROUTINE)
         self.assertTrue(isinstance(cc_tokens[0].get_name(), Name))
         self.assertTrue(cc_tokens[0].get_noreturn())
         self.assertEquals(cc_tokens[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc_tokens[0].get_type().get_name(), 'function')
 
     def testFunctionNoReturnInterruptDecl(self):
         cc = Session().compiler()
@@ -529,11 +524,10 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[0], FunctionDecl))
         self.assertTrue(isinstance(cc_tokens[1], ScopeBegin))
         self.assertTrue(isinstance(cc_tokens[2], ScopeEnd))
-        self.assertTrue(isinstance(cc_tokens[0].get_type(), FunctionType))
+        self.assertEquals(cc_tokens[0].get_type(), FunctionType.INTERRUPT)
         self.assertTrue(isinstance(cc_tokens[0].get_name(), Name))
         self.assertTrue(cc_tokens[0].get_noreturn())
         self.assertEquals(cc_tokens[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc_tokens[0].get_type().get_name(), 'interrupt')
 
     def testFunctionBadNoReturnInlineDecl(self):
         cc = Session().compiler()
@@ -553,13 +547,12 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[0], FunctionDecl))
         self.assertTrue(isinstance(cc_tokens[1], ScopeBegin))
         self.assertTrue(isinstance(cc_tokens[2], ScopeEnd))
-        self.assertTrue(isinstance(cc_tokens[0].get_type(), FunctionType))
+        self.assertEquals(cc_tokens[0].get_type(), FunctionType.MACRO)
         self.assertTrue(isinstance(cc_tokens[0].get_name(), Name))
         self.assertTrue(isinstance(cc_tokens[0].get_params(), list))
         self.assertTrue(len(cc_tokens[0].get_params()) == 1)
         self.assertTrue(isinstance(cc_tokens[0].get_params()[0], Name))
         self.assertEquals(cc_tokens[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc_tokens[0].get_type().get_name(), 'inline')
         self.assertEquals(cc_tokens[0].get_params()[0].get_name(), 'bar')
 
     def testFunctionInlineWithMultipleParamDecl(self):
@@ -571,7 +564,7 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[0], FunctionDecl))
         self.assertTrue(isinstance(cc_tokens[1], ScopeBegin))
         self.assertTrue(isinstance(cc_tokens[2], ScopeEnd))
-        self.assertTrue(isinstance(cc_tokens[0].get_type(), FunctionType))
+        self.assertEquals(cc_tokens[0].get_type(), FunctionType.MACRO)
         self.assertTrue(isinstance(cc_tokens[0].get_name(), Name))
         self.assertTrue(isinstance(cc_tokens[0].get_params(), list))
         self.assertTrue(len(cc_tokens[0].get_params()) == 3)
@@ -579,7 +572,6 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[0].get_params()[1], Name))
         self.assertTrue(isinstance(cc_tokens[0].get_params()[2], Name))
         self.assertEquals(cc_tokens[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc_tokens[0].get_type().get_name(), 'inline')
         self.assertEquals(cc_tokens[0].get_params()[0].get_name(), 'bar')
         self.assertEquals(cc_tokens[0].get_params()[1].get_name(), 'baz')
         self.assertEquals(cc_tokens[0].get_params()[2].get_name(), 'qux')

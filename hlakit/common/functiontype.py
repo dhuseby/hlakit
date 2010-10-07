@@ -40,6 +40,12 @@ class FunctionType(Type):
         interrupt -- interrupt handler, uses return from interrupt opcode to return
     """
 
+    SUBROUTINE, MACRO, INTERRUPT = range(3)
+    FN_TYPES = [ 'function', 'inline', 'interrupt' ] 
+    fn_types = { 'function': SUBROUTINE,
+                 'inline': MACRO,
+                 'interrupt': INTERRUPT }
+
     @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
@@ -50,12 +56,14 @@ class FunctionType(Type):
         type_ = None
         if 'type_' in tokens.keys():
             type_ = tokens.type_[0]
+            if type_ not in klass.fn_types:
+                raise ParseFatalException('unknown function type: %s' % type_)
         else:
             raise ParseFatalException('no function type specified')
 
         sub_type = None
         if 'name' in tokens.keys():
-            if type_ != 'interrupt':
+            if type_ != klass.INTERRUPT:
                 raise ParseFatalException('non-interrupt function has name')
             sub_type = tokens.name
 
@@ -78,10 +86,14 @@ class FunctionType(Type):
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, type, sub_type=None, noreturn=False):
-        super(FunctionType, self).__init__(type)
+    def __init__(self, type_, sub_type=None, noreturn=False):
+        super(FunctionType, self).__init__(type_)
+        self._type = self.fn_types[type_]
         self._sub_type = sub_type
         self._noreturn = noreturn
+
+    def get_type(self):
+        return self._type
 
     def get_sub_type(self):
         return self._sub_type

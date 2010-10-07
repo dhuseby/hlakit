@@ -78,27 +78,31 @@ class FunctionDecl(object):
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, name, type_=None, params=None):
+    def __init__(self, name, fn_type, params=None):
         self._name = name
-        self._type = type_
+        self._fn_type = fn_type
         self._params = params
 
     def get_name(self):
         return self._name
 
+    def get_type_name(self):
+        return FunctionType.FN_TYPES[self.get_type()]
+
     def get_type(self):
-        return self._type
+        return self._fn_type.get_type()
+
+    def get_sub_type(self):
+        return self._fn_type.get_sub_type()
 
     def get_noreturn(self):
-        return self.get_type().get_noreturn()
+        return self._fn_type.get_noreturn()
 
     def get_params(self):
         return self._params
 
     def __str__(self):
-        s = ''
-        if self.get_type():
-            s += str(self.get_type()) + ' '
+        s = str(self._fn_type) + ' '
         s += str(self.get_name())
         s += '('
         if self._params:

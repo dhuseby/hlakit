@@ -508,9 +508,14 @@ class NESCompilerTester(unittest.TestCase):
             """
         types = [ ScopeBegin,
                   InstructionLine,
-                  FunctionCall,
                   InstructionLine,
                   ScopeEnd ]
+
+        # pre-define the function 'assign'
+        st = SymbolTable()
+        st.reset_state()
+        st.new_symbol(FunctionDecl(Name('assign'), FunctionType('inline'), 
+                      [FunctionParameter('one'), FunctionParameter('two')]))
 
         cc = Session().compiler()
         cb = build_code_block(code)

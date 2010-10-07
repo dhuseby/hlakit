@@ -76,8 +76,8 @@ class Conditional(object):
     """
 
     # these are the different types of conditional blocks
-    IF, IF_ELSE, WHILE, DO_WHILE, FOREVER, SWITCH, SWITCH_DEFAULT, UNK = range(8)
-    NAMES = [ 'IF', 'IF_ELSE', 'WHILE', 'DO_WHILE', 'FOREVER', 'SWITCH', 'SWITCH_DEFAULT', 'UNKNOWN' ]
+    IF, IF_ELSE, WHILE, DO_WHILE, FOREVER, SWITCH, SWITCH_DEFAULT, CASE, DEFAULT, UNK = range(10)
+    NAMES = [ 'IF', 'IF_ELSE', 'WHILE', 'DO_WHILE', 'FOREVER', 'SWITCH', 'SWITCH_DEFAULT', 'CASE', 'DEFAULT', 'UNKNOWN' ]
 
     def __init__(self, depth):
         self._type = self.UNK
@@ -107,11 +107,21 @@ class Conditional(object):
         # put it at the front of the list
         self._blocks.insert(0, cb)
 
+    def add_block(self, block):
+        if not isinstance(block, ConditionalBlock):
+            raise ParseFatalException('trying to add non conditional block to conditional')
+
+        # set the block's scope properly
+        block.set_scope(self.get_scope())
+
+        # put the block in the list
+        self._blocks.insert(0, block)
+
     def close_block(self):
         self._blocks[0].close()
 
     def is_block_open(self):
-        if len(self._token_blocks) > 0:
+        if len(self._blocks) > 0:
             return self._blocks[0].is_open()
         return False
 
@@ -125,7 +135,9 @@ class Conditional(object):
         return self._blocks[block]
 
     def set_type(self, type_):
-        if type_ not in (self.IF, self.IF_ELSE, self.WHILE, self.DO_WHILE, self.FOREVER, self.SWITCH, self.SWITCH_DEFAULT):
+        if type_ not in (self.IF, self.IF_ELSE, self.WHILE, 
+                         self.DO_WHILE, self.FOREVER, self.SWITCH, 
+                         self.SWITCH_DEFAULT, self.CASE, self.DEFAULT):
             raise ParseFatalException('invalid conditional type')
         self._type = type_
 

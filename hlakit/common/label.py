@@ -37,6 +37,10 @@ class Label(object):
    
     NUM = 0
 
+    @staticmethod
+    def reset_state():
+        Label.NUM = 0
+
     def __init__(self, name=None):
         if name == None:
             n = Label.NUM

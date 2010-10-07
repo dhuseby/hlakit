@@ -585,11 +585,11 @@ class Immediate(object):
         raise UnresolvedSymbolError()
 
     def __str__(self):
-        s = ''
+        s = str(self._args[0])
         if self._type != self.TERMINAL:
-            s += self.TYPE[self._type] + ' ( '
-        for i in range(0, len(self._args)):
-            if i > 0:
+            s += '('
+        for i in range(1, len(self._args)):
+            if i > 1:
                 s += ', '
             s += str(self._args[i])
         if self._type != self.TERMINAL:

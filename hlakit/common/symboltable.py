@@ -78,6 +78,13 @@ class SymbolTable(object):
         self._scope_stack = [Scope('__global__')]
         self._scopes = {}
 
+    def get_namespace(self, prefix='ST'):
+        if not hasattr(self, '_ns_num'):
+            self._ns_num = 0
+        n = self._ns_num
+        self._ns_num += 1
+        return '%s%d' % (prefix, n)
+
     def scope_push(self, namespace='__anonymous__'):
         if not hasattr(self, '_scope_stack'):
             self.reset_state()

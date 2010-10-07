@@ -50,6 +50,17 @@ from scopemarkers import ScopeBegin, ScopeEnd
 from symboltable import SymbolTable
 from variableinitializer import VariableInitializer
 
+class BasicScope(object):
+
+    def __init__(self):
+        self._tokens = []
+
+    def append_token(self, token):
+        self._tokens.append(token)
+
+    def get_tokens(self):
+        return self._tokens
+
 class Compiler(object):
 
     @classmethod
@@ -181,7 +192,7 @@ class Compiler(object):
         if isinstance(token, FunctionDecl):
 
             # make sure all functions are declared at file scope
-            if self._scope_depth() != 0:
+            if self._scope_depth() != 1:
                 raise ParseFatalError('cannot declare a function here')
 
             # create the function container
@@ -200,6 +211,8 @@ class Compiler(object):
 
                 # set the function's full scope name to the current scope
                 fn.set_scope(st.current_scope_name())
+
+                return
             else:
                 s = 'function decl not followed by {\n'
                 s += str(fn) + '\n'
@@ -212,23 +225,20 @@ class Compiler(object):
             # peek at the next token to see if it is an initializer
             next_token = self._peek_token()
             if isinstance(next_token, VariableInitializer):
+
                 # assign the value to the variable
                 token.set_value(next_token.get_value())
+
                 # consume the initializer token
                 self._get_token()
 
-            # return the Variable token
-            return token
-        
         elif isinstance(token, FileBegin):
             # set the symbol table scope to the file
             st.scope_push(str(token.get_name()))
-            return None
         
         elif isinstance(token, FileEnd):
             # end the file scope 
             st.scope_pop()
-            return None
        
         # this is a standalone { token to localize names
         elif isinstance(token, ScopeBegin):
@@ -237,7 +247,6 @@ class Compiler(object):
 
             # start a new symbol table scope but not a fn/cond scope
             st.scope_push()
-            return None
 
         elif isinstance(token, ScopeEnd):
             self._append_token_to_scope(token)
@@ -253,45 +262,7 @@ class Compiler(object):
                 if isinstance(token, Function):
                     st.new_symbol(token)
 
-                # if we're back to the top level of scope (file scope),
-                # then return the token, otherwise add it to the 
-                # containing scope...
-                if self._scope_depth() == 0: 
-                    return token
-                else:
-                    self._append_token_to_scope(token)
-            return None
-
-        elif isinstance(token, Label):
-            # pass labels through unchanged because they will be resolved
-            # into an address during the resolve phase
-            if self._scope_depth() == 0: 
-                return token
-            else:
-                self._append_token_to_scope(token)
-            return None
-
-        elif isinstance(token, FunctionCall):
-            if self._scope_depth() == 0: 
-                return token
-            else:
-                self._append_token_to_scope(token)
-            return None
-
-        elif isinstance(token, FunctionReturn):
-            if self._scope_depth() == 0: 
-                return token
-            else:
-                self._append_token_to_scope(token)
-            return None
-
-        else:
-            # this allows all other tokens to pass through...thus we can
-            # let the ROM building preprocessr tokens to get through to
-            # the ROM building phase.
-            return token
-
-        return None
+        self._append_token_to_scope(token)
 
     def _parse(self, tokens):
         """ go through the list of tokens looking for well structred functions
@@ -299,13 +270,16 @@ class Compiler(object):
         self._scope_stack = []
         self._in_tokens = copy.copy(tokens)
         self._parsed_tokens = []
-        while True:
-            token = self._parse_next()
-            if token != None:
-                self._parsed_tokens.append(token)
+        self._push_scope(BasicScope())
+        while len(self._in_tokens):
+            self._parse_next()
 
-            if len(self._in_tokens) == 0:
-                break
+        (scope, depth) = self._pop_scope()
+        if depth != 0:
+            raise ParseFatalException('scope not properly terminated')
+
+        # get the tokens from the base scope
+        self._parsed_tokens = copy.copy(scope.get_tokens())
 
     def _resolve_token(self, token):
         if isinstance(token, ScopeBegin):
@@ -358,6 +332,32 @@ class Compiler(object):
 
     def get_resolver_output(self):
         return self._resolved_tokens
+
+    def output_debug_def(self):
+        pt = self.get_scanner_output()
+        print '        scanner = ['
+        first = True
+        for p in pt:
+            t = str(type(p))
+            ti = t.rfind('.')
+            print '            (%s, "%s"),' % (t[ti+1:-2], str(p))
+        print '        ]'
+
+        pt = self.get_parser_output()
+        print '        parser = ['
+        for p in pt:
+            t = str(type(p))
+            ti = t.rfind('.')
+            print '            (%s, "%s"),' % (t[ti+1:-2], str(p))
+        print '        ]'
+
+        pt = self.get_resolver_output()
+        print '        resolver = ['
+        for p in pt:
+            t = str(type(p))
+            ti = t.rfind('.')
+            print '            (%s, "%s"),' % (t[ti+1:-2], str(p))
+        print '        ]'
 
     def compile(self, tokens, debug=False):
         # first we tokenize
