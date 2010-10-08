@@ -256,10 +256,12 @@ class Compiler(object):
         elif isinstance(token, FileBegin):
             # set the symbol table scope to the file
             st.scope_push(str(token.get_name()))
+            return
         
         elif isinstance(token, FileEnd):
             # end the file scope 
             st.scope_pop()
+            return
        
         # this is a standalone { token to localize names
         elif isinstance(token, ScopeBegin):

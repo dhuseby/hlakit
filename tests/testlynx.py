@@ -623,7 +623,6 @@ jmp $FB00
             (FileEnd, "FileEnd: DummyFile"),
         ]
         parser = [
-            (FileBegin, "FileBegin: DummyFile"),
             (LnxSetting, "#lnx.page_size_bank0 2K"),
             (LnxSetting, "#lnx.page_size_bank1"),
             (LnxSetting, "#lnx.version 1"),
@@ -643,10 +642,8 @@ jmp $FB00
             (Function, "function noreturn micro_loader()"),
             (RamEnd, "RamEnd"),
             (LynxRomEnd, "LynxRomEnd"),
-            (FileEnd, "FileEnd: DummyFile"),
         ]
         resolver = [
-            (FileBegin, "FileBegin: DummyFile"),
             (LnxSetting, "#lnx.page_size_bank0 2K"),
             (LnxSetting, "#lnx.page_size_bank1"),
             (LnxSetting, "#lnx.version 1"),
@@ -681,7 +678,6 @@ jmp $FB00
             (InstructionLine, "jmp $FB00"),
             (RamEnd, "RamEnd"),
             (LynxRomEnd, "LynxRomEnd"),
-            (FileEnd, "FileEnd: DummyFile"),
         ]
         cc = Session().compiler()
         cc.compile(pp_tokens, True)
