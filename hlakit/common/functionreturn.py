@@ -29,6 +29,7 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from session import Session
+from functiontype import FunctionType
 
 class FunctionReturn(object):
     """
@@ -52,6 +53,18 @@ class FunctionReturn(object):
         expr = Keyword('return').setResultsName('return')
         expr.setParseAction(klass.parse)
         return expr
+
+    def __init__(self):
+        self._fn_type = None
+
+    def set_type(self, type_):
+        if type_ not in (FunctionType.SUBROUTINE,
+                         FunctionType.INTERRUPT):
+            raise ParseFatalException('return keyword in incorrect function type')
+        self._fn_type = type_
+
+    def get_type(self):
+        return self._fn_type
 
     def __str__(self):
         return 'return'

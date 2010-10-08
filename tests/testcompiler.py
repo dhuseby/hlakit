@@ -461,7 +461,6 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc_tokens[2], ScopeEnd))
         self.assertEquals(cc_tokens[0].get_type(), FunctionType.INTERRUPT)
         self.assertTrue(isinstance(cc_tokens[0].get_name(), Name))
-        self.assertTrue(isinstance(cc_tokens[0].get_type().get_name(), str))
         self.assertEquals(cc_tokens[0].get_name().get_name(), 'foo')
         self.assertEquals(cc_tokens[0].get_sub_type().get_name(), 'start')
 

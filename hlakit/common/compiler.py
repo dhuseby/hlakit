@@ -161,6 +161,12 @@ class Compiler(object):
     def _get_scope_context(self):
         return self._scope_stack[0][0]
 
+    def _get_fn_context(self):
+        for i in range(0, len(self._scope_stack)):
+            if isinstance(self._scope_stack[i][0], Function):
+                return self._scope_stack[i][0]
+        return None
+
     def _append_token_to_scope(self, token):
         self._get_scope_context().append_token(token)
 
@@ -218,6 +224,21 @@ class Compiler(object):
                 s += str(fn) + '\n'
                 s += str(token)
                 raise ParseFatalException(s)
+
+        elif isinstance(token, FunctionReturn):
+            fn = self._get_fn_context()
+            if fn is None:
+                raise ParseFatalException('return in non-function block')
+
+            if not isinstance(fn, Function):
+                raise ParseFatalException('return keyword in non-function')
+
+            if fn.get_noreturn():
+                raise ParseFatalException('function declared noreturn has return in it')
+
+            # tell the FunctionReturn what the type of parent function
+            # it is in.  this allows it to emit the correct opcode
+            token.set_type(fn.get_type()) 
 
         elif isinstance(token, Variable):
             st.new_symbol(token)
@@ -334,30 +355,32 @@ class Compiler(object):
         return self._resolved_tokens
 
     def output_debug_def(self):
+        out = ''
         pt = self.get_scanner_output()
-        print '        scanner = ['
+        out += '        scanner = [\n'
         first = True
         for p in pt:
             t = str(type(p))
             ti = t.rfind('.')
-            print '            (%s, "%s"),' % (t[ti+1:-2], str(p))
-        print '        ]'
+            out += '            (%s, "%s"),\n' % (t[ti+1:-2], str(p))
+        out += '        ]\n'
 
         pt = self.get_parser_output()
-        print '        parser = ['
+        out += '        parser = [\n'
         for p in pt:
             t = str(type(p))
             ti = t.rfind('.')
-            print '            (%s, "%s"),' % (t[ti+1:-2], str(p))
-        print '        ]'
+            out += '            (%s, "%s"),\n' % (t[ti+1:-2], str(p))
+        out += '        ]\n'
 
         pt = self.get_resolver_output()
-        print '        resolver = ['
+        out += '        resolver = [\n'
         for p in pt:
             t = str(type(p))
             ti = t.rfind('.')
-            print '            (%s, "%s"),' % (t[ti+1:-2], str(p))
-        print '        ]'
+            out += '            (%s, "%s"),\n' % (t[ti+1:-2], str(p))
+        out += '        ]\n'
+        return out
 
     def compile(self, tokens, debug=False):
         # first we tokenize

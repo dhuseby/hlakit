@@ -55,7 +55,7 @@ class FunctionType(Type):
 
         type_ = None
         if 'type_' in tokens.keys():
-            type_ = tokens.type_[0]
+            type_ = tokens.type_[0].lower()
             if type_ not in klass.fn_types:
                 raise ParseFatalException('unknown function type: %s' % type_)
         else:
@@ -63,7 +63,7 @@ class FunctionType(Type):
 
         sub_type = None
         if 'name' in tokens.keys():
-            if type_ != klass.INTERRUPT:
+            if type_ != 'interrupt':
                 raise ParseFatalException('non-interrupt function has name')
             sub_type = tokens.name
 

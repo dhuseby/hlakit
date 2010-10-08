@@ -417,6 +417,25 @@ class LynxLnxTester(unittest.TestCase):
     def tearDown(self):
         Session().preprocessor().reset_state()
 
+    def _checkScannerParserResolver(self, cc, scanner, parser, resolver):
+        # check the scanner output
+        self.assertEquals(len(cc.get_scanner_output()), len(scanner))
+        for i in range(0,len(scanner)):
+            self.assertTrue(isinstance(cc.get_scanner_output()[i], scanner[i][0]), '%d' % i)
+            self.assertEquals(str(cc.get_scanner_output()[i]), scanner[i][1], '%d' % i)
+
+        # check the parser output
+        self.assertEquals(len(cc.get_parser_output()), len(parser))
+        for i in range(0,len(parser)):
+            self.assertTrue(isinstance(cc.get_parser_output()[i], parser[i][0]), '%d' % i)
+            self.assertEquals(str(cc.get_parser_output()[i]), parser[i][1], '%d' % i)
+
+        # check the resolver output
+        self.assertEquals(len(cc.get_resolver_output()), len(resolver))
+        for i in range(0,len(resolver)):
+            self.assertTrue(isinstance(cc.get_resolver_output()[i], resolver[i][0]), '%d' % i)
+            self.assertEquals(str(cc.get_resolver_output()[i]), resolver[i][1], '%d' % i)
+
     def testBasicLnxHeader(self):
         lnx = Lnx()
         lnx.set_page_size_bank0(1024)
@@ -561,129 +580,112 @@ jmp $FB00
             self.assertEqual(str(pp_tokens[i]), expected_pp_tokens[i][1], 'token %d' % i)
 
         # COMPILER PASS
-        expected_scanned_tokens = [ 
-            (FileBegin, 'FileBegin: DummyFile'),
-            (LnxSetting, '#lnx.page_size_bank0 2K'),
-            (LnxSetting, '#lnx.page_size_bank1'),
-            (LnxSetting, '#lnx.version 1'),
+        scanner = [
+            (FileBegin, "FileBegin: DummyFile"),
+            (LnxSetting, "#lnx.page_size_bank0 2K"),
+            (LnxSetting, "#lnx.page_size_bank1"),
+            (LnxSetting, "#lnx.version 1"),
             (LnxSetting, '#lnx.cart_name "CGD Demo Game"'),
             (LnxSetting, '#lnx.manufacturer_name "ClassGameDev.com"'),
-            (LnxSetting, '#lnx.rotation none'),
-            (LynxRomBank, 'LynxRomBank <0>'),
-            (LynxRomPadding, 'LynxRomPadding <0>'),
-            (LynxRomOrg, 'LynxRomOrg <0x0>,<0x100>'),
-            (RamOrg, 'RamOrg <0x200>'),
-            (Variable, 'byte CART_BANK_0 :$FCB2'),
-            (Variable, 'byte MIKEY_SYSTEM_CONTROL :$FD87'),
-            (Variable, 'byte MIKEY_IO_DIRECTION :$FD8A'),
-            (Variable, 'byte MIKEY_GPIO :$FD8B'),
-            (Variable, 'byte MIKEY_SERIAL_CONTROL :$FD8C'),
-            (Variable, 'byte MIKEY_MEMORY_MAP_CONTROL :$FFF9'),
-            (FunctionDecl, 'function noreturn micro_loader()'),
-            (ScopeBegin, '{'),
-            (InstructionLine, 'lda #0'),
-            (InstructionLine, 'sta <unresolved>'),
-            (InstructionLine, 'lda #%00010011'),
-            (InstructionLine, 'sta <unresolved>'),
-            (InstructionLine, 'lda #%00000100'),
-            (InstructionLine, 'sta <unresolved>'),
-            (InstructionLine, 'lda #%00001000'),
-            (InstructionLine, 'sta <unresolved>'),
-            (InstructionLine, 'ldx #0'),
-            (ConditionalDecl, 'do'),
-            (ScopeBegin, '{'),
-            (InstructionLine, 'lda <unresolved>'),
-            (InstructionLine, 'sta $FB00,x'),
-            (InstructionLine, 'inx <implied>'),
-            (ScopeEnd, '}'),
+            (LnxSetting, "#lnx.rotation none"),
+            (LynxRomBank, "LynxRomBank <0>"),
+            (LynxRomPadding, "LynxRomPadding <0>"),
+            (LynxRomOrg, "LynxRomOrg <0x0>,<0x100>"),
+            (RamOrg, "RamOrg <0x200>"),
+            (Variable, "byte CART_BANK_0 :$FCB2"),
+            (Variable, "byte MIKEY_SYSTEM_CONTROL :$FD87"),
+            (Variable, "byte MIKEY_IO_DIRECTION :$FD8A"),
+            (Variable, "byte MIKEY_GPIO :$FD8B"),
+            (Variable, "byte MIKEY_SERIAL_CONTROL :$FD8C"),
+            (Variable, "byte MIKEY_MEMORY_MAP_CONTROL :$FFF9"),
+            (FunctionDecl, "function noreturn micro_loader()"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "lda #0"),
+            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "lda #%00010011"),
+            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "lda #%00000100"),
+            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "lda #%00001000"),
+            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "ldx #0"),
+            (ConditionalDecl, "do"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "sta $FB00,x"),
+            (InstructionLine, "inx <implied>"),
+            (ScopeEnd, "}"),
             (ConditionalDecl, "while(['not', 'zero'])"),
-            (InstructionLine, 'jmp $FB00'),
-            (ScopeEnd, '}'),
-            (RamEnd, 'RamEnd'),
-            (LynxRomEnd, 'LynxRomEnd'),
-            (FileEnd, 'FileEnd: DummyFile')
+            (InstructionLine, "jmp $FB00"),
+            (ScopeEnd, "}"),
+            (RamEnd, "RamEnd"),
+            (LynxRomEnd, "LynxRomEnd"),
+            (FileEnd, "FileEnd: DummyFile"),
         ]
-        expected_parsed_tokens = [ 
-            (LnxSetting, '#lnx.page_size_bank0 2K'),
-            (LnxSetting, '#lnx.page_size_bank1'),
-            (LnxSetting, '#lnx.version 1'),
+        parser = [
+            (FileBegin, "FileBegin: DummyFile"),
+            (LnxSetting, "#lnx.page_size_bank0 2K"),
+            (LnxSetting, "#lnx.page_size_bank1"),
+            (LnxSetting, "#lnx.version 1"),
             (LnxSetting, '#lnx.cart_name "CGD Demo Game"'),
             (LnxSetting, '#lnx.manufacturer_name "ClassGameDev.com"'),
-            (LnxSetting, '#lnx.rotation none'),
-            (LynxRomBank, 'LynxRomBank <0>'),
-            (LynxRomPadding, 'LynxRomPadding <0>'),
-            (LynxRomOrg, 'LynxRomOrg <0x0>,<0x100>'),
-            (RamOrg, 'RamOrg <0x200>'),
-            (Variable, 'byte CART_BANK_0 :$FCB2'),
-            (Variable, 'byte MIKEY_SYSTEM_CONTROL :$FD87'),
-            (Variable, 'byte MIKEY_IO_DIRECTION :$FD8A'),
-            (Variable, 'byte MIKEY_GPIO :$FD8B'),
-            (Variable, 'byte MIKEY_SERIAL_CONTROL :$FD8C'),
-            (Variable, 'byte MIKEY_MEMORY_MAP_CONTROL :$FFF9'),
-            (Function, 'function noreturn micro_loader()'),
-            (RamEnd, 'RamEnd'),
-            (LynxRomEnd, 'LynxRomEnd')
+            (LnxSetting, "#lnx.rotation none"),
+            (LynxRomBank, "LynxRomBank <0>"),
+            (LynxRomPadding, "LynxRomPadding <0>"),
+            (LynxRomOrg, "LynxRomOrg <0x0>,<0x100>"),
+            (RamOrg, "RamOrg <0x200>"),
+            (Variable, "byte CART_BANK_0 :$FCB2"),
+            (Variable, "byte MIKEY_SYSTEM_CONTROL :$FD87"),
+            (Variable, "byte MIKEY_IO_DIRECTION :$FD8A"),
+            (Variable, "byte MIKEY_GPIO :$FD8B"),
+            (Variable, "byte MIKEY_SERIAL_CONTROL :$FD8C"),
+            (Variable, "byte MIKEY_MEMORY_MAP_CONTROL :$FFF9"),
+            (Function, "function noreturn micro_loader()"),
+            (RamEnd, "RamEnd"),
+            (LynxRomEnd, "LynxRomEnd"),
+            (FileEnd, "FileEnd: DummyFile"),
         ]
-        expected_resolved_tokens = [ 
-            (LnxSetting, '#lnx.page_size_bank0 2K'),
-            (LnxSetting, '#lnx.page_size_bank1'),
-            (LnxSetting, '#lnx.version 1'),
+        resolver = [
+            (FileBegin, "FileBegin: DummyFile"),
+            (LnxSetting, "#lnx.page_size_bank0 2K"),
+            (LnxSetting, "#lnx.page_size_bank1"),
+            (LnxSetting, "#lnx.version 1"),
             (LnxSetting, '#lnx.cart_name "CGD Demo Game"'),
             (LnxSetting, '#lnx.manufacturer_name "ClassGameDev.com"'),
-            (LnxSetting, '#lnx.rotation none'),
-            (LynxRomBank, 'LynxRomBank <0>'),
-            (LynxRomPadding, 'LynxRomPadding <0>'),
-            (LynxRomOrg, 'LynxRomOrg <0x0>,<0x100>'),
-            (RamOrg, 'RamOrg <0x200>'),
-            (Variable, 'byte CART_BANK_0 :$FCB2'),
-            (Variable, 'byte MIKEY_SYSTEM_CONTROL :$FD87'),
-            (Variable, 'byte MIKEY_IO_DIRECTION :$FD8A'),
-            (Variable, 'byte MIKEY_GPIO :$FD8B'),
-            (Variable, 'byte MIKEY_SERIAL_CONTROL :$FD8C'),
-            (Variable, 'byte MIKEY_MEMORY_MAP_CONTROL :$FFF9'),
-            (Label, 'micro_loader:'),
-            (InstructionLine, 'lda #0'),
-            (InstructionLine, 'sta <unresolved>'),
-            (InstructionLine, 'lda #%00010011'),
-            (InstructionLine, 'sta <unresolved>'),
-            (InstructionLine, 'lda #%00000100'),
-            (InstructionLine, 'sta <unresolved>'),
-            (InstructionLine, 'lda #%00001000'),
-            (InstructionLine, 'sta <unresolved>'),
-            (InstructionLine, 'ldx #0'),
-            (Label, 'HLA0:'),
-            (InstructionLine, 'lda <unresolved>'),
-            (InstructionLine, 'sta $FB00,x'),
-            (InstructionLine, 'inx <implied>'),
-            (InstructionLine, 'bne HLA0'),
-            (InstructionLine, 'jmp $FB00'),
-            (RamEnd, 'RamEnd'),
-            (LynxRomEnd, 'LynxRomEnd')
+            (LnxSetting, "#lnx.rotation none"),
+            (LynxRomBank, "LynxRomBank <0>"),
+            (LynxRomPadding, "LynxRomPadding <0>"),
+            (LynxRomOrg, "LynxRomOrg <0x0>,<0x100>"),
+            (RamOrg, "RamOrg <0x200>"),
+            (Variable, "byte CART_BANK_0 :$FCB2"),
+            (Variable, "byte MIKEY_SYSTEM_CONTROL :$FD87"),
+            (Variable, "byte MIKEY_IO_DIRECTION :$FD8A"),
+            (Variable, "byte MIKEY_GPIO :$FD8B"),
+            (Variable, "byte MIKEY_SERIAL_CONTROL :$FD8C"),
+            (Variable, "byte MIKEY_MEMORY_MAP_CONTROL :$FFF9"),
+            (Label, "micro_loader:"),
+            (InstructionLine, "lda #0"),
+            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "lda #%00010011"),
+            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "lda #%00000100"),
+            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "lda #%00001000"),
+            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "ldx #0"),
+            (Label, "HLA0:"),
+            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "sta $FB00,x"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "bne HLA0"),
+            (InstructionLine, "jmp $FB00"),
+            (RamEnd, "RamEnd"),
+            (LynxRomEnd, "LynxRomEnd"),
+            (FileEnd, "FileEnd: DummyFile"),
         ]
         cc = Session().compiler()
-        
         cc.compile(pp_tokens, True)
-
-        # check the scanner pass
-        scanned_tokens = cc.get_scanner_output()
-        self.assertEquals(len(scanned_tokens), len(expected_scanned_tokens))
-        for i in range(0, len(expected_scanned_tokens)):
-            self.assertTrue(isinstance(scanned_tokens[i], expected_scanned_tokens[i][0]))
-            self.assertEqual(str(scanned_tokens[i]), expected_scanned_tokens[i][1])
-
-        # check the parser pass
-        parsed_tokens = cc.get_parser_output()
-        self.assertEquals(len(parsed_tokens), len(expected_parsed_tokens))
-        for i in range(0, len(expected_parsed_tokens)):
-            self.assertTrue(isinstance(parsed_tokens[i], expected_parsed_tokens[i][0]))
-            self.assertEqual(str(parsed_tokens[i]), expected_parsed_tokens[i][1])
-
-        # check the resolver pass
-        resolved_tokens = cc.get_resolver_output()
-        self.assertEquals(len(resolved_tokens), len(expected_resolved_tokens))
-        for i in range(0, len(expected_resolved_tokens)):
-            self.assertTrue(isinstance(resolved_tokens[i], expected_resolved_tokens[i][0]))
-            self.assertEqual(str(resolved_tokens[i]), expected_resolved_tokens[i][1])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
         # GENERATOR PASS
         #expected_rom = [ ]

@@ -961,6 +961,17 @@ class MOS6502Compiler(Compiler):
             
             return (tokens, len(tokens))
 
+        elif isinstance(token, FunctionReturn):
+            tokens = []
+            # for subroutines, we return with rts
+            if token.get_type() == FunctionType.SUBROUTINE:
+                tokens.append(InstructionLine.new('rts'))
+
+            # for interrupts, we return with rti
+            elif token.get_type() == FunctionType.INTERRUPT:
+                tokens.append(InstructionLine.new('rti'))
+
+            return (tokens, len(tokens))
 
         # if the token wasn't an InstructionLine, then call the base class to
         # handle the token.

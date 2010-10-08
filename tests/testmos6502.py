@@ -42,6 +42,7 @@ from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.numericvalue import NumericValue
 from hlakit.common.function import Function
+from hlakit.common.functionreturn import FunctionReturn
 from hlakit.common.conditional import Conditional
 from hlakit.common.label import Label
 from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
@@ -58,6 +59,7 @@ from hlakit.common.functioncall import FunctionCall
 from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 from hlakit.common.immediate import Immediate
 from hlakit.common.variable import Variable
+from hlakit.common.variableinitializer import VariableInitializer
 
 class MOS6502PreprocessorTester(unittest.TestCase):
     """
@@ -474,6 +476,95 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'ror')
         self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ACC)
 
+    def testComplexVariableDecl(self):
+        code = """
+            byte _b_temp, _b_temp2
+            word _w_temp
+            """
+        types = [ Variable,
+                  Variable,
+                  Variable ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testComplexVariableDecls(self):
+        code = """
+            byte _b_temp
+            word _w_temp
+            pointer _p_temp, _jsrind_temp
+            byte _b_remainder,
+            _random_value,
+            _random_ticks
+            pointer _mem_src, _mem_dest
+            """
+        types = [ Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable,
+                  Variable ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertEquals(len(cc.get_output()), len(types))
+        for i in range(0,len(types)):
+            self.assertTrue(isinstance(cc.get_output()[i], types[i]))
+
+    def testComplexEnum(self):
+        code = """
+            enum PPU {
+                CNT0        = $2000,
+                CNT1        = $2001,
+                STATUS      = $2002,
+                ADDRESS     = $2006,
+                IO          = $2007,
+                SPR_ADDRESS = $2003,
+                SPR_IO      = $2004,
+                SPR_DMA     = $4014,
+                BG_SCROLL   = $2005
+            }
+            """
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self.assertTrue(isinstance(cc.get_output()[0], Enum))
+        self.assertTrue(cc.get_output()[0].has_member('CNT0'))
+        self.assertTrue(cc.get_output()[0].has_member('CNT1'))
+        self.assertTrue(cc.get_output()[0].has_member('STATUS'))
+        self.assertTrue(cc.get_output()[0].has_member('ADDRESS'))
+        self.assertTrue(cc.get_output()[0].has_member('IO'))
+        self.assertTrue(cc.get_output()[0].has_member('SPR_ADDRESS'))
+        self.assertTrue(cc.get_output()[0].has_member('SPR_IO'))
+        self.assertTrue(cc.get_output()[0].has_member('SPR_DMA'))
+        self.assertTrue(cc.get_output()[0].has_member('BG_SCROLL'))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('CNT0'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('CNT1'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('STATUS'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('ADDRESS'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('IO'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('SPR_ADDRESS'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('SPR_IO'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('SPR_DMA'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('BG_SCROLL'), Enum.Member))
+        self.assertEquals(int(cc.get_output()[0].get_member('CNT0').get_value()), 8192)
+        self.assertEquals(int(cc.get_output()[0].get_member('CNT1').get_value()), 8193)
+        self.assertEquals(int(cc.get_output()[0].get_member('STATUS').get_value()), 8194)
+        self.assertEquals(int(cc.get_output()[0].get_member('ADDRESS').get_value()), 8198)
+        self.assertEquals(int(cc.get_output()[0].get_member('IO').get_value()), 8199)
+        self.assertEquals(int(cc.get_output()[0].get_member('SPR_ADDRESS').get_value()), 8195)
+        self.assertEquals(int(cc.get_output()[0].get_member('SPR_IO').get_value()), 8196)
+        self.assertEquals(int(cc.get_output()[0].get_member('SPR_DMA').get_value()), 16404)
+        self.assertEquals(int(cc.get_output()[0].get_member('BG_SCROLL').get_value()), 8197)
+
     def testBlockOfCode(self):
         code = """
                clc
@@ -588,6 +679,157 @@ class MOS6502CompilerTester(unittest.TestCase):
         st = SymbolTable()
         st.new_symbol(FunctionDecl(Name('jsrind_f'), FunctionType('function'), []))
 
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+
+    def testFunctionWithLabel(self):
+        code = """
+            inline div( dest, amount )
+            {
+                sec
+                ldx #0
+                lda amount
+
+                while (nonzero) 
+                {
+                    bmi div_done_remainder
+                    inx
+                    sec
+                    sbc dest
+                }
+
+                jmp div_done
+            div_done_remainder:
+                dex
+            div_done:
+                stx dest
+            }
+            """
+        scanner = [
+            (FunctionDecl, "inline div( dest, amount )"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "sec <implied>"),
+            (InstructionLine, "ldx #0"),
+            (InstructionLine, "lda <unresolved>"),
+            (ConditionalDecl, "while(['nonzero'])"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "bmi <unresolved>"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "sec <implied>"),
+            (InstructionLine, "sbc <unresolved>"),
+            (ScopeEnd, "}"),
+            (InstructionLine, "jmp <unresolved>"),
+            (Label, "div_done_remainder:"),
+            (InstructionLine, "dex <implied>"),
+            (Label, "div_done:"),
+            (InstructionLine, "stx <unresolved>"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Function, "inline div( dest, amount )"),
+        ]
+        resolver = [
+            (Label, "div:"),
+            (InstructionLine, "sec <implied>"),
+            (InstructionLine, "ldx #0"),
+            (InstructionLine, "lda <unresolved>"),
+            (Label, "HLA0:"),
+            (InstructionLine, "bne HLA1"),
+            (InstructionLine, "bmi <unresolved>"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "sec <implied>"),
+            (InstructionLine, "sbc <unresolved>"),
+            (Label, "HLA1:"),
+            (InstructionLine, "jmp <unresolved>"),
+            (Label, "div_done_remainder:"),
+            (InstructionLine, "dex <implied>"),
+            (Label, "div_done:"),
+            (InstructionLine, "stx <unresolved>"),
+        ]
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+
+    def testFunctionWithReturn(self):
+        code = """
+            function vram_write_string()
+            {
+                ldy #0
+                forever 
+                {
+                    lda (pstr), y
+                    if (zero) 
+                    {
+                        return
+                    }
+                    iny
+                }
+            }
+            """
+        scanner = [
+            (FunctionDecl, "function vram_write_string()"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "ldy #0"),
+            (ConditionalDecl, "forever"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "lda <unresolved>"),
+            (ConditionalDecl, "if(['zero'])"),
+            (ScopeBegin, "{"),
+            (FunctionReturn, "return"),
+            (ScopeEnd, "}"),
+            (InstructionLine, "iny <implied>"),
+            (ScopeEnd, "}"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Function, "function vram_write_string()"),
+        ]
+        resolver = [
+            (Label, "vram_write_string:"),
+            (InstructionLine, "ldy #0"),
+            (Label, "HLA0:"),
+            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "beq HLA1"),
+            (InstructionLine, "rts"),
+            (Label, "HLA1:"),
+            (InstructionLine, "iny <implied>"),
+            (InstructionLine, "jmp HLA0"),
+            (InstructionLine, "rts"),
+        ]
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+
+    def testInitializedArrayBeforeFunction(self):
+        code = """
+            byte setamt[] = {0,0,0,0,0,0,0,7}
+            function dummy_fn()
+            {
+                ldy #0
+            }
+            """
+        scanner = [
+            (Variable, "byte setamt[]"),
+            (VariableInitializer, " = { 0, 0, 0, 0, 0, 0, 0, 7 }"),
+            (FunctionDecl, "function dummy_fn()"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "ldy #0"),
+            (ScopeEnd, "}"),
+        ]
+        parser = [
+            (Variable, "byte setamt[]"),
+            (Function, "function dummy_fn()"),
+        ]
+        resolver = [
+            (Variable, "byte setamt[]"),
+            (Label, "dummy_fn:"),
+            (InstructionLine, "ldy #0"),
+            (InstructionLine, "rts"),
+        ]
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
