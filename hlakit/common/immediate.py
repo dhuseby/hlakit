@@ -33,6 +33,7 @@ from session import Session
 from name import Name
 from numericvalue import NumericValue
 from arrayvalue import ArrayValue
+from symboltable import SymbolTable
 
 # turn on faster operatorPrecedence parsing
 ParserElement.enablePackrat()
@@ -169,12 +170,19 @@ class Immediate(object):
     def __init__(self, type_, *args_):
         self._type = type_
         self._args = args_
+        self._scope = None
 
     def get_type(self):
         return self._type
 
     def get_args(self):
         return self._args
+    
+    def set_scope(self, scope):
+        self._scope = scope
+
+    def get_scope(self):
+        return self._scope
 
     def _sign(self, sign, value):
         if sign == '-':
@@ -185,15 +193,6 @@ class Immediate(object):
         return NumericValue('%d' % v, v)
 
     def _sizeof(self, value):
-        # TODO: this function needs to handle variables too
-
-        if not isinstance(value, NumericValue):
-            # try to look the symbol up...
-            st = SymbolTable()
-            value = st[value]
-            if value is None:
-                raise UnresolvedSymbolError('unknown variable %s' % value)
-
         # get the number
         v = int(value)
         
@@ -469,34 +468,47 @@ class Immediate(object):
 
         return NumericValue('%d | %d' % (int(lhs), int(rhs)), v)
 
-    def _numeric_arg(self, arg):
+    def _resolve_arg(self, arg):
         if isinstance(arg, NumericValue):
             return arg
         elif isinstance(arg, Immediate):
             return arg.resolve()
+        else:
+            # it must be the name of a symbol so look it up
+            st = SymbolTable()
+            symbol_name = arg
+            if isinstance(symbol_name, Name):
+                symbol_name = str(symbol_name)
+            if not isinstance(symbol_name, str):
+                raise ParseFatalException('invalid symbol name type')
+
+            # look up and return the address of the symbol as a numeric value
+            sym = st.lookup_symbol(symbol_name, self.get_scope())
+            if sym != None:
+                # we have a symbol, now see if it has been located in memory
+                # and has an address...
+                addr = sym.get_address()
+                if addr != None:
+                    # it has an address so return it as NumericValue
+                    if isinstance(addr, NumericValue):
+                        return addr
+                    addr = NumericValue('$%04x' % addr, int(addr))
+                    return addr
 
         # throwing this here causes the stack to unwind up to the top
         # of the Immediate processing/parsing and it will be marked as
         # having an UNK addressing mode which means it has an argument
         # that is a variable/symbol reference and needs to be resolved
         # later.
-        raise UnresolvedSymbolError()
-
-    def _symbol_arg(self, arg):
-        # throwing this here causes the stack to unwind up to the top
-        # of the Immediate processing/parsing and it will be marked as
-        # having an UNK addressing mode which means it has an argument
-        # that is a variable/symbol reference and needs to be resolved
-        # later.
-        raise UnresolvedSymbolError()
+        raise UnresolvedSymbolError('could not resolve immediate terminal')
 
     def resolve(self):
         """ this function attempts to resolve the immediate to a known value """
         if self._type == self.SIGN:
-            return self._sign(self._args[0], self._numeric_arg(self._args[1]))
+            return self._sign(self._args[0], self._resolve_arg(self._args[1]))
         elif self._type == self.SIZEOF:
             try:
-                return self._sizeof(self._numeric_arg(self._args[1]))
+                return self._sizeof(self._resolve_arg(self._args[1]))
             except:
                 try:
                     return self._sizeof(self._symbol_arg(self._args[1]))
@@ -504,83 +516,82 @@ class Immediate(object):
                     pass
             raise UnresolvedSymbolError()
         elif self._type == self.LO:
-            return self._lo(self._numeric_arg(self._args[1]))
+            return self._lo(self._resolve_arg(self._args[1]))
         elif self._type == self.HI:
-            return self._hi(self._numeric_arg(self._args[1]))
+            return self._hi(self._resolve_arg(self._args[1]))
         elif self._type == self.NYLO:
-            return self._nylo(self._numeric_arg(self._args[1]))
+            return self._nylo(self._resolve_arg(self._args[1]))
         elif self._type == self.NYHI:
-            return self._nyhi(self._numeric_arg(self._args[1]))
+            return self._nyhi(self._resolve_arg(self._args[1]))
         elif self._type == self.NEG:
             # boolean negation
-            return self._neg(self._numeric_arg(self._args[1]))
+            return self._neg(self._resolve_arg(self._args[1]))
         elif self._type == self.NOT:
             # bit inverse
-            return self._not(self._numeric_arg(self._args[1]))
+            return self._not(self._resolve_arg(self._args[1]))
         elif self._type == self.MULT:
             # self._args[0] is the operator string
             if self._args[0] == '*':
-                return self._mul(self._numeric_arg(self._args[1]),
-                                 self._numeric_arg(self._args[2]))
+                return self._mul(self._resolve_arg(self._args[1]),
+                                 self._resolve_arg(self._args[2]))
             elif self._args[0] == '/':
-                return self._div(self._numeric_arg(self._args[1]),
-                                 self._numeric_arg(self._args[2]))
+                return self._div(self._resolve_arg(self._args[1]),
+                                 self._resolve_arg(self._args[2]))
             else:
-                return self._mod(self._numeric_arg(self._args[1]),
-                                 self._numeric_arg(self._args[2]))
+                return self._mod(self._resolve_arg(self._args[1]),
+                                 self._resolve_arg(self._args[2]))
         elif self._type == self.ADD:
             # self._args[0] is the operator string
             if self._args[0] == '-':
-                return self._sub(self._numeric_arg(self._args[1]),
-                                 self._numeric_arg(self._args[2]))
+                return self._sub(self._resolve_arg(self._args[1]),
+                                 self._resolve_arg(self._args[2]))
             else:
-                return self._add(self._numeric_arg(self._args[1]),
-                                 self._numeric_arg(self._args[2]))
+                return self._add(self._resolve_arg(self._args[1]),
+                                 self._resolve_arg(self._args[2]))
         elif self._type == self.SHIFT:
             # self._args[0] is the operator string
             if self._args[0] == '<<':
-                return self._shift_left(self._numeric_arg(self._args[1]),
-                                        self._numeric_arg(self._args[2]))
+                return self._shift_left(self._resolve_arg(self._args[1]),
+                                        self._resolve_arg(self._args[2]))
             else: # >>
-                return self._shift_right(self._numeric_arg(self._args[1]),
-                                         self._numeric_arg(self._args[2]))
+                return self._shift_right(self._resolve_arg(self._args[1]),
+                                         self._resolve_arg(self._args[2]))
         elif self._type == self.CMP:
             # self._args[0] is the operator string
             if self._args[0] == '>=':
-                return self._gte(self._numeric_arg(self._args[1]),
-                                 self._numeric_arg(self._args[2]))
+                return self._gte(self._resolve_arg(self._args[1]),
+                                 self._resolve_arg(self._args[2]))
             elif self._args[0] == '<=':
-                return self._lte(self._numeric_arg(self._args[1]),
-                                 self._numeric_arg(self._args[2]))
+                return self._lte(self._resolve_arg(self._args[1]),
+                                 self._resolve_arg(self._args[2]))
             elif self._args[0] == '>':
-                return self._gt(self._numeric_arg(self._args[1]),
-                                self._numeric_arg(self._args[2]))
+                return self._gt(self._resolve_arg(self._args[1]),
+                                self._resolve_arg(self._args[2]))
             elif self._args[0] == '<':
-                return self._lt(self._numeric_arg(self._args[1]),
-                                self._numeric_arg(self._args[2]))
+                return self._lt(self._resolve_arg(self._args[1]),
+                                self._resolve_arg(self._args[2]))
         elif self._type == self.EQ:
             # self._args[0] is the operator string
             if self._args[0] == '!=':
-                return self._not_equal(self._numeric_arg(self._args[1]),
-                                       self._numeric_arg(self._args[2]))
+                return self._not_equal(self._resolve_arg(self._args[1]),
+                                       self._resolve_arg(self._args[2]))
             else: # ==
-                return self._equal(self._numeric_arg(self._args[1]),
-                                   self._numeric_arg(self._args[2]))
+                return self._equal(self._resolve_arg(self._args[1]),
+                                   self._resolve_arg(self._args[2]))
         elif self._type == self.AND:
             # bitwise and
-            return self._and(self._numeric_arg(self._args[1]),
-                             self._numeric_arg(self._args[2]))
+            return self._and(self._resolve_arg(self._args[1]),
+                             self._resolve_arg(self._args[2]))
         elif self._type == self.XOR:
             # bitwise xor
-            return self._xor(self._numeric_arg(self._args[1]),
-                             self._numeric_arg(self._args[2]))
+            return self._xor(self._resolve_arg(self._args[1]),
+                             self._resolve_arg(self._args[2]))
         elif self._type == self.OR:
             # bitwise or
-            return self._or(self._numeric_arg(self._args[1]),
-                            self._numeric_arg(self._args[2]))
+            return self._or(self._resolve_arg(self._args[1]),
+                            self._resolve_arg(self._args[2]))
         elif self._type == self.TERMINAL:
-            # TODO: this should handle both numeric and symbol terminals
-            return self._numeric_arg(self._args[0])
+            return self._resolve_arg(self._args[0])
 
         raise UnresolvedSymbolError()
 

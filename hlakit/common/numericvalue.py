@@ -96,6 +96,9 @@ class NumericValue(object):
         self._token = token
         self._value = value
 
+    def resolve(self):
+        return self
+
     def __len__(self):
         """ return the number of bytes needed to store this value """
         v = int(self._value)

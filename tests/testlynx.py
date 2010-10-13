@@ -580,6 +580,7 @@ jmp $FB00
             self.assertEqual(str(pp_tokens[i]), expected_pp_tokens[i][1], 'token %d' % i)
 
         # COMPILER PASS
+
         scanner = [
             (FileBegin, "FileBegin: DummyFile"),
             (LnxSetting, "#lnx.page_size_bank0 2K"),
@@ -601,17 +602,17 @@ jmp $FB00
             (FunctionDecl, "function noreturn micro_loader()"),
             (ScopeBegin, "{"),
             (InstructionLine, "lda #0"),
-            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "sta $FFF9"),
             (InstructionLine, "lda #%00010011"),
-            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "sta $FD8A"),
             (InstructionLine, "lda #%00000100"),
-            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "sta $FD8C"),
             (InstructionLine, "lda #%00001000"),
-            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "sta $FD8B"),
             (InstructionLine, "ldx #0"),
             (ConditionalDecl, "do"),
             (ScopeBegin, "{"),
-            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "lda $FCB2"),
             (InstructionLine, "sta $FB00,x"),
             (InstructionLine, "inx <implied>"),
             (ScopeEnd, "}"),
@@ -660,18 +661,18 @@ jmp $FB00
             (Variable, "byte MIKEY_GPIO :$FD8B"),
             (Variable, "byte MIKEY_SERIAL_CONTROL :$FD8C"),
             (Variable, "byte MIKEY_MEMORY_MAP_CONTROL :$FFF9"),
-            (Label, "micro_loader:"),
+            (Label, "HLA_micro_loader:"),
             (InstructionLine, "lda #0"),
-            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "sta $FFF9"),
             (InstructionLine, "lda #%00010011"),
-            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "sta $FD8A"),
             (InstructionLine, "lda #%00000100"),
-            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "sta $FD8C"),
             (InstructionLine, "lda #%00001000"),
-            (InstructionLine, "sta <unresolved>"),
+            (InstructionLine, "sta $FD8B"),
             (InstructionLine, "ldx #0"),
             (Label, "HLA0:"),
-            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "lda $FCB2"),
             (InstructionLine, "sta $FB00,x"),
             (InstructionLine, "inx <implied>"),
             (InstructionLine, "bne HLA0"),
@@ -679,6 +680,7 @@ jmp $FB00
             (RamEnd, "RamEnd"),
             (LynxRomEnd, "LynxRomEnd"),
         ]
+
         cc = Session().compiler()
         cc.compile(pp_tokens, True)
         self._checkScannerParserResolver(cc, scanner, parser, resolver)

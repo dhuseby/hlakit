@@ -54,12 +54,19 @@ class BasicScope(object):
 
     def __init__(self):
         self._tokens = []
+        self._scope = None
 
     def append_token(self, token):
         self._tokens.append(token)
 
     def get_tokens(self):
         return self._tokens
+
+    def set_scope(self, scope):
+        self._scope = scope
+
+    def get_scope(self):
+        return self._scope
 
 class Compiler(object):
 
@@ -168,6 +175,7 @@ class Compiler(object):
         return None
 
     def _append_token_to_scope(self, token):
+        # append the token to the current scope container
         self._get_scope_context().append_token(token)
 
     def _scope_depth(self):
@@ -194,6 +202,9 @@ class Compiler(object):
 
         # get the next token
         token = self._get_token()
+        
+        # get the current scope container
+        ctx = self._get_scope_context()
 
         if isinstance(token, FunctionDecl):
 
@@ -216,7 +227,7 @@ class Compiler(object):
                 st.scope_push(str(fn.get_name()))
 
                 # set the function's full scope name to the current scope
-                fn.set_scope(st.current_scope_name())
+                fn.set_scope(st.current_namespace())
 
                 return
             else:
@@ -285,6 +296,10 @@ class Compiler(object):
                 if isinstance(token, Function):
                     st.new_symbol(token)
 
+        elif isinstance(token, Label):
+            # add the label to the global scope
+            st.new_symbol(token, st.GLOBAL_NAMESPACE)
+
         self._append_token_to_scope(token)
 
     def _parse(self, tokens):
@@ -293,7 +308,15 @@ class Compiler(object):
         self._scope_stack = []
         self._in_tokens = copy.copy(tokens)
         self._parsed_tokens = []
-        self._push_scope(BasicScope())
+
+        # create a basic scope
+        bs = BasicScope()
+        self._push_scope(bs)
+        # push anonymous scope
+        st = SymbolTable()
+        st.scope_push()
+        bs.set_scope(st.current_namespace())
+
         while len(self._in_tokens):
             self._parse_next()
 
@@ -322,11 +345,15 @@ class Compiler(object):
         """
         out_tokens = tokens
         while True:
+            report = []
             left_to_resolve = 0
             round_tokens = []
             for t in out_tokens:
                 # try to resolve the token
                 (token, unresolved) = self._resolve_token(t)
+
+                if unresolved > 0:
+                    report.append((token, unresolved))
 
                 # count how many are left to resolve
                 left_to_resolve = left_to_resolve + unresolved
@@ -339,6 +366,11 @@ class Compiler(object):
 
             # if nothing left to resolve, then we are done
             if left_to_resolve == 0:
+                return round_tokens
+
+            # detect the case where we've resolved as far as we can
+            if (left_to_resolve > 0) and \
+               (out_tokens == round_tokens):
                 return round_tokens
 
             # otherwise, go around for another pass 

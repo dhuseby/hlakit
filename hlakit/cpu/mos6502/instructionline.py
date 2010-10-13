@@ -41,19 +41,12 @@ class InstructionLine(object):
     """
 
     @classmethod
-    def new(klass, opcode, mode=None, lbl=None, addr=None, reg=None, value=None):
-        if lbl != None:
-            # generate a label and use it as the addr in the operand
-            name = str(lbl)
-            if isinstance(lbl, Label):
-                name = str(lbl.get_name())
-            l = Immediate(Immediate.TERMINAL, Name(name))
-            
+    def new(klass, opcode, mode=None, addr=None, reg=None, value=None):
+        if addr != None:
+            # create the terminal immediate
+            l = Immediate(Immediate.TERMINAL, Name(addr))
             # create the instruction line
             return klass(Opcode(opcode), Operand(mode, addr=l))
-
-        elif addr != None:
-            import pdb; pdb.set_trace()
         elif reg != None:
             import pdb; pdb.set_trace()
         elif value != None:
@@ -66,7 +59,7 @@ class InstructionLine(object):
             pass
         else:
             # handles instructions lines with no oerands
-            return klass(Opcode(opcode), None)
+            return klass(Opcode(opcode), Operand(Operand.IMP))
 
     @classmethod
     def parse(klass, pstring, location, tokens):
@@ -108,9 +101,26 @@ class InstructionLine(object):
     def get_operand(self):
         return self._operand
 
+    def set_scope(self, scope):
+        self._operand.set_scope(scope)
+
+    def get_scope(self):
+        return self._operand.get_scope()
+
+    def is_resolved(self):
+        return self._operand.is_resolved()
+
+    def resolve(self):
+        return self._operand.resolve()
+
     def __str__(self):
         s = str(self._opcode)
         if self._operand:
+            try:
+                str(self._operand)
+            except TypeError, e:
+                import pdb; pdb.set_trace()
+                self._operand.resolve()
             s += ' %s' % self._operand
         return s
 

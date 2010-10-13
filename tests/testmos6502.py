@@ -279,7 +279,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.TERMINAL)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[0], Name))
@@ -316,7 +316,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.SIGN)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value().get_args()[1], Name))
@@ -358,7 +358,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.SIZEOF)
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0], 'sizeof')
@@ -398,7 +398,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.LO)
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0], 'lo')
@@ -438,7 +438,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'adc')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.UNK)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IMM)
         self.assertTrue(isinstance(cc.get_output()[0].get_operand().get_value(), Immediate))
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_type(), Immediate.HI)
         self.assertEquals(cc.get_output()[0].get_operand().get_value().get_args()[0], 'hi')
@@ -573,28 +573,27 @@ class MOS6502CompilerTester(unittest.TestCase):
                ora #hi(pproc)
                jsrind_f()
                """
-        scanner = [ 
-            (InstructionLine, 'clc <implied>'),
-            (InstructionLine, 'adc <unresolved>'),
-            (InstructionLine, 'lda <unresolved>'),
-            (InstructionLine, 'ora <unresolved>'),
-            (FunctionCall, 'jsrind_f()')
+        scanner = [
+            (InstructionLine, "clc <implied>"),
+            (InstructionLine, "adc #sizeof(SPR_OBJ)"),
+            (InstructionLine, "lda #lo(pproc)"),
+            (InstructionLine, "ora #hi(pproc)"),
+            (FunctionCall, "jsrind_f()"),
         ]
         parser = [
-            (InstructionLine, 'clc <implied>'),
-            (InstructionLine, 'adc <unresolved>'),
-            (InstructionLine, 'lda <unresolved>'),
-            (InstructionLine, 'ora <unresolved>'),
-            (FunctionCall, 'jsrind_f()')
+            (InstructionLine, "clc <implied>"),
+            (InstructionLine, "adc #sizeof(SPR_OBJ)"),
+            (InstructionLine, "lda #lo(pproc)"),
+            (InstructionLine, "ora #hi(pproc)"),
+            (FunctionCall, "jsrind_f()"),
         ]
         resolver = [
-            (InstructionLine, 'clc <implied>'),
-            (InstructionLine, 'adc <unresolved>'),
-            (InstructionLine, 'lda <unresolved>'),
-            (InstructionLine, 'ora <unresolved>'),
-            (InstructionLine, 'jsr jsrind_f')
+            (InstructionLine, "clc <implied>"),
+            (InstructionLine, "adc #sizeof(SPR_OBJ)"),
+            (InstructionLine, "lda #lo(pproc)"),
+            (InstructionLine, "ora #hi(pproc)"),
+            (InstructionLine, "jsr jsrind_f"),
         ]
-
         cc = Session().compiler()
 
         st = SymbolTable()
@@ -617,26 +616,25 @@ class MOS6502CompilerTester(unittest.TestCase):
                }
                """
         scanner = [
-            (FunctionDecl, 'function foo()'),
-            (ScopeBegin, '{'),
-            (InstructionLine, 'lda 0x0200,x'),
-            (InstructionLine, 'inx <implied>'),
-            (InstructionLine, 'ora 0x0200,x'),
-            (InstructionLine, 'inx <implied>'),
-            (ScopeEnd, '}')
+            (FunctionDecl, "function foo()"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "lda 0x0200,x"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "ora 0x0200,x"),
+            (InstructionLine, "inx <implied>"),
+            (ScopeEnd, "}"),
         ]
         parser = [
-            (Function, 'function foo()')
+            (Function, "function foo()"),
         ]
         resolver = [
-            (Label, 'foo:'),
-            (InstructionLine, 'lda 0x0200,x'),
-            (InstructionLine, 'inx <implied>'),
-            (InstructionLine, 'ora 0x0200,x'),
-            (InstructionLine, 'inx <implied>'),
-            (InstructionLine, 'rts')
+            (Label, "HLA_foo:"),
+            (InstructionLine, "lda 0x0200,x"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "ora 0x0200,x"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "rts <implied>"),
         ]
-
         cc = Session().compiler()
         cb = build_code_block(code)
         cc.compile([cb])
@@ -654,30 +652,29 @@ class MOS6502CompilerTester(unittest.TestCase):
                }
                """
         scanner = [
-            (FunctionDecl, 'inline foo( addr )'),
-            (ScopeBegin, '{'),
-            (InstructionLine, 'lda <unresolved>'),
-            (InstructionLine, 'inx <implied>'),
-            (InstructionLine, 'ora <unresolved>'),
-            (FunctionCall, 'jsrind_f()'),
-            (InstructionLine, 'inx <implied>'),
-            (ScopeEnd, '}'),
+            (FunctionDecl, "inline foo( addr )"),
+            (ScopeBegin, "{"),
+            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "ora <unresolved>"),
+            (FunctionCall, "jsrind_f()"),
+            (InstructionLine, "inx <implied>"),
+            (ScopeEnd, "}"),
         ]
         parser = [
-            (Function, 'inline foo( addr )'),
+            (Function, "inline foo( addr )"),
         ]
         resolver = [
-            (Label, 'foo:'),
-            (InstructionLine, 'lda <unresolved>'),
-            (InstructionLine, 'inx <implied>'),
-            (InstructionLine, 'ora <unresolved>'),
-            (InstructionLine, 'jsr jsrind_f'),
-            (InstructionLine, 'inx <implied>'),
+            (Label, "HLA_foo:"),
+            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "ora <unresolved>"),
+            (InstructionLine, "jsr jsrind_f"),
+            (InstructionLine, "inx <implied>"),
         ]
-
         # pre-define the function 'jsrind_f'
         st = SymbolTable()
-        st.new_symbol(FunctionDecl(Name('jsrind_f'), FunctionType('function'), []))
+        st.new_symbol(Function(FunctionDecl(Name('jsrind_f'), FunctionType('function'), [])))
 
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -712,41 +709,41 @@ class MOS6502CompilerTester(unittest.TestCase):
             (ScopeBegin, "{"),
             (InstructionLine, "sec <implied>"),
             (InstructionLine, "ldx #0"),
-            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "lda amount"),
             (ConditionalDecl, "while(['nonzero'])"),
             (ScopeBegin, "{"),
-            (InstructionLine, "bmi <unresolved>"),
+            (InstructionLine, "bmi div_done_remainder"),
             (InstructionLine, "inx <implied>"),
             (InstructionLine, "sec <implied>"),
-            (InstructionLine, "sbc <unresolved>"),
+            (InstructionLine, "sbc dest"),
             (ScopeEnd, "}"),
-            (InstructionLine, "jmp <unresolved>"),
-            (Label, "div_done_remainder:"),
+            (InstructionLine, "jmp div_done"),
+            (Label, "HLA_div_done_remainder:"),
             (InstructionLine, "dex <implied>"),
-            (Label, "div_done:"),
-            (InstructionLine, "stx <unresolved>"),
+            (Label, "HLA_div_done:"),
+            (InstructionLine, "stx dest"),
             (ScopeEnd, "}"),
         ]
         parser = [
             (Function, "inline div( dest, amount )"),
         ]
         resolver = [
-            (Label, "div:"),
+            (Label, "HLA_div:"),
             (InstructionLine, "sec <implied>"),
             (InstructionLine, "ldx #0"),
-            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "lda amount"),
             (Label, "HLA0:"),
             (InstructionLine, "bne HLA1"),
-            (InstructionLine, "bmi <unresolved>"),
+            (InstructionLine, "bmi div_done_remainder"),
             (InstructionLine, "inx <implied>"),
             (InstructionLine, "sec <implied>"),
-            (InstructionLine, "sbc <unresolved>"),
+            (InstructionLine, "sbc dest"),
             (Label, "HLA1:"),
-            (InstructionLine, "jmp <unresolved>"),
-            (Label, "div_done_remainder:"),
+            (InstructionLine, "jmp div_done"),
+            (Label, "HLA_div_done_remainder:"),
             (InstructionLine, "dex <implied>"),
-            (Label, "div_done:"),
-            (InstructionLine, "stx <unresolved>"),
+            (Label, "HLA_div_done:"),
+            (InstructionLine, "stx dest"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -775,7 +772,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (InstructionLine, "ldy #0"),
             (ConditionalDecl, "forever"),
             (ScopeBegin, "{"),
-            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "lda (pstr), y"),
             (ConditionalDecl, "if(['zero'])"),
             (ScopeBegin, "{"),
             (FunctionReturn, "return"),
@@ -788,16 +785,16 @@ class MOS6502CompilerTester(unittest.TestCase):
             (Function, "function vram_write_string()"),
         ]
         resolver = [
-            (Label, "vram_write_string:"),
+            (Label, "HLA_vram_write_string:"),
             (InstructionLine, "ldy #0"),
             (Label, "HLA0:"),
-            (InstructionLine, "lda <unresolved>"),
+            (InstructionLine, "lda (pstr), y"),
             (InstructionLine, "beq HLA1"),
-            (InstructionLine, "rts"),
+            (InstructionLine, "rts <implied>"),
             (Label, "HLA1:"),
             (InstructionLine, "iny <implied>"),
             (InstructionLine, "jmp HLA0"),
-            (InstructionLine, "rts"),
+            (InstructionLine, "rts <implied>"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -826,9 +823,9 @@ class MOS6502CompilerTester(unittest.TestCase):
         ]
         resolver = [
             (Variable, "byte setamt[]"),
-            (Label, "dummy_fn:"),
+            (Label, "HLA_dummy_fn:"),
             (InstructionLine, "ldy #0"),
-            (InstructionLine, "rts"),
+            (InstructionLine, "rts <implied>"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1425,7 +1422,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (Function, "interrupt noreturn main()"),
         ]
         resolver = [
-            (Label, "main:"),
+            (Label, "HLA_main:"),
             (Label, "HLA0:"),
             (InstructionLine, "cpx #$44"),
             (InstructionLine, "bne HLA1"),
@@ -1452,4 +1449,30 @@ class MOS6502CompilerTester(unittest.TestCase):
         cb = build_code_block(code)
         cc.compile([cb])
         self._checkScannerParserResolver(cc, scanner, parser, resolver)
+
+    def testInstructionLineResolveVariableWithAssignedAddr(self):
+        code = """
+            byte MIKEY_SYSTEM_CONTROL       :$FD87
+            sta MIKEY_SYSTEM_CONTROL
+        """
+
+        scanner = [
+            (Variable, "byte MIKEY_SYSTEM_CONTROL :$FD87"),
+            (InstructionLine, "sta $FD87"),
+        ]
+        parser = [
+            (Variable, "byte MIKEY_SYSTEM_CONTROL :$FD87"),
+            (InstructionLine, "sta $FD87"),
+        ]
+        resolver = [
+            (Variable, "byte MIKEY_SYSTEM_CONTROL :$FD87"),
+            (InstructionLine, "sta $FD87"),
+        ]
+
+        cc = Session().compiler()
+        cb = build_code_block(code)
+        cc.compile([cb])
+        self._checkScannerParserResolver(cc, scanner, parser, resolver)
+
+
 

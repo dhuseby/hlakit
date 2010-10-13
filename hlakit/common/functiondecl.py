@@ -89,6 +89,9 @@ class FunctionDecl(object):
     def get_type_name(self):
         return FunctionType.FN_TYPES[self.get_type()]
 
+    def get_fn_type(self):
+        return self._fn_type
+
     def get_type(self):
         return self._fn_type.get_type()
 

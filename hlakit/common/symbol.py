@@ -35,9 +35,10 @@ class Symbol(object):
     """
     encapsulates a declared symbol
     """
-    def __init__(self, name, type_=None):
+    def __init__(self, name, type_=None, addr=None):
         self._name = name
         self._type = type_
+        self._addr = addr
 
     def get_name(self):
         return self._name
@@ -52,4 +53,10 @@ class Symbol(object):
             self._type = type_
 
         raise ParseFatalException('setting invalid type on symbol')
+
+    def get_address(self):
+        return self._addr
+
+    def set_address(self, addr):
+        self._addr = addr
 

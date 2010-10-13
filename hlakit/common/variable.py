@@ -121,11 +121,10 @@ class Variable(Symbol):
         return expr
 
     def __init__(self, name, type_, shared=False, array_=False, size=None, address=None):
-        super(Variable, self).__init__(name, type_)
+        super(Variable, self).__init__(name, type_, address)
         self._shared = shared
         self._array = array_
         self._size = size
-        self._address = address
         self._scope_name = '__anonymous__'
         self._value = None
 
@@ -139,9 +138,6 @@ class Variable(Symbol):
         if self._size != None:
             return int(self._size)
         return None
-
-    def get_address(self):
-        return self._address
 
     def set_scope(self, name):
         self._scope_name = name

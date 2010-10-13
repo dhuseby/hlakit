@@ -39,11 +39,12 @@ class Function(Symbol):
     """
 
     def __init__(self, decl):
-        super(Function, self).__init__(decl.get_name())
+        super(Function, self).__init__(decl.get_name(), decl.get_fn_type())
         self._decl = decl
         self._tokens = []
         self._dependencies = []
         self._scope_name = None
+        self._start_label = None
 
     def get_noreturn(self):
         return self._decl.get_noreturn()
@@ -89,6 +90,17 @@ class Function(Symbol):
 
     def get_dependencies(self):
         return self._dependencies
+
+    def set_start_label(self, label):
+        self._start_label = label
+
+    def get_start_label(self):
+        return self._start_label
+
+    def get_address(self):
+        if self._start_label != None:
+            return self._start_label.get_address()
+        return None
 
     def __str__(self):
         return str(self._decl)

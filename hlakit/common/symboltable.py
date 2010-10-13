@@ -31,15 +31,10 @@ import os
 import copy
 from pyparsing import *
 
-class Scope(dict):
-
-    def __init__(self, namespace='__anonymous__'):
-        self._namespace = namespace
-
-    def get_namespace(self):
-        return self._namespace
-
 class SymbolTable(object):
+
+    GLOBAL_NAMESPACE = '__global__'
+    ANON_NAMESPACE = '__anonymous__'
 
     _shared_state = {}
 
@@ -48,34 +43,11 @@ class SymbolTable(object):
         obj.__dict__ = cls._shared_state
         return obj
 
-    def current_scope_name(self):
-        # build the name
-        name = ''
-        for i in range(0, len(self._scope_stack)):
-            if i == 0:
-                name = self._scope_stack[i].get_namespace()
-            else:
-                name = self._scope_stack[i].get_namespace() + '.' +  name
-
-        return name
-
-    def _save_scope(self):
-        name = self.current_scope_name()
-
-        if self._scopes.has_key(name):
-            raise ParseFatalException('redefining scope: %s' % name)
-
-        # build a dict of all symbols valid for the given scope
-        merged = Scope(name)
-        lscope = copy.copy(self._scope_stack)
-        lscope.reverse()
-        for s in lscope:
-            merged.update(s)
-
-        self._scopes[name] = merged
+    def current_namespace(self):
+        return '.'.join(self._scope_stack)
 
     def reset_state(self):
-        self._scope_stack = [Scope('__global__')]
+        self._scope_stack = [ self.GLOBAL_NAMESPACE ]
         self._scopes = {}
 
     def get_namespace(self, prefix='ST'):
@@ -85,43 +57,55 @@ class SymbolTable(object):
         self._ns_num += 1
         return '%s%d' % (prefix, n)
 
-    def scope_push(self, namespace='__anonymous__'):
+    def scope_push(self, namespace=ANON_NAMESPACE):
         if not hasattr(self, '_scope_stack'):
             self.reset_state()
-        self._scope_stack.insert(0, Scope(namespace))
+        self._scope_stack.append(namespace)
 
     def scope_pop(self):
         if len(self._scope_stack) <= 1:
             raise ParseFatalException('can\'t pop scope from empty scope stack')
-        self._save_scope()
-        self._scope_stack.pop(0)
+        self._scope_stack.pop()
 
     def scope_top(self):
-        return self._scope_stack[0]
+        return self._scope_stack[-1]
 
     def scope_global(self):
-        return self._scope_stack[-1]
+        return self._scope_stack[0]
 
     def get_scopes(self):
         return self._scopes
 
-    def __getitem__(self, name):
-        """ Scan through the scope frames from most local to most global
-        looking for the symbol they client is asking for"""
+    def new_symbol(self, symbol, namespace=None):
+        if namespace is None:
+            namespace = self.current_namespace()
 
-        for i in range(0, len(self._scope_stack)):
-            if self._scope_stack[i].has_key(name):
-                return self._scope_stack[i][name][1]
+        # make sure the scope exists
+        if not self._scopes.has_key(namespace):
+            self._scopes[namespace] = {}
 
+        # add the symbol to the scope
+        self._scopes[namespace][str(symbol.get_name())] = symbol
+
+    def lookup_symbol(self, symbol, namespace=GLOBAL_NAMESPACE):
+        if namespace is None:
+            namespace = self.GLOBAL_NAMESPACE
+        ns = namespace.split('.')  
+
+        while len(ns):
+            # make sure it is a valid scope
+            if not self._scopes.has_key('.'.join(ns)):
+                ns.pop()
+                continue
+
+            # now grab the scope and check for the symbol
+            scope = self._scopes['.'.join(ns)]
+            if scope.has_key(symbol):
+                return scope[symbol]
+
+            # no symbol here, so try the parent scope
+            ns.pop()
+
+        # not in any of the scopes
         return None
-
-    def __setitem__(self, name, symbol):
-        # this is for updating an already defined symbol 
-        for i in range(0, len(self._scope_stack)):
-            if self._scope_stack[i].has_key(name):
-                self._scope_stack[i][name] = (self.current_scope_name(), symbol)
-
-    def new_symbol(self, symbol):
-        # This is used to define a new symbol in the current scope
-        self._scope_stack[0][symbol.get_name()] = (self.current_scope_name(), symbol)
 

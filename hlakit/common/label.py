@@ -29,8 +29,9 @@ or implied, of David Huseby.
 
 from pyparsing import *
 from hlakit.common.session import Session
+from hlakit.common.symbol import Symbol
 
-class Label(object):
+class Label(Symbol):
     """
     encapsulates a label
     """
@@ -45,15 +46,13 @@ class Label(object):
         if name == None:
             n = Label.NUM
             Label.NUM += 1
-            self._name = 'HLA%d' % n
+            name = 'HLA%d' % n
         else:
-            self._name = name
-
-    def get_name(self):
-        return self._name
+            name = 'HLA_%s' % name
+        super(Label, self).__init__(name)
 
     def __str__(self):
-        return '%s:' % self._name
+        return '%s:' % self.get_name()
 
     __repr__ = __str__
 
