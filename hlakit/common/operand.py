@@ -28,58 +28,16 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
-from session import Session
-from name import Name
-from type_ import Type
-from struct_ import Struct
-from value import Value
 
-class OperatorParameter(object):
-    """
-    The base class of keyword operators such as sizeof() and lo()
-    """
-
+class Operand(object):
+    
     @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        import pdb; pdb.set_trace()
-        if pp.ignore():
-            return []
-
-        if 'struct' in tokens.keys():
-            return klass(symbol=tokens.struct)
-
-        if 'name' in tokens.keys():
-            if len(tokens.name) == 1:
-                return klass(symbol=tokens.name[0])
-            else:
-                return klass(symbol=Name('.'.join([n.get_name() for n in tokens.name])))
-            raise ParseFatalException('invalid parameter for keyword operator')
-
-        if 'value' in tokens.keys():
-            return klass(value=tokens.value)
-        
-        raise ParseFatalException('no parameter specified')
+    def new(klass, **kwargs):
+        raise ParseFatalException('cannot instantiate base operand class')
 
     @classmethod
     def exprs(klass):
-        variable_ref = Group(Name.exprs() + ZeroOrMore(Suppress('.') + Name.exprs()))
-        struct_ref = Group(Suppress(Keyword('struct')) + Name.exprs())
-        expr = Or([struct_ref.setResultsName('struct'), 
-                   variable_ref.setResultsName('name'),
-                   Value.exprs().setResultsName('value')])
-        expr.setParseAction(klass.parse)
-        return expr
-
-    def __init__(self, symbol=None, value=None):
-        self._symbol = symbol
-        self._value = value
-
-    def get_symbol(self):
-        return self._symbol
-
-    def get_value(self):
-        return self._value
-
+        # this cpu/platform specific version must return a parser expr that
+        # matches all valid operand statements.
+        raise ParseFatalException('must overload this in a cpu/platform specific class')
 

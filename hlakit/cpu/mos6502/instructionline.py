@@ -28,102 +28,41 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
-from hlakit.common.session import Session
-from hlakit.common.label import Label
-from hlakit.common.immediate import Immediate
-from hlakit.common.name import Name
+from hlakit.common.instructionline import InstructionLine as CommonInstructionLine
 from opcode import Opcode
 from operand import Operand
 
-class InstructionLine(object):
+class InstructionLine(CommonInstructionLine):
     """
     This encapsulates a single line of assembly code
     """
 
     @classmethod
-    def new(klass, opcode, mode=None, addr=None, reg=None, value=None):
-        if addr != None:
-            # create the terminal immediate
-            l = Immediate(Immediate.TERMINAL, Name(addr))
-            # create the instruction line
-            return klass(Opcode(opcode), Operand(mode, addr=l))
-        elif reg != None:
-            import pdb; pdb.set_trace()
-        elif value != None:
-            # create the immediate value
-            v = Immediate(Immediate.TERMINAL, value)
-            
-            # create the instruction line
-            return klass(Opcode(opcode), Operand(mode, value=v))
-
-            pass
-        else:
-            # handles instructions lines with no oerands
-            return klass(Opcode(opcode), Operand(Operand.IMP))
-
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        if pp.ignore():
-            return []
-        
-        opcode = None
-        if 'opcode' in tokens.keys():
-            opcode = tokens.opcode
-        else:
-            raise ParseFatalException('instruction line missing opcode')
-
-        operand = None
-        if 'operand' in tokens.keys():
-            operand = tokens.operand
-        else:
-            operand = Operand(Operand.IMP)
-
-        return klass(tokens.opcode, operand)
+    def new(klass, opcode, **kwargs):
+        # we overload this so that we are creating 6502 versions of 
+        # the Opcode/Operand classes
+        return klass(Opcode.new(opcode), Operand.new(**kwargs))
 
     @classmethod
     def exprs(klass):
+        # we overload this so that we are getting the 6502 versions of the
+        # parser expressions...
+        opcode_no_operands = Opcode._get_no_operands()
+        opcode_with_operands = Opcode._get_with_operands()
+        operands = Operand.exprs()
      
-        expr = Or([Opcode.no_operands().setResultsName('opcode'),
-                   Opcode.operands().setResultsName('opcode') + \
-                   Operand.exprs().setResultsName('operand')])
+        expr = Or([opcode_no_operands.setResultsName('opcode'),
+                   opcode_with_operands.setResultsName('opcode') + \
+                   operands.setResultsName('operand')])
         expr.setParseAction(klass.parse)
         return expr
 
     def __init__(self, opcode, operand):
-        self._opcode = opcode
-        self._operand = operand
+        # if no operand is supplied, then we create an Operand with the implied
+        # addressing mode so that all 6502 addressing modes are possible
+        if operand is None:
+            operand = Operand()
 
-    def get_opcode(self):
-        return self._opcode
+        super(InstructionLine, self).__init__(opcode, operand)
 
-    def get_operand(self):
-        return self._operand
-
-    def set_scope(self, scope):
-        self._operand.set_scope(scope)
-
-    def get_scope(self):
-        return self._operand.get_scope()
-
-    def is_resolved(self):
-        return self._operand.is_resolved()
-
-    def resolve(self):
-        return self._operand.resolve()
-
-    def __str__(self):
-        s = str(self._opcode)
-        if self._operand:
-            try:
-                str(self._operand)
-            except TypeError, e:
-                import pdb; pdb.set_trace()
-                self._operand.resolve()
-            if len(str(self._operand)):
-                s += ' %s' % self._operand
-        return s
-
-    __repr__ = __str__
 

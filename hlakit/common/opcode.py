@@ -28,59 +28,32 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
-from session import Session
-from operatorparameter import OperatorParameter
 
-class KeywordOperator(object):
-    """
-    The base class of keyword operators such as sizeof() and lo()
-    """
+class Opcode(object):
 
     @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        if pp.ignore():
-            return []
-        
-        kw = None
-        if 'kw' in tokens.keys():
-            kw = tokens.kw
-
-        if 'operator_' in tokens.keys():
-            return klass(kw, tokens.operator_)
-
-        if 'param' in tokens.keys():
-            return klass(kw, tokens.param)
-            
-        ParseFatalException('operator missing parameter')
+    def new(klass, arg):
+        raise ParseFatalException('cannot instantiate base opcode class')
 
     @classmethod
-    def _get_param(klass):
-        return OperatorParameter.exprs()
+    def _get_no_operands(klass):
+        # the cpu/platform specific version of this must return a parser expr that matches
+        # the opcode mnemonics for opcodes that do not have operands so that it can be
+        # included in the InstructionLine parsing.
+        raise ParseFatalException('must overload this in a cpu/platform specific class')
+
+    @classmethod
+    def _get_with_operands(klass):
+        # the cpu/platform specific version of this must return a parser expr that matches
+        # the opcode mnemonics for opcodes that have operands so that it can be combined
+        # with the operand parser expression in the InstructionLine parsing.
+        raise ParseFatalException('must overload this in a cpu/platform specific class')
 
     @classmethod
     def exprs(klass):
-        kws_ = klass._get_keywords()
-        kws = oneOf(kws_)
-        param = klass._get_param()
-        expr = Forward()
-        expr << kws.setResultsName('kw') + \
-                Suppress('(') + \
-                Or([param.setResultsName('param'),
-                    expr.setResultsName('operator_')]) + \
-                Suppress(')')
-        expr.setParseAction(klass.parse)
-        return expr
-
-    def __init__(self, kw, param):
-        self._kw = kw
-        self._param = param
-
-    def get_param(self):
-        return self._param
-
-    def get_kw(self):
-        return self._kw
+        # the cpu/platform specific version of this must return a parser expr that matches
+        # all of the possible opcode mnemonics so that variables know what they cannot be
+        # called.
+        raise ParseFatalException('must overload this in a cpu/platform specific class')
 
 

@@ -31,8 +31,9 @@ from pyparsing import *
 from struct import pack, unpack
 from hlakit.common.session import Session
 from hlakit.common.name import Name
+from hlakit.common.opcode import Opcode as CommonOpcode
 
-class Opcode(object):
+class Opcode(CommonOpcode):
     """
     This encapsulates a 6502 opcode
     """
@@ -126,6 +127,10 @@ class Opcode(object):
     }
 
     @classmethod
+    def new(klass, arg):
+        return klass(arg)
+
+    @classmethod
     def parse(klass, pstring, location, tokens):
         pp = Session().preprocessor()
 
@@ -138,13 +143,13 @@ class Opcode(object):
         return klass(tokens.op)
 
     @classmethod
-    def no_operands(klass):
+    def _get_no_operands(klass):
         expr = MatchFirst([CaselessKeyword(op).setResultsName('op') for op in Opcode.IMPLIED])
         expr.setParseAction(klass.parse)
         return expr
 
     @classmethod
-    def operands(klass):
+    def _get_with_operands(klass):
         expr = MatchFirst([CaselessKeyword(op).setResultsName('op') for op in Opcode.OPERANDS])
         expr.setParseAction(klass.parse)
         return expr

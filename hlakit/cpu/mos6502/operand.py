@@ -34,9 +34,10 @@ from hlakit.common.name import Name
 from hlakit.common.functioncall import FunctionCall
 from hlakit.common.numericvalue import NumericValue
 from hlakit.common.immediate import Immediate, UnresolvedSymbolError
+from hlakit.common.operand import Operand as CommonOperand
 from opcode import Opcode
 
-class Operand(object):
+class Operand(CommonOperand):
     """
     This encapsulates a 6502 operand
     """
@@ -46,6 +47,26 @@ class Operand(object):
     IDX_IND, IND_IDX, IDX = range(14)
     MODES = [ 'ACC', 'IMP', 'IMM', 'ABS', 'ZP', 'REL', 'IND', 'ABS_X', 'ABS_Y', 
               'ZP_X', 'ZP_Y', 'IDX_IND', 'IND_IDX', 'IDX' ]
+
+    @classmethod
+    def new(klass, **kwargs):
+        if 'addr' in kwargs.keys() and kwargs['addr'] != None:
+            # create the terminal immediate
+            l = Immediate(Immediate.TERMINAL, Name(kwargs['addr']))
+            return Operand(kwargs['mode'], addr=l)
+
+        elif 'reg' in kwargs.keys() and kwargs['reg'] != None:
+            import pdb; pdb.set_trace()
+
+        elif 'value' in kwargs.keys() and kwargs['value'] != None:
+            # create the immediate value
+            v = Immediate(Immediate.TERMINAL, kwargs['value'])
+            
+            # create the instruction line
+            return Operand(kwargs['mode'], value=v)
+        else:
+            # handles instructions lines with no oerands
+            return Operand(Operand.IMP)
 
     @classmethod
     def parse(klass, pstring, location, tokens):
@@ -139,7 +160,7 @@ class Operand(object):
         expr.setParseAction(klass.parse)
         return expr
 
-    def __init__(self, mode, resolved=False, addr=None, reg=None, value=None):
+    def __init__(self, mode=IMP, resolved=False, addr=None, reg=None, value=None):
         self._mode = mode
         self._addr = addr
         self._reg = reg
