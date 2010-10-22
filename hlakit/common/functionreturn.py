@@ -56,6 +56,7 @@ class FunctionReturn(object):
 
     def __init__(self):
         self._fn_type = None
+        self._fn = None
 
     def set_type(self, type_):
         if type_ not in (FunctionType.SUBROUTINE,
@@ -65,6 +66,12 @@ class FunctionReturn(object):
 
     def get_type(self):
         return self._fn_type
+
+    def set_fn(self, fn=None):
+        self._fn = fn
+
+    def get_fn(self):
+        return self._fn
 
     def __str__(self):
         return 'return'

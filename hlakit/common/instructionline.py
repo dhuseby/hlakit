@@ -45,7 +45,10 @@ class InstructionLine(object):
         # this function is a helper function for creating instruction lines
         # from scratch in the resolve pass where functions and conditional
         # blocks are converted into Label and InstructionLine tokens.
-        return klass(Opcode.new(opcode), Operand.new(**kwargs))
+        il = klass(Opcode.new(opcode), Operand.new(**kwargs))
+        if 'fn' in kwargs.keys():
+            il.set_fn(kwargs['fn'])
+        return il
 
     @classmethod
     def parse(klass, pstring, location, tokens):
@@ -76,12 +79,19 @@ class InstructionLine(object):
     def __init__(self, opcode, operand):
         self._opcode = opcode
         self._operand = operand
+        self._fn = None
 
     def get_opcode(self):
         return self._opcode
 
     def get_operand(self):
         return self._operand
+
+    def set_fn(self, fn=None):
+        self._fn = fn
+
+    def get_fn(self):
+        return self._fn
 
     def set_scope(self, scope):
         self._operand.set_scope(scope)

@@ -127,6 +127,7 @@ class Variable(Symbol):
         self._size = size
         self._scope_name = '__anonymous__'
         self._value = None
+        self._fn = None
 
     def is_shared(self):
         return self._shared
@@ -144,6 +145,12 @@ class Variable(Symbol):
 
     def get_scope(self):
         return self._scope_name
+
+    def set_fn(self, fn=None):
+        self._fn = fn
+
+    def get_fn(self):
+        return self._fn
 
     def set_value(self, value):
         self._value = value

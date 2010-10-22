@@ -45,6 +45,7 @@ class Function(Symbol):
         self._dependencies = []
         self._scope_name = None
         self._start_label = None
+        self._fn = None
 
     def get_noreturn(self):
         return self._decl.get_noreturn()
@@ -70,6 +71,7 @@ class Function(Symbol):
         return self._scope_name
 
     def append_token(self, token):
+        token.set_fn(self.get_name())
         self._tokens.append(token)
         if isinstance(token, FunctionCall):
             token.set_scope(self.get_scope())

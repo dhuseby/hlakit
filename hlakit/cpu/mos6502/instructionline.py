@@ -41,7 +41,10 @@ class InstructionLine(CommonInstructionLine):
     def new(klass, opcode, **kwargs):
         # we overload this so that we are creating 6502 versions of 
         # the Opcode/Operand classes
-        return klass(Opcode.new(opcode), Operand.new(**kwargs))
+        il = klass(Opcode.new(opcode), Operand.new(**kwargs))
+        if 'fn' in kwargs.keys():
+            il.set_fn(kwargs['fn'])
+        return il
 
     @classmethod
     def exprs(klass):

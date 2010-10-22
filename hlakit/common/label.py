@@ -42,14 +42,21 @@ class Label(Symbol):
     def reset_state():
         Label.NUM = 0
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, fn=None):
         if name == None:
             n = Label.NUM
             Label.NUM += 1
             name = 'HLA%d' % n
         else:
             name = 'HLA_%s' % name
+        self._fn = fn
         super(Label, self).__init__(name)
+
+    def set_fn(self, fn=None):
+        self._fn = fn
+
+    def get_fn(self):
+        return self._fn
 
     def __str__(self):
         return '%s:' % self.get_name()

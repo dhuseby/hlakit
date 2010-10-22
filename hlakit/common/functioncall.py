@@ -70,6 +70,7 @@ class FunctionCall(object):
         self._type = type_
         self._params = params
         self._scope_name = None
+        self._fn = None
 
     def get_name(self):
         return self._name
@@ -79,6 +80,12 @@ class FunctionCall(object):
 
     def get_type(self):
         return self._type
+
+    def set_fn(self, fn=None):
+        self._fn = fn
+
+    def get_fn(self):
+        return self._fn
 
     def set_scope(self, name):
         self._scope_name = name

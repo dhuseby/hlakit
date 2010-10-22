@@ -50,6 +50,12 @@ class ScopeBegin(object):
     def exprs(klass):
         return Suppress(Literal('{')).setParseAction(klass.parse)
 
+    def set_fn(self, fn=None):
+        self._fn = fn
+
+    def get_fn(self):
+        return self._fn
+
     def __str__(self):
         return '{'
 
@@ -73,6 +79,12 @@ class ScopeEnd(object):
     @classmethod
     def exprs(klass):
         return Suppress(Literal('}')).setParseAction(klass.parse)
+
+    def set_fn(self, fn=None):
+        self._fn = fn
+
+    def get_fn(self):
+        return self._fn
 
     def __str__(self):
         return '}'

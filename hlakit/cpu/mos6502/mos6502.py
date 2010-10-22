@@ -587,7 +587,7 @@ class MOS6502Compiler(Compiler):
         test = decl.get_condition()
 
         # create label L1 as the branch target after the if block
-        L1 = Label()
+        L1 = Label(fn=cond.get_fn())
         st.new_symbol(L1, st.GLOBAL_NAMESPACE)
         
         # look up the opcode string
@@ -598,7 +598,8 @@ class MOS6502Compiler(Compiler):
             # use relative addressing
 
             # if the test passes, it will branch over the if body
-            tokens.append(InstructionLine.new(opcode, mode=Operand.REL, value=L1.get_name()))
+            tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
+                                              mode=Operand.REL, value=L1.get_name()))
         else:
             # use a hard jmp instructions
 
@@ -607,10 +608,12 @@ class MOS6502Compiler(Compiler):
             st.new_symbol(L2, st.GLOBAL_NAMESPACE)
 
             # if the test passes, it will branch over the jmp to the start of the if body
-            tokens.append(InstructionLine.new(opcode, mode=Operand.REL, value=L2.get_name()))
+            tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
+                                              mode=Operand.REL, value=L2.get_name()))
 
             # if the test fails, it will execute this jmp to jump over the if body
-            tokens.append(InstructionLine.new('jmp', mode=Operand.ABS, addr=L1.get_name()))
+            tokens.append(InstructionLine.new('jmp', fn=cond.get_fn(), 
+                                              mode=Operand.ABS, addr=L1.get_name()))
 
             # add in the label for the start of the if body
             tokens.append(L2)
@@ -640,7 +643,7 @@ class MOS6502Compiler(Compiler):
         test = decl.get_condition()
        
         # L1 is the branch target at the start of the else block
-        L1 = Label()
+        L1 = Label(fn=cond.get_fn())
         st.new_symbol(L1, st.GLOBAL_NAMESPACE)
  
         # look up the opcode string
@@ -651,20 +654,23 @@ class MOS6502Compiler(Compiler):
             # use relative addressing
 
             # if the test passes, it will branch to the start of the else body
-            tokens.append(InstructionLine.new(opcode, mode=Operand.REL, value=L1.get_name()))
+            tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
+                                              mode=Operand.REL, value=L1.get_name()))
         else:
             # use a hard jmp instructions
 
             # create a label for the start of the if body
-            L2 = Label()
+            L2 = Label(fn=cond.get_fn())
             st.new_symbol(L2, st.GLOBAL_NAMESPACE)
 
             # if the test passes, it will branch over the jmp to the start of the if body
-            tokens.append(InstructionLine.new(opcode, mode=Operand.REL, value=L2.get_name()))
+            tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
+                                              mode=Operand.REL, value=L2.get_name()))
 
             # if the above test fails, it will execute this jmp to jump over the if body
             # to the else body start   
-            tokens.append(InstructionLine.new('jmp', mode=Operand.ABS, addr=L1.get_name()))
+            tokens.append(InstructionLine.new('jmp', fn=cond.get_fn(), 
+                                              mode=Operand.ABS, addr=L1.get_name()))
 
             # add in the label for the start of the if body
             tokens.append(L2)
@@ -673,11 +679,12 @@ class MOS6502Compiler(Compiler):
         tokens.extend(blocks[0].get_tokens())
 
         # create the label for after the else body
-        L3 = Label()
+        L3 = Label(fn=cond.get_fn())
         st.new_symbol(L3, st.GLOBAL_NAMESPACE)
 
         # add in the branch/jmp over the else body
-        tokens.append(InstructionLine.new('jmp', mode=Operand.ABS, addr=L3.get_name()))
+        tokens.append(InstructionLine.new('jmp', fn=cond.get_fn(), 
+                                          mode=Operand.ABS, addr=L3.get_name()))
 
         # add in the label for the start of the else body
         tokens.append(L1)
@@ -707,14 +714,14 @@ class MOS6502Compiler(Compiler):
         test = decl.get_condition()
 
         # create label for the start of the while loop
-        L1 = Label()
+        L1 = Label(fn=cond.get_fn())
         st.new_symbol(L1, st.GLOBAL_NAMESPACE)
 
         # append the label for the start of the while loop
         tokens.append(L1)
 
         # create label for the end of while loop
-        L2 = Label()
+        L2 = Label(fn=cond.get_fn())
         st.new_symbol(L2, st.GLOBAL_NAMESPACE)
         
         # look up the opcode string
@@ -725,19 +732,22 @@ class MOS6502Compiler(Compiler):
             # use relative addressing
 
             # if the test passes, it will branch over the while body
-            tokens.append(InstructionLine.new(opcode, mode=Operand.REL, value=L2.get_name()))
+            tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
+                                              mode=Operand.REL, value=L2.get_name()))
         else:
             # use a hard jmp instructions
 
             # create a label for the start of the while body
-            L3 = Label()
+            L3 = Label(fn=cond.get_fn())
             st.new_symbol(L3)
 
             # if the test passes, it will branch over the jmp to the start of the while body
-            tokens.append(InstructionLine.new(opcode, mode=Operand.REL, value=L3.get_name()))
+            tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
+                                              mode=Operand.REL, value=L3.get_name()))
 
             # if the test fails, it will execute this jmp to jump over the while body
-            tokens.append(InstructionLine.new('jmp', mode=Operand.ABS, addr=L2.get_name()))
+            tokens.append(InstructionLine.new('jmp', fn=cond.get_fn(), 
+                                              mode=Operand.ABS, addr=L2.get_name()))
 
             # add in the label for the start of the if body
             tokens.append(L3)
@@ -767,7 +777,7 @@ class MOS6502Compiler(Compiler):
         test = decl.get_condition()
 
         # create label for the start of the do..while loop
-        L1 = Label()
+        L1 = Label(fn=cond.get_fn())
         st.new_symbol(L1, st.GLOBAL_NAMESPACE)
 
         # append the label for the start of the do..while loop
@@ -784,19 +794,22 @@ class MOS6502Compiler(Compiler):
             # use relative addressing
 
             # if the test passes, it will branch to the beginning of the while loop
-            tokens.append(InstructionLine.new(opcode, mode=Operand.REL, value=L1.get_name()))
+            tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
+                                              mode=Operand.REL, value=L1.get_name()))
         else:
             # use a hard jmp instructions
 
             # create a label for the start of the while body
-            L2 = Label()
+            L2 = Label(fn=cond.get_fn())
             st.new_symbol(L2)
 
             # if the test passes, it will branch over the jmp to the start of the while body
-            tokens.append(InstructionLine.new(opcode, mode=Operand.REL, value=L2.get_name()))
+            tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
+                                              mode=Operand.REL, value=L2.get_name()))
 
             # if the test fails, it will execute this jmp to jump over the while body
-            tokens.append(InstructionLine.new('jmp', mode=Operand.ABS, addr=L1.get_name()))
+            tokens.append(InstructionLine.new('jmp', fn=cond.get_fn(), 
+                                              mode=Operand.ABS, addr=L1.get_name()))
 
             # add in the label for the start of the if body
             tokens.append(L2)
@@ -809,7 +822,7 @@ class MOS6502Compiler(Compiler):
         st = SymbolTable()
 
         # start the loop with a label
-        L1 = Label()
+        L1 = Label(fn=cond.get_fn())
         st.new_symbol(L1, st.GLOBAL_NAMESPACE)
         tokens.append(L1)
 
@@ -822,7 +835,8 @@ class MOS6502Compiler(Compiler):
         tokens.extend(blocks[0].get_tokens())
 
         # then append the hard jmp (6502 doesn't have 'bra')
-        tokens.append(InstructionLine.new('jmp', mode=Operand.ABS, addr=L1.get_name()))
+        tokens.append(InstructionLine.new('jmp', fn=cond.get_fn(), 
+                                          mode=Operand.ABS, addr=L1.get_name()))
 
         # return the tokens and the number left to resolve
         return (tokens, len(tokens))
@@ -850,7 +864,7 @@ class MOS6502Compiler(Compiler):
         compare_opcode = ConditionalDecl.SWITCH_OPCODES[reg]
 
         # get a label to just after the last case/default block
-        L1 = Label()
+        L1 = Label(fn=cond.get_fn())
         st.new_symbol(L1, st.GLOBAL_NAMESPACE)
 
         # add in the case blocks
@@ -868,22 +882,25 @@ class MOS6502Compiler(Compiler):
                 # add the instruction to compare the reg with the immediate value
                 # if the values are equal, the Z flag will be set
                 imm = block.get_decl().get_condition()
-                tokens.append(InstructionLine.new(compare_opcode, mode=Operand.IMM, value=imm))
+                tokens.append(InstructionLine.new(compare_opcode, fn=cond.get_fn(), 
+                                                  mode=Operand.IMM, value=imm))
 
                 # create a label for the beginning of the next case
-                L2 = Label()
+                L2 = Label(fn=cond.get_fn())
                 st.new_symbol(L2, st.GLOBAL_NAMESPACE)
 
                 # add in the branch instruction.  if the Z flag is set, the case
                 # body will get executed, otherwise it will branch to the beginning
                 # of the next case block
-                tokens.append(InstructionLine.new('bne', mode=Operand.REL, value=L2.get_name()))
+                tokens.append(InstructionLine.new('bne', fn=cond.get_fn(), 
+                                                  mode=Operand.REL, value=L2.get_name()))
 
                 # append the case block body
                 tokens.extend(block.get_tokens())
 
                 # append a jmp to the label just after the last case/default block
-                tokens.append(InstructionLine.new('jmp', mode=Operand.ABS, addr=L1.get_name()))
+                tokens.append(InstructionLine.new('jmp', fn=cond.get_fn(), 
+                                                  mode=Operand.ABS, addr=L1.get_name()))
 
                 # append the label for the start of the next case
                 tokens.append(L2)
@@ -946,7 +963,7 @@ class MOS6502Compiler(Compiler):
             # resolver output, thus removing the dead code.
 
             # start all functions with a label
-            L1 = Label(fn.get_name())
+            L1 = Label(name=fn.get_name(), fn=fn.get_name())
             st.new_symbol(L1, st.GLOBAL_NAMESPACE)
             tokens.append(L1)
 
@@ -965,11 +982,11 @@ class MOS6502Compiler(Compiler):
 
                 # for subroutines, we return with rts
                 if fn.get_type() == FunctionType.SUBROUTINE:
-                    tokens.append(InstructionLine.new('rts'))
+                    tokens.append(InstructionLine.new('rts', fn=fn.get_name()))
 
                 # for interrupts, we return with rti
                 elif fn.get_type() == FunctionType.INTERRUPT:
-                    tokens.append(InstructionLine.new('rti'))
+                    tokens.append(InstructionLine.new('rti', fn=fn.get_name()))
 
             # return the tokens and let
             return (tokens, len(tokens))
@@ -998,12 +1015,14 @@ class MOS6502Compiler(Compiler):
                     # an Immediate the references the name of the function that will later
                     # be resolved into an Immediate the references the function's
                     # start label by name.
-                    i = InstructionLine.new('jsr', mode=Operand.ABS, addr=fn.get_name())
+                    i = InstructionLine.new('jsr', fn=token.get_fn(), 
+                                            mode=Operand.ABS, addr=fn.get_name())
                 else:
                     # if it has a start label, then transform it into an InstructionLine
                     # with an Immediate with the name of the label that it be resolved
                     # to an address later.
-                    i = InstructionLine.new('jsr', mode=Operand.ABS, addr=start_label.get_name())
+                    i = InstructionLine.new('jsr', fn=token.get_fn(), 
+                                            mode=Operand.ABS, addr=start_label.get_name())
 
                 # add the instruction line to the list
                 tokens.append(i)
@@ -1018,11 +1037,11 @@ class MOS6502Compiler(Compiler):
             tokens = []
             # for subroutines, we return with rts
             if token.get_type() == FunctionType.SUBROUTINE:
-                tokens.append(InstructionLine.new('rts'))
+                tokens.append(InstructionLine.new('rts', fn=token.get_fn()))
 
             # for interrupts, we return with rti
             elif token.get_type() == FunctionType.INTERRUPT:
-                tokens.append(InstructionLine.new('rti'))
+                tokens.append(InstructionLine.new('rti', fn=token.get_fn()))
 
             return (tokens, len(tokens))
 

@@ -83,6 +83,7 @@ class Conditional(object):
         self._type = self.UNK
         self._blocks = []
         self._depth = depth
+        self._fn = None
 
     def get_depth(self):
         return self._depth
@@ -91,6 +92,7 @@ class Conditional(object):
         return self.NAMES[self._type]
 
     def append_token(self, token):
+        token.set_fn(self._fn)
         self._blocks[0].append_token(token)
 
     def set_scope(self, name):
@@ -143,6 +145,17 @@ class Conditional(object):
 
     def get_type(self):
         return self._type
+
+    def set_fn(self, fn=None):
+        self._fn = fn
+
+        # cascade the fn setting...
+        for b in self._blocks:
+            for t in b.get_tokens():
+                t.set_fn(fn)
+
+    def get_fn(self):
+        return self._fn
 
     def __str__(self):
         return self.NAMES[self.get_type()]
