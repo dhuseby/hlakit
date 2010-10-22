@@ -37,6 +37,7 @@ from setpad import SetPad
 from align import Align
 from variable import Variable
 from function import Function
+from label import Label
 
 class Generator(object):
     """ This encapsulates the linker and code generator """
@@ -62,36 +63,54 @@ class Generator(object):
         # handle generic token
         if isinstance(token, Variable):
             self._process_variable(token)
-        elif isinstance(token, Function):
-            pass
+        
+        elif isinstance(token, Label):
+            # locate the label at the current addr
+            token.set_address(romfile.get_current_pos())
+            romfile.set_current_label(token)
+
         elif isinstance(token, TellBank):
             print 'MESSAGE: Current bank is %d' % romfile.get_current_bank()
+        
         elif isinstance(token, TellBankOffset):
             print 'MESSAGE: Current offset is 0x%0.4x' % romfile.get_current_offset()
+        
         elif isinstance(token, TellBankSize):
             print 'MESSAGE: Current bank size is 0x%0.4x' % romfile.get_current_banksize()
+        
         elif isinstance(token, TellBankFree):
             print 'MESSAGE: Current bank free is 0x%0.4x' % romfile.get_current_bankfree()
+        
         elif isinstance(token, TellBankType):
             print 'MESSAGE: Current bank type is %s' % romfile.get_current_banktype()
+        
         elif isinstance(token, Incbin):
             romfile.incbin(token.get_data())
+        
         elif isinstance(token, RomOrg):
             romfile.set_rom_org(token.get_address(), token.get_maxsize())
+        
         elif isinstance(token, RomEnd):
             romfile.set_rom_end()
+        
         elif isinstance(token, RomBanksize):
             romfile.set_rom_banksize(token.get_size())
+        
         elif isinstance(token, RomBank):
             romfile.set_rom_bank(token.get_number(), token.get_maxsize())
+        
         elif isinstance(token, RamOrg):
             romfile.set_ram_org(token.get_address(), token.get_maxsize())
+        
         elif isinstance(token, RamEnd):
             romfile.set_ram_end()
+        
         elif isinstance(token, SetPad):
             romfile.set_padding(token.get_value())
+        
         elif isinstance(token, Align):
             romfile.set_align(token.get_value())
+        
         else:
             raise ParseFatalException('Unknown token type: %s' % type(token))
 

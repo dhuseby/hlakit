@@ -43,6 +43,7 @@ class MOS6502RomFile(RomFile):
         self._reset_interrupt = None
         self._nmi_interrupt = None
         self._irq_interrupt = None
+        super(MOS6502RomFile, self).__init__()
 
     def set_reset_interrupt(self, reset):
         self._reset_interrupt = str(reset)

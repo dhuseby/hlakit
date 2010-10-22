@@ -1034,29 +1034,17 @@ class MOS6502Compiler(Compiler):
 class MOS6502Generator(Generator):
 
     def _process_instruction_line(self, line):
-        output = []
+        romfile = self.romfile()
         opcode = line.get_opcode()
         operand = line.get_operand()
 
-        #output.append(opcode.emit(operand.get_mode()))
+        # get the bytes for the opcode and operand
+        bytes = []
+        bytes.append(opcode.emit(operand.get_mode()))
+        bytes.extend(operand.emit(romfile))
 
-        # figure out the addressing mode
-        if operand.get_mode() == Operand.IMP:
-            pass
-        if operand.get_mode() == Operand.ACC:
-            pass
-        if operand.get_mode() == Operand.IMM:
-            pass
-        if operand.get_mode() == Operand.ADDR:
-            pass
-        if operand.get_mode() == Operand.INDEXED:
-            pass
-        if operand.get_mode() == Operand.INDIRECT:
-            pass
-        if operand.get_mode() == Operand.IDX_IND:
-            pass
-        if operand.get_mode() == Operand.ZP_IND:
-            pass
+        # add the bytes to the romfile
+        romfile.emit(bytes, str(line))
 
     def _process_token(self, token):
 
@@ -1086,15 +1074,15 @@ class MOS6502Generator(Generator):
 
     def build_rom(self, tokens):
 
-        # initialize the rom output pass
-        self._initialize_rom()
-
         # process each of the tokens
         for t in tokens:
             self._process_token(t)
 
         # finalize the rom output pass
         self._finalize_rom()
+
+        # return the rom
+        return self.romfile()
 
 
 class MOS6502(Target):

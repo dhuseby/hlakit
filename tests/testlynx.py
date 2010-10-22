@@ -35,6 +35,8 @@ from tests.utils import build_code_block
 from hlakit.common.session import Session
 from hlakit.common.filemarkers import FileBegin, FileEnd
 from hlakit.common.rampp import RamOrg, RamEnd
+from hlakit.common.rompp import RomEnd, RomBank, RomBanksize
+from hlakit.common.setpad import SetPad
 from hlakit.common.codeblock import CodeBlock
 from hlakit.common.variable import Variable
 from hlakit.common.function import Function
@@ -44,10 +46,10 @@ from hlakit.common.label import Label
 from hlakit.common.conditional import Conditional
 from hlakit.cpu.mos6502.instructionline import InstructionLine
 from hlakit.cpu.mos6502.conditionaldecl import ConditionalDecl
-from hlakit.platform.lynx import LynxPreprocessor, LynxCompiler
+from hlakit.platform.lynx import LynxPreprocessor, LynxCompiler, LynxGenerator
 from hlakit.platform.lynx.loader import LynxLoader
 from hlakit.platform.lynx.lnx import Lnx, LnxSetting
-from hlakit.platform.lynx.rompp import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
+from hlakit.platform.lynx.rompp import LynxRomOrg
 
 class LynxPreprocessorTester(unittest.TestCase):
     """
@@ -62,6 +64,12 @@ class LynxPreprocessorTester(unittest.TestCase):
 
     def testLynxPreprocessor(self):
         self.assertTrue(isinstance(Session().preprocessor(), LynxPreprocessor))
+
+    def testLynxCompiler(self):
+        self.assertTrue(isinstance(Session().compiler(), LynxCompiler))
+
+    def testLynxGenerator(self):
+        self.assertTrue(isinstance(Session().generator(), LynxGenerator))
 
     pp_lynxloader = '#lynx.loader %s'
 
@@ -251,9 +259,7 @@ class LynxPreprocessorTester(unittest.TestCase):
         except ParseException:
             pass
 
-    pp_romorg = '#lynx.rom.org %s'
-    pp_romend = '#lynx.rom.end'
-    pp_rombank = '#lynx.rom.bank %s'
+    pp_romorg = '#rom.org %s'
 
     def testRomOrg(self):
         pp = Session().preprocessor()
@@ -333,62 +339,6 @@ class LynxPreprocessorTester(unittest.TestCase):
         except ParseException:
             pass
 
-    def testRomEnd(self):
-        pp = Session().preprocessor()
-
-        tokens = pp.parse(StringIO(self.pp_romend))
-        self.assertTrue(isinstance(tokens[1], LynxRomEnd))
-
-    def testRomBank(self):
-        pp = Session().preprocessor()
-
-        tokens = pp.parse(StringIO(self.pp_rombank % '1'))
-        self.assertTrue(isinstance(tokens[1], LynxRomBank))
-        self.assertEquals(int(tokens[1].get_number()), 1)
-
-    def testRomBanksizeLabel(self):
-        pp = Session().preprocessor()
-
-        pp.set_symbol('FOO', 0)
-        tokens = pp.parse(StringIO(self.pp_rombank % 'FOO'))
-        self.assertTrue(isinstance(tokens[1], LynxRomBank))
-        self.assertEquals(int(tokens[1].get_number()), 0)
-
-    def testBadRomBank(self):
-        pp = Session().preprocessor()
-
-        try:
-            tokens = pp.parse(StringIO(self.pp_rombank % ''))
-            self.assertTrue(False)
-        except ParseException:
-            pass
-
-    pp_setpad = '#lynx.rom.padding %s'
-
-    def testRomPaddingNum(self):
-        pp = Session().preprocessor()
-
-        tokens = pp.parse(StringIO(self.pp_setpad % '0xFF'))
-        self.assertTrue(isinstance(tokens[1], LynxRomPadding))
-        self.assertEquals(tokens[1].get_value(), 0xFF)
-
-    def testRomPaddingString(self):
-        pp = Session().preprocessor()
-
-        tokens = pp.parse(StringIO(self.pp_setpad % '"Foo"'))
-        self.assertTrue(isinstance(tokens[1], LynxRomPadding))
-        self.assertEquals(tokens[1].get_value(), 'Foo')
-
-    def testBadRomPadding(self):
-        pp = Session().preprocessor()
-
-        try:
-            tokens = pp.parse(StringIO(self.pp_setpad % ''))
-            self.assertTrue(False)
-        except ParseException:
-            pass
-
-
 class LynxCompilerTester(unittest.TestCase):
     """
     This class aggregates all of the tests for the Lynx Compiler
@@ -467,11 +417,10 @@ class LynxLnxTester(unittest.TestCase):
             #lnx.cart_name          "CGD Demo Game"
             #lnx.manufacturer_name  "ClassGameDev.com"
             #lnx.rotation           "none"
-            #lynx.rom.bank          0
-            #lynx.rom.padding       0
-            #lynx.rom.org           0,0,256
-
-            #ram.org 0x0200
+            #rom.bank               0
+            #setpad                 0
+            #rom.org                0,0,256
+            #ram.org                0x0200
             
             byte CART_BANK_0                :$FCB2  // uses CART0/ as strobe
             byte MIKEY_SYSTEM_CONTROL       :$FD87
@@ -520,8 +469,7 @@ class LynxLnxTester(unittest.TestCase):
             }
 
             #ram.end
-            
-            #lynx.rom.end
+            #rom.end
             """
 
         # PREPROCESSOR PASS
@@ -533,10 +481,10 @@ class LynxLnxTester(unittest.TestCase):
             (LnxSetting, '#lnx.cart_name "CGD Demo Game"'),
             (LnxSetting, '#lnx.manufacturer_name "ClassGameDev.com"'),
             (LnxSetting, '#lnx.rotation none'),
-            (LynxRomBank, 'LynxRomBank <0>'),
-            (LynxRomPadding, 'LynxRomPadding <0>'),
+            (RomBank,    'RomBank <0>'),
+            (SetPad, 'SetPad <0>'),
             (LynxRomOrg, 'LynxRomOrg <0x0>,<0x100>'),
-            (RamOrg, 'RamOrg <0x200>'),
+            (RamOrg,      'RamOrg <0x200>'),
             (CodeBlock, """byte CART_BANK_0                :$FCB2  // uses CART0/ as strobe
 byte MIKEY_SYSTEM_CONTROL       :$FD87
 byte MIKEY_IO_DIRECTION         :$FD8A  // direction control register
@@ -564,7 +512,7 @@ jmp $FB00
 }
 """),
             (RamEnd, 'RamEnd'),
-            (LynxRomEnd, 'LynxRomEnd'),
+            (RomEnd, 'RomEnd'),
             (FileEnd, 'FileEnd: DummyFile')
         ]
         pp = Session().preprocessor()
@@ -580,7 +528,6 @@ jmp $FB00
             self.assertEqual(str(pp_tokens[i]), expected_pp_tokens[i][1], 'token %d' % i)
 
         # COMPILER PASS
-
         scanner = [
             (FileBegin, "FileBegin: DummyFile"),
             (LnxSetting, "#lnx.page_size_bank0 2K"),
@@ -589,8 +536,8 @@ jmp $FB00
             (LnxSetting, '#lnx.cart_name "CGD Demo Game"'),
             (LnxSetting, '#lnx.manufacturer_name "ClassGameDev.com"'),
             (LnxSetting, "#lnx.rotation none"),
-            (LynxRomBank, "LynxRomBank <0>"),
-            (LynxRomPadding, "LynxRomPadding <0>"),
+            (RomBank, "RomBank <0>"),
+            (SetPad, "SetPad <0>"),
             (LynxRomOrg, "LynxRomOrg <0x0>,<0x100>"),
             (RamOrg, "RamOrg <0x200>"),
             (Variable, "byte CART_BANK_0 :$FCB2"),
@@ -614,13 +561,13 @@ jmp $FB00
             (ScopeBegin, "{"),
             (InstructionLine, "lda $FCB2"),
             (InstructionLine, "sta $FB00,x"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (ScopeEnd, "}"),
             (ConditionalDecl, "while(['not', 'zero'])"),
             (InstructionLine, "jmp $FB00"),
             (ScopeEnd, "}"),
             (RamEnd, "RamEnd"),
-            (LynxRomEnd, "LynxRomEnd"),
+            (RomEnd, "RomEnd"),
             (FileEnd, "FileEnd: DummyFile"),
         ]
         parser = [
@@ -630,8 +577,8 @@ jmp $FB00
             (LnxSetting, '#lnx.cart_name "CGD Demo Game"'),
             (LnxSetting, '#lnx.manufacturer_name "ClassGameDev.com"'),
             (LnxSetting, "#lnx.rotation none"),
-            (LynxRomBank, "LynxRomBank <0>"),
-            (LynxRomPadding, "LynxRomPadding <0>"),
+            (RomBank, "RomBank <0>"),
+            (SetPad, "SetPad <0>"),
             (LynxRomOrg, "LynxRomOrg <0x0>,<0x100>"),
             (RamOrg, "RamOrg <0x200>"),
             (Variable, "byte CART_BANK_0 :$FCB2"),
@@ -642,7 +589,7 @@ jmp $FB00
             (Variable, "byte MIKEY_MEMORY_MAP_CONTROL :$FFF9"),
             (Function, "function noreturn micro_loader()"),
             (RamEnd, "RamEnd"),
-            (LynxRomEnd, "LynxRomEnd"),
+            (RomEnd, "RomEnd"),
         ]
         resolver = [
             (LnxSetting, "#lnx.page_size_bank0 2K"),
@@ -651,8 +598,8 @@ jmp $FB00
             (LnxSetting, '#lnx.cart_name "CGD Demo Game"'),
             (LnxSetting, '#lnx.manufacturer_name "ClassGameDev.com"'),
             (LnxSetting, "#lnx.rotation none"),
-            (LynxRomBank, "LynxRomBank <0>"),
-            (LynxRomPadding, "LynxRomPadding <0>"),
+            (RomBank, "RomBank <0>"),
+            (SetPad, "SetPad <0>"),
             (LynxRomOrg, "LynxRomOrg <0x0>,<0x100>"),
             (RamOrg, "RamOrg <0x200>"),
             (Variable, "byte CART_BANK_0 :$FCB2"),
@@ -674,11 +621,11 @@ jmp $FB00
             (Label, "HLA0:"),
             (InstructionLine, "lda $FCB2"),
             (InstructionLine, "sta $FB00,x"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "bne HLA0"),
             (InstructionLine, "jmp $FB00"),
             (RamEnd, "RamEnd"),
-            (LynxRomEnd, "LynxRomEnd"),
+            (RomEnd, "RomEnd"),
         ]
 
         cc = Session().compiler()
@@ -686,12 +633,32 @@ jmp $FB00
         self._checkScannerParserResolver(cc, scanner, parser, resolver)
 
         # GENERATOR PASS
-        #expected_rom = [ ]
-        #gen = Session().generator()
+        expected_listing = \
+"""B SG CNT ADDR    LBL                  00 00 00    CODE
+0 00 000 0000                                     .org $0200
+0 00 000 0200    HLA_micro_loader:    a9 00       lda #0
+0 00 002 0202                         8d f9 ff    sta $FFF9
+0 00 005 0205                         a9 13       lda #%00010011
+0 00 007 0207                         8d 8a fd    sta $FD8A
+0 00 00a 020a                         a9 04       lda #%00000100
+0 00 00c 020c                         8d 8c fd    sta $FD8C
+0 00 00f 020f                         a9 08       lda #%00001000
+0 00 011 0211                         8d 8b fd    sta $FD8B
+0 00 014 0214                         a2 00       ldx #0
+0 00 016 0216                HLA0:    ad b2 fc    lda $FCB2
+0 00 019 0219                         9d 00 fb    sta $FB00,x
+0 00 01c 021c                         e8          inx
+0 00 01d 021d                         d0 f7       bne -9
+0 00 01f 021f                         4c 00 fb    jmp $FB00
+"""
+        gen = Session().generator()
 
-        # build the rom and save it
+        # build the rom
+        lnx = gen.build_rom(cc.get_output())
+        self.assertEquals(expected_listing, lnx.get_debug_listing())
+
+        # save the rom
         #outf = StringIO()
-        #lnx = gen.build_rom(resolved_tokens)
         #lnx.save(outf)
 
         # check the rom

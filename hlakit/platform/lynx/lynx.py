@@ -29,10 +29,11 @@ or implied, of David Huseby.
 
 import os
 from pyparsing import *
+from hlakit.common.rompp import RomOrg
 from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler, MOS6502Generator
 from loader import LynxLoader
 from lnx import Lnx, LnxSetting
-from rompp import LynxRomOrg, LynxRomEnd, LynxRomBank, LynxRomPadding
+from rompp import LynxRomOrg
 
 class LynxPreprocessor(MOS6502Preprocessor):
 
@@ -46,10 +47,11 @@ class LynxPreprocessor(MOS6502Preprocessor):
         # add in Lynx specific preprocessor parse rules
         e.append(('lynxloader', LynxLoader.exprs()))
         e.append(('lnxsetting', LnxSetting.exprs()))
-        e.append(('lynxromorg', LynxRomOrg.exprs()))
-        e.append(('lynxromend', LynxRomEnd.exprs()))
-        e.append(('lynxrombank', LynxRomBank.exprs()))
-        e.append(('lynxrompadding', LynxRomPadding.exprs()))
+
+        # replace the original RomOrg with the LynxRomOrg
+        for i in range(0, len(e)):
+            if e[i][0] == 'romorg':
+                e[i] = ('romorg', LynxRomOrg.exprs())
         
         return e
 
@@ -97,15 +99,12 @@ class LynxGenerator(MOS6502Generator):
             elif type_ == LnxSetting.ROTATION:
                 romfile.set_rotation(token.get_rotation())
         elif isinstance(token, LynxRomOrg):
-            romfile.set_lnx_rom_org(token.get_segment(), 
+            # intercept LynxRomOrg tokens and set the rom addr
+            romfile.set_rom_org(token.get_segment(), 
                                 token.get_counter(), 
                                 token.get_maxsize())
-        elif isinstance(token, LynxRomEnd):
-            romfile.set_rom_end()
-        elif isinstance(token, LynxRomBank):
-            romfile.set_rom_bank(token.get_number())
-        elif isinstance(token, LynxRomPadding):
-            romfile.set_rom_padding(token.get_value())
+        elif isinstance(token, RomOrg):
+            raise ParseFatalException('there should not be any RomOrg tokens in a Lynx compile')
         else:
             # pass the token along to the CPU generator
             super(LynxGenerator, self)._process_token(token)
@@ -120,15 +119,12 @@ class LynxGenerator(MOS6502Generator):
 
         # output all blocks in the rom list to the rom
         romfile = self.romfile()
-        bufs = romfile.get_buffers()
-        print "Buffers:"
-        for b in bufs:
-            print '%s' % b
+        #bufs = romfile.get_buffers()
+        #print "Buffers:"
+        #for b in bufs:
+        #    print '%s' % b
 
     def build_rom(self, tokens):
-
-        # initialize the rom output pass
-        self._initialize_rom()
 
         # process each of the tokens
         for t in tokens:
@@ -136,6 +132,9 @@ class LynxGenerator(MOS6502Generator):
 
         # finalize the rom output pass
         self._finalize_rom()
+
+        # return the rom
+        return self.romfile()
 
 
 class Lynx(MOS6502):

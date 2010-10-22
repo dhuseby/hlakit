@@ -243,7 +243,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'jmp')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ABS_IDX_IND)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IDX_IND)
         self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0x2200)
         self.assertEquals(str(cc.get_output()[0].get_operand().get_reg()), 'x')
 
@@ -255,7 +255,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_opcode(), Opcode))
         self.assertTrue(isinstance(cc.get_output()[0].get_operand(), Operand))
         self.assertEquals(str(cc.get_output()[0].get_opcode().get_op()), 'lsr')
-        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.ZP_IND_IDX)
+        self.assertEquals(cc.get_output()[0].get_operand().get_mode(), Operand.IND_IDX)
         self.assertEquals(int(cc.get_output()[0].get_operand().get_addr()), 0x22)
         self.assertEquals(str(cc.get_output()[0].get_operand().get_reg()), 'y')
 
@@ -574,21 +574,21 @@ class MOS6502CompilerTester(unittest.TestCase):
                jsrind_f()
                """
         scanner = [
-            (InstructionLine, "clc <implied>"),
+            (InstructionLine, "clc"),
             (InstructionLine, "adc #sizeof(SPR_OBJ)"),
             (InstructionLine, "lda #lo(pproc)"),
             (InstructionLine, "ora #hi(pproc)"),
             (FunctionCall, "jsrind_f()"),
         ]
         parser = [
-            (InstructionLine, "clc <implied>"),
+            (InstructionLine, "clc"),
             (InstructionLine, "adc #sizeof(SPR_OBJ)"),
             (InstructionLine, "lda #lo(pproc)"),
             (InstructionLine, "ora #hi(pproc)"),
             (FunctionCall, "jsrind_f()"),
         ]
         resolver = [
-            (InstructionLine, "clc <implied>"),
+            (InstructionLine, "clc"),
             (InstructionLine, "adc #sizeof(SPR_OBJ)"),
             (InstructionLine, "lda #lo(pproc)"),
             (InstructionLine, "ora #hi(pproc)"),
@@ -619,9 +619,9 @@ class MOS6502CompilerTester(unittest.TestCase):
             (FunctionDecl, "function foo()"),
             (ScopeBegin, "{"),
             (InstructionLine, "lda 0x0200,x"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "ora 0x0200,x"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (ScopeEnd, "}"),
         ]
         parser = [
@@ -630,10 +630,10 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (Label, "HLA_foo:"),
             (InstructionLine, "lda 0x0200,x"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "ora 0x0200,x"),
-            (InstructionLine, "inx <implied>"),
-            (InstructionLine, "rts <implied>"),
+            (InstructionLine, "inx"),
+            (InstructionLine, "rts"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -654,11 +654,11 @@ class MOS6502CompilerTester(unittest.TestCase):
         scanner = [
             (FunctionDecl, "inline foo( addr )"),
             (ScopeBegin, "{"),
-            (InstructionLine, "lda <unresolved>"),
-            (InstructionLine, "inx <implied>"),
-            (InstructionLine, "ora <unresolved>"),
+            (InstructionLine, "lda"),
+            (InstructionLine, "inx"),
+            (InstructionLine, "ora"),
             (FunctionCall, "jsrind_f()"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (ScopeEnd, "}"),
         ]
         parser = [
@@ -666,11 +666,11 @@ class MOS6502CompilerTester(unittest.TestCase):
         ]
         resolver = [
             (Label, "HLA_foo:"),
-            (InstructionLine, "lda <unresolved>"),
-            (InstructionLine, "inx <implied>"),
-            (InstructionLine, "ora <unresolved>"),
+            (InstructionLine, "lda"),
+            (InstructionLine, "inx"),
+            (InstructionLine, "ora"),
             (InstructionLine, "jsr jsrind_f"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
         ]
         # pre-define the function 'jsrind_f'
         st = SymbolTable()
@@ -707,19 +707,19 @@ class MOS6502CompilerTester(unittest.TestCase):
         scanner = [
             (FunctionDecl, "inline div( dest, amount )"),
             (ScopeBegin, "{"),
-            (InstructionLine, "sec <implied>"),
+            (InstructionLine, "sec"),
             (InstructionLine, "ldx #0"),
             (InstructionLine, "lda amount"),
             (ConditionalDecl, "while(['nonzero'])"),
             (ScopeBegin, "{"),
             (InstructionLine, "bmi div_done_remainder"),
-            (InstructionLine, "inx <implied>"),
-            (InstructionLine, "sec <implied>"),
+            (InstructionLine, "inx"),
+            (InstructionLine, "sec"),
             (InstructionLine, "sbc dest"),
             (ScopeEnd, "}"),
             (InstructionLine, "jmp div_done"),
             (Label, "HLA_div_done_remainder:"),
-            (InstructionLine, "dex <implied>"),
+            (InstructionLine, "dex"),
             (Label, "HLA_div_done:"),
             (InstructionLine, "stx dest"),
             (ScopeEnd, "}"),
@@ -729,19 +729,19 @@ class MOS6502CompilerTester(unittest.TestCase):
         ]
         resolver = [
             (Label, "HLA_div:"),
-            (InstructionLine, "sec <implied>"),
+            (InstructionLine, "sec"),
             (InstructionLine, "ldx #0"),
             (InstructionLine, "lda amount"),
             (Label, "HLA0:"),
             (InstructionLine, "bne HLA1"),
             (InstructionLine, "bmi div_done_remainder"),
-            (InstructionLine, "inx <implied>"),
-            (InstructionLine, "sec <implied>"),
+            (InstructionLine, "inx"),
+            (InstructionLine, "sec"),
             (InstructionLine, "sbc dest"),
             (Label, "HLA1:"),
             (InstructionLine, "jmp div_done"),
             (Label, "HLA_div_done_remainder:"),
-            (InstructionLine, "dex <implied>"),
+            (InstructionLine, "dex"),
             (Label, "HLA_div_done:"),
             (InstructionLine, "stx dest"),
         ]
@@ -777,7 +777,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (ScopeBegin, "{"),
             (FunctionReturn, "return"),
             (ScopeEnd, "}"),
-            (InstructionLine, "iny <implied>"),
+            (InstructionLine, "iny"),
             (ScopeEnd, "}"),
             (ScopeEnd, "}"),
         ]
@@ -790,11 +790,11 @@ class MOS6502CompilerTester(unittest.TestCase):
             (Label, "HLA0:"),
             (InstructionLine, "lda (pstr), y"),
             (InstructionLine, "beq HLA1"),
-            (InstructionLine, "rts <implied>"),
+            (InstructionLine, "rts"),
             (Label, "HLA1:"),
-            (InstructionLine, "iny <implied>"),
+            (InstructionLine, "iny"),
             (InstructionLine, "jmp HLA0"),
-            (InstructionLine, "rts <implied>"),
+            (InstructionLine, "rts"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -825,7 +825,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (Variable, "byte setamt[]"),
             (Label, "HLA_dummy_fn:"),
             (InstructionLine, "ldy #0"),
-            (InstructionLine, "rts <implied>"),
+            (InstructionLine, "rts"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -839,14 +839,14 @@ class MOS6502CompilerTester(unittest.TestCase):
         """
         scanner = [
             (ConditionalDecl, "if(['set'])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
         ]
         parser = [
             (Conditional, "IF"),
         ]
         resolver = [
             (InstructionLine, "bne HLA0"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (Label, "HLA0:"),
         ]
         cc = Session().compiler()
@@ -861,14 +861,14 @@ class MOS6502CompilerTester(unittest.TestCase):
         """
         scanner = [
             (ConditionalDecl, "if(['not', '1'])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
         ]
         parser = [
             (Conditional, "IF"),
         ]
         resolver = [
             (InstructionLine, "beq HLA0"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (Label, "HLA0:"),
         ]
         cc = Session().compiler()
@@ -883,7 +883,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         """
         scanner = [
             (ConditionalDecl, "if(['far', 'carry'])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
         ]
         parser = [
             (Conditional, "IF"),
@@ -892,7 +892,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (InstructionLine, "bcc HLA1"),
             (InstructionLine, "jmp HLA0"),
             (Label, "HLA1:"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (Label, "HLA0:"),
         ]
         cc = Session().compiler()
@@ -907,7 +907,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         """
         scanner = [
             (ConditionalDecl, "if(['far', 'not', 'overflow'])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
         ]
         parser = [
             (Conditional, "IF"),
@@ -916,7 +916,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (InstructionLine, "bvc HLA1"),
             (InstructionLine, "jmp HLA0"),
             (Label, "HLA1:"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (Label, "HLA0:"),
         ]
         cc = Session().compiler()
@@ -934,7 +934,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         scanner = [
             (ConditionalDecl, 'if([\'set\'])'),
             (ConditionalDecl, 'if([\'zero\'])'),
-            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'inx'),
         ]
         parser = [
             (Conditional, 'IF'),
@@ -942,7 +942,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (InstructionLine, 'bne HLA0'),
             (InstructionLine, 'beq HLA1'),
-            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'inx'),
             (Label, 'HLA1:'),
             (Label, 'HLA0:'),
         ]
@@ -967,11 +967,11 @@ class MOS6502CompilerTester(unittest.TestCase):
         scanner = [
             (ConditionalDecl, 'if([\'set\'])'),
             (ScopeBegin, '{'),
-            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'inx'),
             (ScopeEnd, '}'),
             (ConditionalDecl, 'else'),
             (ScopeBegin, '{'),
-            (InstructionLine, 'dex <implied>'),
+            (InstructionLine, 'dex'),
             (ScopeEnd, '}'),
         ]
         parser = [
@@ -979,10 +979,10 @@ class MOS6502CompilerTester(unittest.TestCase):
         ]
         resolver = [
             (InstructionLine, 'bne HLA0'),
-            (InstructionLine, 'dex <implied>'),
+            (InstructionLine, 'dex'),
             (InstructionLine, 'jmp HLA1'),
             (Label, 'HLA0:'),
-            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'inx'),
             (Label, 'HLA1:'),
         ]
 
@@ -998,7 +998,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         """
         scanner = [
             (ConditionalDecl, "while(['true'])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
         ]
         parser = [
             (Conditional, "WHILE"),
@@ -1006,7 +1006,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (Label, "HLA0:"),
             (InstructionLine, "bne HLA1"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (Label, "HLA1:"),
         ]
         cc = Session().compiler()
@@ -1021,7 +1021,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         """
         scanner = [
             (ConditionalDecl, "while(['not', '0'])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
         ]
         parser = [
             (Conditional, "WHILE"),
@@ -1029,7 +1029,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (Label, "HLA0:"),
             (InstructionLine, "bne HLA1"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (Label, "HLA1:"),
         ]
         cc = Session().compiler()
@@ -1044,7 +1044,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         """
         scanner = [
             (ConditionalDecl, "while(['far', 'unset'])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
         ]
         parser = [
             (Conditional, "WHILE"),
@@ -1054,7 +1054,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (InstructionLine, "beq HLA2"),
             (InstructionLine, "jmp HLA1"),
             (Label, "HLA2:"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (Label, "HLA1:"),
         ]
         cc = Session().compiler()
@@ -1069,7 +1069,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         """
         scanner = [
             (ConditionalDecl, "while(['far', 'not', 'clear'])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
         ]
         parser = [
             (Conditional, "WHILE"),
@@ -1079,7 +1079,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (InstructionLine, "bne HLA2"),
             (InstructionLine, "jmp HLA1"),
             (Label, "HLA2:"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (Label, "HLA1:"),
         ]
         cc = Session().compiler()
@@ -1098,8 +1098,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         scanner = [
             (ConditionalDecl, "while(['plus'])"),
             (ScopeBegin, "{"),
-            (InstructionLine, "inx <implied>"),
-            (InstructionLine, "dex <implied>"),
+            (InstructionLine, "inx"),
+            (InstructionLine, "dex"),
             (ScopeEnd, "}"),
         ]
         parser = [
@@ -1108,8 +1108,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (Label, "HLA0:"),
             (InstructionLine, "bpl HLA1"),
-            (InstructionLine, "inx <implied>"),
-            (InstructionLine, "dex <implied>"),
+            (InstructionLine, "inx"),
+            (InstructionLine, "dex"),
             (Label, "HLA1:"),
         ]
         cc = Session().compiler()
@@ -1129,8 +1129,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         scanner = [
             ( ConditionalDecl, 'do'),
             ( ScopeBegin, '{'),
-            ( InstructionLine, 'inx <implied>'),
-            ( InstructionLine, 'dex <implied>'),
+            ( InstructionLine, 'inx'),
+            ( InstructionLine, 'dex'),
             ( ScopeEnd, '}'),
             ( ConditionalDecl, 'while([\'positive\'])' )
         ]
@@ -1139,8 +1139,8 @@ class MOS6502CompilerTester(unittest.TestCase):
         ]
         resolver = [
             ( Label, 'HLA0:'),
-            ( InstructionLine, 'inx <implied>'),
-            ( InstructionLine, 'dex <implied>'),
+            ( InstructionLine, 'inx'),
+            ( InstructionLine, 'dex'),
             ( InstructionLine, 'bpl HLA0')
         ]
 
@@ -1159,7 +1159,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         scanner = [
             (ConditionalDecl, "forever"),
             (ScopeBegin, "{"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (ScopeEnd, "}"),
         ]
         parser = [
@@ -1167,7 +1167,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         ]
         resolver = [
             (Label, "HLA0:"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
         ]
         cc = Session().compiler()
@@ -1187,7 +1187,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (ConditionalDecl, "switch(['x'])"),
             (ScopeBegin, "{"),
             (ConditionalDecl, "case([1])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (ScopeEnd, "}"),
         ]
         parser = [
@@ -1196,7 +1196,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (InstructionLine, "cpx #1"),
             (InstructionLine, "bne HLA1"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
             (Label, "HLA1:"),
             (Label, "HLA0:"),
@@ -1218,7 +1218,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (ConditionalDecl, "switch(['a'])"),
             (ScopeBegin, "{"),
             (ConditionalDecl, "case([1])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (ScopeEnd, "}"),
         ]
         parser = [
@@ -1227,7 +1227,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (InstructionLine, "cmp #1"),
             (InstructionLine, "bne HLA1"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
             (Label, "HLA1:"),
             (Label, "HLA0:"),
@@ -1249,7 +1249,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (ConditionalDecl, "switch(['y'])"),
             (ScopeBegin, "{"),
             (ConditionalDecl, "case([1])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (ScopeEnd, "}"),
         ]
         parser = [
@@ -1258,7 +1258,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (InstructionLine, "cpy #1"),
             (InstructionLine, "bne HLA1"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
             (Label, "HLA1:"),
             (Label, "HLA0:"),
@@ -1280,7 +1280,7 @@ class MOS6502CompilerTester(unittest.TestCase):
             (ConditionalDecl, "switch(['x'])"),
             (ScopeBegin, "{"),
             (ConditionalDecl, "case([1])"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (ScopeEnd, "}"),
         ]
         parser = [
@@ -1289,7 +1289,7 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (InstructionLine, "cpx #1"),
             (InstructionLine, "bne HLA1"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
             (Label, "HLA1:"),
             (Label, "HLA0:"),
@@ -1320,10 +1320,10 @@ class MOS6502CompilerTester(unittest.TestCase):
             (ScopeBegin, '{'),
             (ConditionalDecl, 'case([sizeof(bar)])'),
             (ScopeBegin, '{'),
-            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'inx'),
             (ScopeEnd, '}'),
             (ConditionalDecl, 'case([0x0200])'),
-            (InstructionLine, 'dex <implied>'),
+            (InstructionLine, 'dex'),
             (ConditionalDecl, 'default'),
             (ScopeBegin, '{'),
             (InstructionLine, 'lda $0300'),
@@ -1336,12 +1336,12 @@ class MOS6502CompilerTester(unittest.TestCase):
         resolver = [
             (InstructionLine, 'cpx #sizeof(bar)'),
             (InstructionLine, 'bne HLA1'),
-            (InstructionLine, 'inx <implied>'),
+            (InstructionLine, 'inx'),
             (InstructionLine, 'jmp HLA0'),
             (Label, 'HLA1:'),
             (InstructionLine, 'cpx #0x0200'),
             (InstructionLine, 'bne HLA2'),
-            (InstructionLine, 'dex <implied>'),
+            (InstructionLine, 'dex'),
             (InstructionLine, 'jmp HLA0'),
             (Label, 'HLA2:'),
             (InstructionLine, 'lda $0300'),
@@ -1395,9 +1395,9 @@ class MOS6502CompilerTester(unittest.TestCase):
             (ConditionalDecl, "if(['not', 'equal'])"),
             (ScopeBegin, "{"),
             (InstructionLine, "lda 0x0200,x"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "ora 0x0200,x"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (ScopeEnd, "}"),
             (ConditionalDecl, "else"),
             (ScopeBegin, "{"),
@@ -1439,9 +1439,9 @@ class MOS6502CompilerTester(unittest.TestCase):
             (InstructionLine, "jmp HLA2"),
             (Label, "HLA1:"),
             (InstructionLine, "lda 0x0200,x"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (InstructionLine, "ora 0x0200,x"),
-            (InstructionLine, "inx <implied>"),
+            (InstructionLine, "inx"),
             (Label, "HLA2:"),
             (InstructionLine, "jmp HLA0"),
         ]

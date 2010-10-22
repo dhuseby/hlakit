@@ -39,13 +39,12 @@ class Buffer(object):
 
     BYTE_ORDER = ''
 
-    def __init__(self, org, maxsize=None, padding=None):
+    def __init__(self, org, maxsize=None, padding=0):
         self._buffer = []
         self._org = org
         self._maxsize = maxsize
-        self._current_size = None
-        self._current_write = None
-        self._current_read = None
+        self._current_write = 0
+        self._current_read = 0
         self._padding_value = padding
         self._alignment = None
         self._buffer = []
@@ -72,7 +71,10 @@ class Buffer(object):
         if value == 0:
             num_bytes = 1
         else:
-            num_bytes = int(ceil((floor(log(value, 2)) + 1) / 8))
+            try:
+                num_bytes = int(ceil((floor(log(value, 2)) + 1) / 8))
+            except:
+                import pdb; pdb.set_trace()
         
         if num_bytes > 8:
             raise TypeError('numeric padding value too large')
@@ -108,6 +110,12 @@ class Buffer(object):
 
         self.reserve(self._current_write)
 
+    def get_org(self):
+        return self._org
+
+    def get_write_pos(self):
+        return self._current_write
+
     def save(self, outf):
         for b in self._buffer:
             outf.write(b)
@@ -134,7 +142,12 @@ class Buffer(object):
         pos = int(pos)
         if (pos < 0) or ((self._maxsize != None) and (pos >= self._maxsize)):
             raise IndexError('seeking past buffer maxsize')
+
+        # store the new write position
         self._current_write = pos
+
+        # now make sure the buffer is large enough
+        self._check_buffer_size()
 
     def set_padding_value(self, value):
         if isinstance(value, str) or isinstance(value, int):
@@ -165,7 +178,14 @@ class Buffer(object):
         self._check_buffer_size()
 
         # pack the value into the buffer array
-        self._buffer[self._current_write] = pack('B', value)
+        if isinstance(value, str):
+            if len(value) > 1:
+                raise ParseFatalException('trying to pack binary str that is more than 1 byte')
+            self._buffer[self._current_write] = value
+        elif isinstance(value, int):
+            self._buffer[self._current_write] = pack('B', value)
+        else:
+            raise ParseFatalException('unknown type of data being stored in buffer')
 
         # move the write location to the next byte
         self._current_write += 1
@@ -176,11 +196,10 @@ class Buffer(object):
             s += '\n    Max Size: 0x%0.4x' % self._maxsize
         else:
             s += '\n    Max Size: None'
-        if self._padding_value != None:
-            if isinstance(self._padding_value, int):
-                s += '\n    Padding:  0x%0.4x' % self._padding_value
-            else:
-                s += '\n    Padding:  "%s"' % self._padding_value
+        if isinstance(self._padding_value, int):
+            s += '\n    Padding:  0x%0.4x' % self._padding_value
+        else:
+            s += '\n    Padding:  "%s"' % self._padding_value
         s += '\n    Length:   0x%0.4x' % len(self._buffer)
         return s
 

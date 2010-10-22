@@ -31,6 +31,10 @@ class RomFile(object):
 
     def __init__(self):
         self._cur_bank = 0
+        self._ram_pos = 0
+        self._ram_maxsize = None
+        self._rom_pos = 0
+        self._rom_maxsize = None
 
     def save(self, outf):
         pass
@@ -62,10 +66,12 @@ class RomFile(object):
         pass
 
     def set_rom_org(self, addr, maxsize=None):
-        pass
+        self._rom_pos = int(addr)
+        self._rom_maxsize = maxsize
 
     def set_rom_end(self):
-        pass
+        self._rom_pos = 0
+        self._rom_maxsize = None
 
     def set_rom_banksize(self, banksize):
         pass
@@ -73,10 +79,33 @@ class RomFile(object):
     def set_rom_bank(self, bank, maxsize=None):
         pass
 
+    def get_rom_pos(self):
+        return self._rom_pos
+
+    def increment_rom_pos(self, amt = 1):
+        self._rom_pos += amt
+        if self._rom_maxsize and (self._rom_pos >= self._rom_maxsize):
+            return False
+        return True
+
+    def get_ram_pos(self):
+        return self._ram_pos
+
     def set_ram_org(self, addr, maxsize=None):
-        pass
+        self._ram_pos = int(addr)
+        self._ram_maxsize = maxsize
 
     def set_ram_end(self):
+        self._ram_pos = 0
+        self._ram_maxsize = None
+
+    def increment_ram_pos(self, amt = 1):
+        self._ram_pos += amt
+        if self._ram_maxsize and (self._ram_pos >= self._ram_maxsize):
+            return False
+        return True
+
+    def get_current_pos(self):
         pass
 
     def set_padding(self, padding):
@@ -84,4 +113,8 @@ class RomFile(object):
 
     def set_align(self, align):
         pass
+
+    def write_bytes(self, bytes=[]):
+        pass
+
 

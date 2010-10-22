@@ -28,6 +28,7 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
+from struct import pack, unpack
 from hlakit.common.session import Session
 from hlakit.common.name import Name
 
@@ -54,6 +55,75 @@ class Opcode(object):
                 'tya']
 
     RELATIVE =[ 'bcc', 'bcs', 'beq', 'bmi', 'bne', 'bpl', 'bvc', 'bvs' ]
+
+
+    # this table contains the binary opcode value for the given pneumonic and 
+    # addressing mode.  the opcodes are in the following order: 
+    # ACC, IMP, IMM, ABS, ZP, REL, IND, ABS_X, ABS_Y, ZP_X, ZP_Y, IDX_IND, IND_IDX.
+    BCODES = {
+        'adc': [],
+        'and': [],
+        'asl': [],
+        'bcc': [],
+        'bcs': [],
+        'beq': [],
+        'bit': [],
+        'bmi': [],
+
+        'bne': [None, None, None, None, None, 0xD0, None, None, None, None, None, None, None],
+        'bpl': [],
+        'brk': [],
+        'bvc': [],
+        'bvs': [],
+        'clc': [],
+        'cld': [],
+        'cli': [],
+
+        'clv': [],
+        'cmp': [],
+        'cpx': [],
+        'cpy': [],
+        'dec': [],
+        'dex': [],
+        'dey': [],
+        'eor': [],
+
+        'inc': [],
+        'inx': [None, 0xE8, None, None, None, None, None, None, None, None, None, None, None],
+        'iny': [],
+        'jmp': [None, None, None, 0x4C, None, None, 0x6C, None, None, None, None, None, None],
+        'jsr': [],
+        'lda': [None, None, 0xA9, 0xAD, 0xA5, None, None, 0xBD, 0xB9, 0xB5, None, 0xA1, 0xB1],
+        'ldx': [None, None, 0xA2, 0xAE, 0xA6, None, None, None, 0xBE, None, 0xB6, None, None],
+        'ldy': [None, None, 0xA0, 0xAC, 0xA4, None, None, 0xBC, None, 0xB4, None, None, None],
+
+        'lsr': [],
+        'nop': [None, 0xEA, None, None, None, None, None, None, None, None, None, None, None],
+        'ora': [],
+        'pha': [],
+        'php': [],
+        'pla': [],
+        'plp': [],
+        'rol': [],
+
+        'ror': [],
+        'rti': [],
+        'rts': [],
+        'sbc': [],
+        'sec': [],
+        'sed': [],
+        'sei': [],
+        'sta': [None, None, None, 0x8D, 0x85, None, None, 0x9D, 0x99, 0x95, None, 0x81, 0x91],
+
+        'stx': [None, None, None, 0x8E, 0x86, None, None, None, None, None, 0x96, None, None],
+        'sty': [None, None, None, 0x8C, 0x84, None, None, None, None, 0x94, None, None, None],
+        'tax': [],
+        'tay': [],
+        'tsx': [],
+        'txa': [],
+        'txs': [],
+        'tya': []
+    }
 
     @classmethod
     def parse(klass, pstring, location, tokens):
@@ -96,6 +166,9 @@ class Opcode(object):
 
     def get_op(self):
         return self._op
+
+    def emit(self, mode):
+        return pack('<B', self.BCODES[self._op][mode])
 
     def is_relative(self):
         return self._op in self.RELATIVE

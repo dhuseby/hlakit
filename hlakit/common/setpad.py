@@ -71,7 +71,7 @@ class SetPad(object):
         return self._value
 
     def __str__(self):
-        return 'SetPad(%s)' % self._value
+        return 'SetPad <%s>' % self._value
 
     __repr__ = __str__
 

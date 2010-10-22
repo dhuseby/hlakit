@@ -28,6 +28,7 @@ or implied, of David Huseby.
 """
 
 from pyparsing import *
+from struct import pack, unpack
 from hlakit.common.session import Session
 from hlakit.common.name import Name
 from hlakit.common.functioncall import FunctionCall
@@ -41,10 +42,10 @@ class Operand(object):
     """
 
     # the full addressing modes
-    ACC, IMP, IMM, ABS, ZP, REL, IND, IDX, ABS_X, ABS_Y, ZP_X, ZP_Y, IDX_IND, \
-    ABS_IDX_IND, ZP_IDX_IND, ZP_IND_IDX = range(16)
-    MODES = [ 'ACC', 'IMP', 'IMM', 'ABS', 'ZP', 'REL', 'IND', 'IDX', 'ABS_X', 'ABS_Y', 
-              'ZP_X', 'ZP_Y', 'IDX_IND', 'ABS_IDX_IND', 'ZP_IDX_IND', 'ZP_IND_IDX' ]
+    ACC, IMP, IMM, ABS, ZP, REL, IND, ABS_X, ABS_Y, ZP_X, ZP_Y, \
+    IDX_IND, IND_IDX, IDX = range(14)
+    MODES = [ 'ACC', 'IMP', 'IMM', 'ABS', 'ZP', 'REL', 'IND', 'ABS_X', 'ABS_Y', 
+              'ZP_X', 'ZP_Y', 'IDX_IND', 'IND_IDX', 'IDX' ]
 
     @classmethod
     def parse(klass, pstring, location, tokens):
@@ -71,9 +72,9 @@ class Operand(object):
         elif 'idx_ind' in tokens.keys():
             (a, r) = tokens.idx_ind
             k = klass(Operand.IDX_IND, addr=a, reg=r)
-        elif 'zp_ind' in tokens.keys():
-            (a, r) = tokens.zp_ind
-            k = klass(Operand.ZP_IND_IDX, addr=a, reg=r)
+        elif 'ind_idx' in tokens.keys():
+            (a, r) = tokens.ind_idx
+            k = klass(Operand.IND_IDX, addr=a, reg=r)
         else:
             raise ParseFatalException('invalid operand')
 
@@ -127,14 +128,14 @@ class Operand(object):
                         Suppress(')')).setResultsName('idx_ind')
 
         # indirect indexed
-        zp_ind = Group(Suppress('(') + \
+        ind_idx = Group(Suppress('(') + \
                        Or([NumericValue.exprs(),
                            Immediate.exprs()])+ \
                        Suppress(')') + \
                        Suppress(',') + \
-                       CaselessLiteral('y')).setResultsName('zp_ind')
+                       CaselessLiteral('y')).setResultsName('ind_idx')
 
-        expr = Or([acc, imm, rel, addr, indirect, idx_ind, zp_ind, indexed])
+        expr = Or([acc, imm, rel, addr, indirect, idx_ind, ind_idx, indexed])
         expr.setParseAction(klass.parse)
         return expr
 
@@ -172,6 +173,36 @@ class Operand(object):
     def get_scope(self):
         return self._scope
 
+    def emit(self, romfile):
+        if self._mode in (Operand.ACC, Operand.IMP):
+            return []
+
+        elif self.get_mode() == Operand.IMM:
+            b = pack('<B', int(self._value))
+            return [ b ]
+
+        elif self.get_mode() == Operand.REL:
+            if not self.is_resolved():
+                self._value = romfile.get_relative_jmp(str(self._value) + ':')
+            if (int(self._value) < -128) or (int(self._value) > 127):
+                raise ParseFatalException('invalid relative jump amount')
+            b = pack('<b', int(self._value))
+            return [ b ]
+
+        elif self.get_mode() == Operand.ABS:
+            b = pack('<H', int(self._addr))
+            return [ a for a in b ]
+
+        elif self.get_mode() in (Operand.ZP, Operand.ZP_X, Operand.ZP_Y, Operand.IDX_IND, Operand.IND_IDX):
+            b = pack('<B', int(self._addr))
+            return [ b ]
+
+        elif self.get_mode() in (Operand.IND, Operand.ABS_X, Operand.ABS_Y):
+            b = pack('<H', int(self._addr))
+            return [ a for a in b ]
+
+        raise ParseFatalException('cannot emit operand')
+
     def resolve(self):
         # don't try to resolve if we're already resolved
         if self.is_resolved():
@@ -197,7 +228,7 @@ class Operand(object):
                 # the relative offset to jump to
                 self._value = self._value.resolve()
                 self._resolved = True
-                if (int(self._addrs) < -128) or (int(self._addr) > 127):
+                if (int(self._value) < -128) or (int(self._value) > 127):
                     raise ParseFatalException('invalid relative jump amount')
             except:
                 pass
@@ -247,19 +278,19 @@ class Operand(object):
                 self._addr = self._addr.resolve()
                 self._resolved = True
 
-                # figure out which exact addressing mode we're using
-                if int(self._addr) < 256:
-                    self._mode = Operand.ZP_IDX_IND
-                else:
-                    self._mode = Operand.ABS_IDX_IND
+                if int(self._addr) >= 256:
+                    raise ParseFatalException('indexed indirect addressing mode with non-zp address')
             except:
                 pass
 
-        elif self.get_mode() == Operand.ZP_IND_IDX:
+        elif self.get_mode() == Operand.IND_IDX:
             try:
                 # resolve immediate to the NumericValue for indirect, indexed
                 self._addr = self._addr.resolve()
                 self._resolved = True
+
+                if int(self._addr) >= 256:
+                    raise ParseFatalException('indirect indexed addressing mode with non-zp address')
             except:
                 pass
         
@@ -267,11 +298,7 @@ class Operand(object):
 
 
     def __str__(self):
-        if self._mode is Operand.ACC:
-            return '<accumulator>'
-        elif self._mode is Operand.IMP:
-            return '<implied>'
-        elif self._mode is Operand.IMM:
+        if self._mode is Operand.IMM:
             return '#' + str(self._value)
         elif self._mode is Operand.ABS:
             return str(self._addr)
@@ -289,15 +316,12 @@ class Operand(object):
             return '%s,x' % self._addr
         elif self._mode is Operand.ZP_Y:
             return '%s,y' % self._addr
-        elif self._mode is Operand.ABS_IDX_IND:
+        elif self._mode is Operand.IDX_IND:
             return '(%s, x)' % self._addr
-        elif self._mode is Operand.ZP_IDX_IND:
-            return '(%s, x)' % self._addr
-        elif self._mode is Operand.ZP_IND_IDX:
+        elif self._mode is Operand.IND_IDX:
             return '(%s), y' % self._addr
 
-        # IDX, IDX_IND
-        return '<unresolved>'
+        return ''
 
     __repr__ = __str__
 

@@ -227,7 +227,7 @@ class RomBank(object):
         return self._maxsize
 
     def __str__(self):
-        s = "RomBank %s" % self._number
+        s = "RomBank <%s>" % self._number
         if self._maxsize:
             s += ',<0x%x>' % self._maxsize
         return s

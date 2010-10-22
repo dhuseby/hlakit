@@ -121,7 +121,8 @@ class InstructionLine(object):
             except TypeError, e:
                 import pdb; pdb.set_trace()
                 self._operand.resolve()
-            s += ' %s' % self._operand
+            if len(str(self._operand)):
+                s += ' %s' % self._operand
         return s
 
     __repr__ = __str__

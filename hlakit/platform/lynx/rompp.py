@@ -73,7 +73,7 @@ class LynxRomOrg(object):
 
     @classmethod
     def exprs(klass):
-        romorg = Keyword('#lynx.rom.org')
+        romorg = Keyword('#rom.org')
         label = Word(alphas + '_', alphanums + '_')
         segment = Or([label, NumericValue.exprs()]).setResultsName('segment')
         counter = Or([label, NumericValue.exprs()]).setResultsName('counter')
@@ -127,120 +127,4 @@ class LynxRomOrg(object):
 
     __repr__ = __str__
 
-
-class LynxRomEnd(object):
-    """
-    This defines the rules for parsing a #lynx.rom.end line in a file
-    """
-
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        if pp.ignore():
-            return []
-
-        return klass()
-
-    @classmethod
-    def exprs(klass):
-        romend = Keyword('#lynx.rom.end')
-        expr = Suppress(romend)
-        expr.setParseAction(klass.parse)
-
-        return expr
-
-    def __str__(self):
-        return 'LynxRomEnd'
-
-    __repr__ = __str__
-
-class LynxRomBank(object):
-    """
-    This defines the rules for parsing a #lynx.rom.bank <number> line in a file
-    """
-
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        if pp.ignore():
-            return []
-
-        if 'number' not in tokens.keys():
-            raise ParseFatalException('#lynx.rom.bank without a number')
-
-        number = tokens.number
-        if not isinstance(number, NumericValue):
-            if not pp.has_symbol(number):
-                raise ParseFatalException('unknown preprocessor symbol: %s' % number)
-            number = pp.get_symbol(number)
-
-        return klass(number)
-
-    @classmethod
-    def exprs(klass):
-        rombanksize = Keyword('#lynx.rom.bank')
-        label = Word(alphas + '_', alphanums + '_')
-        number = Or([label, NumericValue.exprs()]).setResultsName('number')
-
-        expr = Suppress(rombanksize) + number
-        expr.setParseAction(klass.parse)
-
-        return expr
-
-    def __init__(self, number):
-        self._number = number
-
-    def get_number(self):
-        return self._number
-
-    def __str__(self):
-        return "LynxRomBank <%d>" % self._number
-
-    __repr__ = __str__
-
-class LynxRomPadding(object):
-    """
-    This defines the rules for parsing a #lynx.rom.padding [pad value] line
-    """
-
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
-
-        if pp.ignore():
-            return []
-        
-        if 'num' in tokens.keys():
-            return klass(int(tokens.num))
-        elif 'str' in tokens.keys():
-            return klass(str(tokens.str))
-        else:
-            raise ParseFatalException('missing #lynx.rom.padding parameter')
-
-    @classmethod
-    def exprs(klass):
-        kw = Keyword('#lynx.rom.padding')
-        message_string = quotedString(Word(printables))
-        message_string.setParseAction(removeQuotes)
-
-        expr = Suppress(kw) + \
-               Or([message_string.setResultsName('str'),
-                   NumericValue.exprs().setResultsName('num')]) + \
-               Suppress(LineEnd())
-        expr.setParseAction(klass.parse)
-
-        return expr
-
-    def __init__(self, value):
-        self._value = value
-
-    def get_value(self):
-        return self._value
-
-    def __str__(self):
-        return 'LynxRomPadding <%s>' % self._value
-
-    __repr__ = __str__
 
