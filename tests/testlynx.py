@@ -63,6 +63,7 @@ class LynxTester(unittest.TestCase):
     def tearDown(self):
         Session().preprocessor().reset_state()
         Session().compiler().reset_state()
+        Session().generator().reset_state()
         TypeRegistry().reset_state()
         SymbolTable().reset_state()
         Label.reset_state()

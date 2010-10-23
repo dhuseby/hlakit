@@ -41,6 +41,7 @@ from variable import Variable
 from function import Function
 from functiondecl import FunctionDecl
 from functioncall import FunctionCall
+from functiontype import FunctionType
 from functionreturn import FunctionReturn
 from conditional import Conditional
 from conditionaldecl import ConditionalDecl
@@ -581,8 +582,6 @@ class Compiler(object):
             # invalid token...
             raise ParseFatalException('invalid token after case')
 
-
-
     def _parse_next(self):
         st = SymbolTable()
 
@@ -816,7 +815,10 @@ class Compiler(object):
     def _resolve_switch(self, cond):
         return None
 
-    def _get_fn_return(self, fn):
+    def _get_fn_return(self, fn, parent_fn):
+        return None
+
+    def _get_fn_call(self, fn, parent_fn):
         return None
 
     def _resolve_token(self, token):
@@ -878,7 +880,7 @@ class Compiler(object):
             # we need to add in the proper return instruction
             if not fn.get_noreturn():
 
-                t = self._get_fn_return(fn)
+                t = self._get_fn_return(fn, fn.get_name())
                 if t:
                     if isinstance(t, list):
                         tokens.extend(t)
@@ -886,6 +888,45 @@ class Compiler(object):
                         tokens.append(t)
 
             # return the tokens and let
+            return (tokens, len(tokens))
+
+        elif isinstance(token, FunctionCall):
+            tokens = []
+
+            # look up the function call
+            fn = st.lookup_symbol(token.get_name(), token.get_scope())
+            if fn is None:
+                raise ParseFatalException('unknown function reference: %s' % token.get_name())
+            fn_type = fn.get_type()
+
+            if fn_type == FunctionType.MACRO:
+                # paste the body of the inline function here, alias
+                # the function parameters to the function variables
+                # so they can be resolved.
+                pass
+            elif fn_type == FunctionType.SUBROUTINE:
+                t = self._get_fn_call(fn, token.get_fn())
+                if t:
+                    if isinstance(t, list):
+                        tokens.extend(t)
+                    else:
+                        tokens.append(t)
+
+            # everything else, including interrupts, is an error
+            else:
+                raise ParseFatalException('invalid function type called')
+            
+            return (tokens, len(tokens))
+
+        elif isinstance(token, FunctionReturn):
+            tokens = []
+            t = self._get_fn_return(token, token.get_fn())
+            if t:
+                if isinstance(t, list):
+                    tokens.extend(t)
+                else:
+                    tokens.append(t)
+
             return (tokens, len(tokens))
 
         elif isinstance(token, ScopeBegin):

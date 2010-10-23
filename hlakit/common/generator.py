@@ -53,6 +53,9 @@ class Generator(object):
         if not hasattr(self, '_romfile'):
             self._romfile = self._initialize_rom()
 
+    def reset_state(self):
+        self._romfile = self._initialize_rom()
+
     def _process_variable(self, var):
         pass
 

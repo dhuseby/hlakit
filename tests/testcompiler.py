@@ -32,7 +32,9 @@ import unittest
 from pyparsing import ParseException, ParseFatalException
 from cStringIO import StringIO
 from tests.utils import build_code_block 
+from hlakit.common.preprocessor import Preprocessor
 from hlakit.common.compiler import Compiler
+from hlakit.common.generator import Generator
 from hlakit.common.session import Session, CommandLineError
 from hlakit.common.symboltable import SymbolTable
 from hlakit.common.typeregistry import TypeRegistry
@@ -67,9 +69,14 @@ class CompilerTester(unittest.TestCase):
         TypeRegistry().reset_state()
         SymbolTable().reset_state()
 
+    def testPreprocessor(self):
+        self.assertTrue(isinstance(Session().preprocessor(), Preprocessor))
+
     def testCompiler(self):
-        session = Session()
-        self.assertTrue(isinstance(session.compiler(), Compiler))
+        self.assertTrue(isinstance(Session().compiler(), Compiler))
+
+    def testGenerator(self):
+        self.assertTrue(isinstance(Session().generator(), Generator))
 
     cc_struct = 'struct foo { byte x, y word i }'
 
@@ -403,9 +410,10 @@ class CompilerTester(unittest.TestCase):
 
         # compile a call to foo()
         cc.compile([CodeBlock([CodeLine('foo()')])])
-        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
-        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
+        cc_output = cc.get_parser_output()
+        self.assertTrue(isinstance(cc_output[0], FunctionCall))
+        self.assertTrue(isinstance(cc_output[0].get_name(), Name))
+        self.assertEquals(cc_output[0].get_name().get_name(), 'foo')
 
         # reset state
         st.reset_state()
@@ -585,13 +593,14 @@ class CompilerTester(unittest.TestCase):
                       [FunctionParameter('one')]))
 
         cc.compile([CodeBlock([CodeLine('foo(bar.baz)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
-        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
-        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.baz')
+        cc_output = cc.get_parser_output()
+        self.assertTrue(isinstance(cc_output[0], FunctionCall))
+        self.assertTrue(isinstance(cc_output[0].get_name(), Name))
+        self.assertTrue(isinstance(cc_output[0].get_params(), list))
+        self.assertTrue(len(cc_output[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc_output[0].get_params()[0], FunctionParameter))
+        self.assertEquals(cc_output[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc_output[0].get_params()[0].get_symbol(), 'bar.baz')
 
         # reset state
         st.reset_state()
@@ -606,17 +615,18 @@ class CompilerTester(unittest.TestCase):
                       [FunctionParameter('one'), FunctionParameter('two'), FunctionParameter('three')]))
 
         cc.compile([CodeBlock([CodeLine('foo(bar.food,baz, qux.free)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
-        self.assertTrue(len(cc.get_output()[0].get_params()) == 3)
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
-        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.food')
-        self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
-        self.assertEquals(cc.get_output()[0].get_params()[2].get_symbol(), 'qux.free')
+        cc_output = cc.get_parser_output()
+        self.assertTrue(isinstance(cc_output[0], FunctionCall))
+        self.assertTrue(isinstance(cc_output[0].get_name(), Name))
+        self.assertTrue(isinstance(cc_output[0].get_params(), list))
+        self.assertTrue(len(cc_output[0].get_params()) == 3)
+        self.assertTrue(isinstance(cc_output[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc_output[0].get_params()[1], FunctionParameter))
+        self.assertTrue(isinstance(cc_output[0].get_params()[2], FunctionParameter))
+        self.assertEquals(cc_output[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc_output[0].get_params()[0].get_symbol(), 'bar.food')
+        self.assertEquals(cc_output[0].get_params()[1].get_symbol(), 'baz')
+        self.assertEquals(cc_output[0].get_params()[2].get_symbol(), 'qux.free')
 
         # reset state
         st.reset_state()
@@ -631,13 +641,14 @@ class CompilerTester(unittest.TestCase):
                       [FunctionParameter('one')]))
 
         cc.compile([CodeBlock([CodeLine('foo(0x0400)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
-        self.assertTrue(len(cc.get_output()[0].get_params()) == 1)
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
-        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), Immediate))
+        cc_output = cc.get_parser_output()
+        self.assertTrue(isinstance(cc_output[0], FunctionCall))
+        self.assertTrue(isinstance(cc_output[0].get_name(), Name))
+        self.assertTrue(isinstance(cc_output[0].get_params(), list))
+        self.assertTrue(len(cc_output[0].get_params()) == 1)
+        self.assertTrue(isinstance(cc_output[0].get_params()[0], FunctionParameter))
+        self.assertEquals(cc_output[0].get_name().get_name(), 'foo')
+        self.assertTrue(isinstance(cc_output[0].get_params()[0].get_value(), Immediate))
 
         # reset state
         st.reset_state()
@@ -654,21 +665,22 @@ class CompilerTester(unittest.TestCase):
                        FunctionParameter('five')]))
 
         cc.compile([CodeBlock([CodeLine('foo(0x0400,1024,$0400,1K,%10000000000)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
-        self.assertTrue(len(cc.get_output()[0].get_params()) == 5)
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[3], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[4], FunctionParameter))
-        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0].get_value(), Immediate))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1].get_value(), Immediate))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2].get_value(), Immediate))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[3].get_value(), Immediate))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[4].get_value(), Immediate))
+        cc_output = cc.get_parser_output()
+        self.assertTrue(isinstance(cc_output[0], FunctionCall))
+        self.assertTrue(isinstance(cc_output[0].get_name(), Name))
+        self.assertTrue(isinstance(cc_output[0].get_params(), list))
+        self.assertTrue(len(cc_output[0].get_params()) == 5)
+        self.assertTrue(isinstance(cc_output[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc_output[0].get_params()[1], FunctionParameter))
+        self.assertTrue(isinstance(cc_output[0].get_params()[2], FunctionParameter))
+        self.assertTrue(isinstance(cc_output[0].get_params()[3], FunctionParameter))
+        self.assertTrue(isinstance(cc_output[0].get_params()[4], FunctionParameter))
+        self.assertEquals(cc_output[0].get_name().get_name(), 'foo')
+        self.assertTrue(isinstance(cc_output[0].get_params()[0].get_value(), Immediate))
+        self.assertTrue(isinstance(cc_output[0].get_params()[1].get_value(), Immediate))
+        self.assertTrue(isinstance(cc_output[0].get_params()[2].get_value(), Immediate))
+        self.assertTrue(isinstance(cc_output[0].get_params()[3].get_value(), Immediate))
+        self.assertTrue(isinstance(cc_output[0].get_params()[4].get_value(), Immediate))
 
         # reset state
         st.reset_state()
@@ -683,17 +695,18 @@ class CompilerTester(unittest.TestCase):
                       [FunctionParameter('one'), FunctionParameter('two'), FunctionParameter('three')]))
 
         cc.compile([CodeBlock([CodeLine('foo(bar.food,baz, 1K)')])])
-        self.assertTrue(isinstance(cc.get_output()[0], FunctionCall))
-        self.assertTrue(isinstance(cc.get_output()[0].get_name(), Name))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params(), list))
-        self.assertTrue(len(cc.get_output()[0].get_params()) == 3)
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[0], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[1], FunctionParameter))
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2], FunctionParameter))
-        self.assertEquals(cc.get_output()[0].get_name().get_name(), 'foo')
-        self.assertEquals(cc.get_output()[0].get_params()[0].get_symbol(), 'bar.food')
-        self.assertEquals(cc.get_output()[0].get_params()[1].get_symbol(), 'baz')
-        self.assertTrue(isinstance(cc.get_output()[0].get_params()[2].get_value(), Immediate))
+        cc_output = cc.get_parser_output()
+        self.assertTrue(isinstance(cc_output[0], FunctionCall))
+        self.assertTrue(isinstance(cc_output[0].get_name(), Name))
+        self.assertTrue(isinstance(cc_output[0].get_params(), list))
+        self.assertTrue(len(cc_output[0].get_params()) == 3)
+        self.assertTrue(isinstance(cc_output[0].get_params()[0], FunctionParameter))
+        self.assertTrue(isinstance(cc_output[0].get_params()[1], FunctionParameter))
+        self.assertTrue(isinstance(cc_output[0].get_params()[2], FunctionParameter))
+        self.assertEquals(cc_output[0].get_name().get_name(), 'foo')
+        self.assertEquals(cc_output[0].get_params()[0].get_symbol(), 'bar.food')
+        self.assertEquals(cc_output[0].get_params()[1].get_symbol(), 'baz')
+        self.assertTrue(isinstance(cc_output[0].get_params()[2].get_value(), Immediate))
 
         # reset state
         st.reset_state()

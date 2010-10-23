@@ -406,79 +406,32 @@ class Compiler(CommonCompiler):
         # return the tokens and the number of tokens left to resolve
         return (tokens, len(tokens))
 
-    def _get_fn_return(self, fn):
+    def _get_fn_return(self, fn, parent_fn):
         # for subroutines, we return with rts
         if fn.get_type() == FunctionType.SUBROUTINE:
-            return InstructionLine.new('rts', fn=fn.get_name())
+            return InstructionLine.new('rts', fn=parent_fn)
 
         # for interrupts, we return with rti
         elif fn.get_type() == FunctionType.INTERRUPT:
-            return InstructionLine.new('rti', fn=fn.get_name())
+            return InstructionLine.new('rti', fn=parent_fn)
 
-    def _resolve_token(self, token):
-        st = SymbolTable()
-
-        if isinstance(token, InstructionLine):
-            if (not token.is_resolved()) and (not token.resolve()):
-                return (token, 1)
-            return (token, 0)
-
-        elif isinstance(token, FunctionCall):
-            tokens = []
-
-            # look up the function call
-            fn = st.lookup_symbol(token.get_name(), token.get_scope())
-            if fn is None:
-                raise ParseFatalException('unknown function reference: %s' % token.get_name())
-            fn_type = fn.get_type()
-
-            if fn_type == FunctionType.MACRO:
-                # paste the body of the inline function here, alias
-                # the function parameters to the function variables
-                # so they can be resolved.
-                pass
-            elif fn_type == FunctionType.SUBROUTINE:
-                # see if the function has already been emitted and has a start label
-                start_label = fn.get_start_label()
-                if start_label is None:
-                    # if it doesn't have a start label, then it hasn't been seen yet and
-                    # it hasn't been been converted to InstructionLines and Labels.  So
-                    # we need to convert the FunctionCall into an InstructionLine with
-                    # an Immediate the references the name of the function that will later
-                    # be resolved into an Immediate the references the function's
-                    # start label by name.
-                    i = InstructionLine.new('jsr', fn=token.get_fn(), 
-                                            mode=Operand.ABS, addr=fn.get_name())
-                else:
-                    # if it has a start label, then transform it into an InstructionLine
-                    # with an Immediate with the name of the label that it be resolved
-                    # to an address later.
-                    i = InstructionLine.new('jsr', fn=token.get_fn(), 
-                                            mode=Operand.ABS, addr=start_label.get_name())
-
-                # add the instruction line to the list
-                tokens.append(i)
-
-            # everything else, including interrupts, is an error
-            else:
-                raise ParseFatalException('invalid function type called')
-            
-            return (tokens, len(tokens))
-
-        elif isinstance(token, FunctionReturn):
-            tokens = []
-            # for subroutines, we return with rts
-            if token.get_type() == FunctionType.SUBROUTINE:
-                tokens.append(InstructionLine.new('rts', fn=token.get_fn()))
-
-            # for interrupts, we return with rti
-            elif token.get_type() == FunctionType.INTERRUPT:
-                tokens.append(InstructionLine.new('rti', fn=token.get_fn()))
-
-            return (tokens, len(tokens))
-
-        # if the token wasn't an InstructionLine, then call the base class to
-        # handle the token.
-        return super(Compiler, self)._resolve_token(token)
+    def _get_fn_call(self, fn, parent_fn):
+        # see if the function has already been emitted and has a start label
+        start_label = fn.get_start_label()
+        if start_label is None:
+            # if it doesn't have a start label, then it hasn't been seen yet and
+            # it hasn't been been converted to InstructionLines and Labels.  So
+            # we need to convert the FunctionCall into an InstructionLine with
+            # an Immediate the references the name of the function that will later
+            # be resolved into an Immediate the references the function's
+            # start label by name.
+            return InstructionLine.new('jsr', fn=parent_fn, 
+                                       mode=Operand.ABS, addr=fn.get_name())
+        else:
+            # if it has a start label, then transform it into an InstructionLine
+            # with an Immediate with the name of the label that it be resolved
+            # to an address later.
+            return InstructionLine.new('jsr', fn=parent_fn, 
+                                       mode=Operand.ABS, addr=start_label.get_name())
 
 
