@@ -406,6 +406,15 @@ class Compiler(CommonCompiler):
         # return the tokens and the number of tokens left to resolve
         return (tokens, len(tokens))
 
+    def _get_fn_return(self, fn):
+        # for subroutines, we return with rts
+        if fn.get_type() == FunctionType.SUBROUTINE:
+            return InstructionLine.new('rts', fn=fn.get_name())
+
+        # for interrupts, we return with rti
+        elif fn.get_type() == FunctionType.INTERRUPT:
+            return InstructionLine.new('rti', fn=fn.get_name())
+
     def _resolve_token(self, token):
         st = SymbolTable()
 
@@ -440,43 +449,6 @@ class Compiler(CommonCompiler):
                 raise ParseFatalException("unimplimented conditional type")
 
             return (token, 0)
-
-        elif isinstance(token, Function):
-            tokens = []
-            fn = token
-
-            # TODO: if the function has no other functions that call it
-            # then exit out early and don't emit the function into the
-            # resolver output, thus removing the dead code.
-
-            # start all functions with a label
-            L1 = Label(name=fn.get_name(), fn=fn.get_name())
-            st.new_symbol(L1, st.GLOBAL_NAMESPACE)
-            tokens.append(L1)
-
-            # tell the function which label starts the function
-            # this lets us later look up a function by name, then
-            # get the start label and its address to know the address
-            # to give to the jsr instruction
-            fn.set_start_label(L1)
-
-            # then append it's tokens and count them as unresolved
-            tokens.extend(fn.get_tokens())
-
-            # if the function isn't declared as 'noreturn', then
-            # we need to add in the proper return instruction
-            if not fn.get_noreturn():
-
-                # for subroutines, we return with rts
-                if fn.get_type() == FunctionType.SUBROUTINE:
-                    tokens.append(InstructionLine.new('rts', fn=fn.get_name()))
-
-                # for interrupts, we return with rti
-                elif fn.get_type() == FunctionType.INTERRUPT:
-                    tokens.append(InstructionLine.new('rti', fn=fn.get_name()))
-
-            # return the tokens and let
-            return (tokens, len(tokens))
 
         elif isinstance(token, FunctionCall):
             tokens = []

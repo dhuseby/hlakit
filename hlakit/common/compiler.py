@@ -798,10 +798,57 @@ class Compiler(object):
         # get the tokens from the base scope
         self._parsed_tokens = copy.copy(scope.get_tokens())
 
+    def _get_fn_return(self, fn):
+        return None
+
     def _resolve_token(self, token):
-        if isinstance(token, ScopeBegin):
+        st = SymbolTable()
+
+        if isinstance(token, InstructionLine):
+            if (not token.is_resolved()) and (not token.resolve()):
+                return (token, 1)
+            return (token, 0)
+
+        elif isinstance(token, Function):
+            tokens = []
+            fn = token
+
+            # TODO: if the function has no other functions that call it
+            # then exit out early and don't emit the function into the
+            # resolver output, thus removing the dead code.
+
+            # start all functions with a label
+            L1 = Label(name=fn.get_name(), fn=fn.get_name())
+            st.new_symbol(L1, st.GLOBAL_NAMESPACE)
+            tokens.append(L1)
+
+            # tell the function which label starts the function
+            # this lets us later look up a function by name, then
+            # get the start label and its address to know the address
+            # to give to the jsr instruction
+            fn.set_start_label(L1)
+
+            # then append it's tokens and count them as unresolved
+            tokens.extend(fn.get_tokens())
+
+            # if the function isn't declared as 'noreturn', then
+            # we need to add in the proper return instruction
+            if not fn.get_noreturn():
+
+                t = self._get_fn_return(fn)
+                if t:
+                    if isinstance(t, list):
+                        tokens.extend(t)
+                    else:
+                        tokens.append(t)
+
+            # return the tokens and let
+            return (tokens, len(tokens))
+
+        elif isinstance(token, ScopeBegin):
             # eat the token
             return ([], 0)
+
         elif isinstance(token, ScopeEnd):
             # eat the token
             return ([], 0)
