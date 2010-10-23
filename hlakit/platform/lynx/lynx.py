@@ -27,114 +27,10 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-import os
-from pyparsing import *
-from hlakit.common.rompp import RomOrg
-from hlakit.cpu.mos6502 import MOS6502, MOS6502Preprocessor, MOS6502Compiler, MOS6502Generator
-from loader import LynxLoader
-from lnx import Lnx, LnxSetting
-from rompp import LynxRomOrg
-
-class LynxPreprocessor(MOS6502Preprocessor):
-
-    @classmethod
-    def first_exprs(klass):
-        e = []
-
-        # start with the first base preprocessor rules 
-        e.extend(MOS6502Preprocessor.first_exprs())
-
-        # add in Lynx specific preprocessor parse rules
-        e.append(('lynxloader', LynxLoader.exprs()))
-        e.append(('lnxsetting', LnxSetting.exprs()))
-
-        # replace the original RomOrg with the LynxRomOrg
-        for i in range(0, len(e)):
-            if e[i][0] == 'romorg':
-                e[i] = ('romorg', LynxRomOrg.exprs())
-        
-        return e
-
-
-class LynxCompiler(MOS6502Compiler):
-
-    @classmethod
-    def first_exprs(klass):
-        e = []
-
-        # start with the first, base compiler rules
-        e.extend(MOS6502Compiler.first_exprs())
-
-        # add in the Lynx specific compiler parse rules
-
-        return e
-
-class LynxGenerator(MOS6502Generator):
-
-    def _resolve_value(self, name, type_):
-        pass
-
-    def _process_token(self, token):
-
-        # get the rom file
-        romfile = self.romfile()
-
-        # handle Lynx specific token
-        if isinstance(token, LynxLoader):
-            romfile.set_loader(token.get_fn())
-        elif isinstance(token, LnxSetting):
-            type_ = token.get_type()
-            if type_ == LnxSetting.OFF:
-                romfile.set_no_header()
-            elif type_ == LnxSetting.PSB0:
-                romfile.set_page_size_bank0(token.get_size())
-            elif type_ == LnxSetting.PSB1:
-                romfile.set_page_size_bank1(token.get_size())
-            elif type_ == LnxSetting.VERSION:
-                romfile.set_version(token.get_version())
-            elif type_ == LnxSetting.CART_NAME:
-                romfile.set_cart_name(token.get_name())
-            elif type_ == LnxSetting.MANU_NAME:
-                romfile.set_manufacturer_name(token.get_name())
-            elif type_ == LnxSetting.ROTATION:
-                romfile.set_rotation(token.get_rotation())
-        elif isinstance(token, LynxRomOrg):
-            # intercept LynxRomOrg tokens and set the rom addr
-            romfile.set_rom_org(token.get_segment(), 
-                                token.get_counter(), 
-                                token.get_maxsize())
-        elif isinstance(token, RomOrg):
-            raise ParseFatalException('there should not be any RomOrg tokens in a Lynx compile')
-        else:
-            # pass the token along to the CPU generator
-            super(LynxGenerator, self)._process_token(token)
-
-    def _initialize_rom(self):
-        """ This function returns the RomFile to be used for this session """
-        return Lnx()
-
-    def _finalize_rom(self):
-        # look up the loader function, encrypt it and put it at the front of
-        # the rom list
-
-        # output all blocks in the rom list to the rom
-        romfile = self.romfile()
-        #bufs = romfile.get_buffers()
-        #print "Buffers:"
-        #for b in bufs:
-        #    print '%s' % b
-
-    def build_rom(self, tokens):
-
-        # process each of the tokens
-        for t in tokens:
-            self._process_token(t)
-
-        # finalize the rom output pass
-        self._finalize_rom()
-
-        # return the rom
-        return self.romfile()
+from hlakit.cpu.mos6502 import MOS6502
+from preprocessor import Preprocessor
+from compiler import Compiler
+from generator import Generator
 
 
 class Lynx(MOS6502):
@@ -147,13 +43,13 @@ class Lynx(MOS6502):
         super(Lynx, self).__init__()
 
     def preprocessor(self):
-        return LynxPreprocessor()
+        return Preprocessor()
 
     def compiler(self):
-        return LynxCompiler()
+        return Compiler()
 
     def generator(self):
-        return LynxGenerator()
+        return Generator()
 
 
 

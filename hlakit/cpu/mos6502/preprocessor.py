@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -26,4 +26,25 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-from mos6502 import MOS6502
+
+import os
+from pyparsing import *
+from hlakit.common.preprocessor import Preprocessor as CommonPreprocessor
+from interrupt import InterruptStart, InterruptNMI, InterruptIRQ
+
+class Preprocessor(CommonPreprocessor):
+
+    @classmethod
+    def first_exprs(klass):
+        e = []
+
+        # start with the first base preprocessor rules 
+        e.extend(CommonPreprocessor.first_exprs())
+
+        # add in 6502 specific preprocessor parse rules
+        e.append(('interruptstart', InterruptStart.exprs()))
+        e.append(('interruptnmi', InterruptNMI.exprs()))
+        e.append(('interruptirq', InterruptIRQ.exprs()))
+        
+        return e
+

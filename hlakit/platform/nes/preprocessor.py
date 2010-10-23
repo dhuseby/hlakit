@@ -26,4 +26,34 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-from mos6502 import MOS6502
+
+from hlakit.cpu.mos6502.preprocessor import Preprocessor as MOS6502Preprocessor
+from ines import iNES, iNESMapper, iNESMirroring, iNESFourscreen, iNESBattery, iNESTrainer, iNESPrgRepeat, iNESChrRepeat, iNESOff
+from chr import ChrBanksize, ChrBank, ChrLink, ChrEnd
+
+class Preprocessor(MOS6502Preprocessor):
+
+    @classmethod
+    def first_exprs(klass):
+        e = []
+
+        # start with the first base preprocessor rules 
+        e.extend(MOS6502Preprocessor.first_exprs())
+
+        # add in NES specific preprocessor parse rules
+        e.append(('chrbanksize', ChrBanksize.exprs()))
+        e.append(('chrbank', ChrBank.exprs()))
+        e.append(('chrlink', ChrLink.exprs()))
+        e.append(('chrend', ChrEnd.exprs()))
+        e.append(('inesmapper', iNESMapper.exprs()))
+        e.append(('inesmirroring', iNESMirroring.exprs()))
+        e.append(('inesfourscreen', iNESFourscreen.exprs()))
+        e.append(('inesbattery', iNESBattery.exprs()))
+        e.append(('inestrainer', iNESTrainer.exprs()))
+        e.append(('inesprgrepeat', iNESPrgRepeat.exprs()))
+        e.append(('ineschrrepeat', iNESChrRepeat.exprs()))
+        e.append(('inesoff', iNESOff.exprs()))
+        
+        return e
+
+

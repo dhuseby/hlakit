@@ -26,4 +26,20 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-from mos6502 import MOS6502
+
+from hlakit.cpu.mos6502.compiler import Compiler as MOS6502Compiler
+
+class Compiler(MOS6502Compiler):
+
+    @classmethod
+    def first_exprs(klass):
+        e = []
+
+        # start with the first, base compiler rules
+        e.extend(MOS6502Compiler.first_exprs())
+
+        # add in the Lynx specific compiler parse rules
+
+        return e
+
+

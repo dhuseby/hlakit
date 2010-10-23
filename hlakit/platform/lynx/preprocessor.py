@@ -26,4 +26,32 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-from mos6502 import MOS6502
+
+from hlakit.cpu.mos6502.preprocessor import Preprocessor as MOS6502Preprocessor
+from loader import LynxLoader
+from lnx import Lnx
+from lnxsetting import LnxSetting
+from rompp import LynxRomOrg
+
+class Preprocessor(MOS6502Preprocessor):
+
+    @classmethod
+    def first_exprs(klass):
+        e = []
+
+        # start with the first base preprocessor rules 
+        e.extend(MOS6502Preprocessor.first_exprs())
+
+        # add in Lynx specific preprocessor parse rules
+        e.append(('lynxloader', LynxLoader.exprs()))
+        e.append(('lnxsetting', LnxSetting.exprs()))
+
+        # replace the original RomOrg with the LynxRomOrg
+        for i in range(0, len(e)):
+            if e[i][0] == 'romorg':
+                e[i] = ('romorg', LynxRomOrg.exprs())
+        
+        return e
+
+
+

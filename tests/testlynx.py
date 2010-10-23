@@ -44,23 +44,28 @@ from hlakit.common.functiondecl import FunctionDecl
 from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 from hlakit.common.label import Label
 from hlakit.common.conditional import Conditional
+from hlakit.common.symboltable import SymbolTable
+from hlakit.common.typeregistry import TypeRegistry
 from hlakit.cpu.mos6502.instructionline import InstructionLine
 from hlakit.cpu.mos6502.conditionaldecl import ConditionalDecl
-from hlakit.platform.lynx import LynxPreprocessor, LynxCompiler, LynxGenerator
+from hlakit.platform.lynx.preprocessor import Preprocessor as LynxPreprocessor
+from hlakit.platform.lynx.compiler import Compiler as LynxCompiler
+from hlakit.platform.lynx.generator import Generator as LynxGenerator
 from hlakit.platform.lynx.loader import LynxLoader
-from hlakit.platform.lynx.lnx import Lnx, LnxSetting
+from hlakit.platform.lynx.lnx import Lnx
+from hlakit.platform.lynx.lnxsetting import LnxSetting
 from hlakit.platform.lynx.rompp import LynxRomOrg
 
-class LynxPreprocessorTester(unittest.TestCase):
-    """
-    This class aggregates all of the tests for the Lynx Preprocessor
-    """
-
+class LynxTester(unittest.TestCase):
     def setUp(self):
         Session().parse_args(['--platform=Lynx'])
 
     def tearDown(self):
         Session().preprocessor().reset_state()
+        Session().compiler().reset_state()
+        TypeRegistry().reset_state()
+        SymbolTable().reset_state()
+        Label.reset_state()
 
     def testLynxPreprocessor(self):
         self.assertTrue(isinstance(Session().preprocessor(), LynxPreprocessor))
@@ -70,6 +75,12 @@ class LynxPreprocessorTester(unittest.TestCase):
 
     def testLynxGenerator(self):
         self.assertTrue(isinstance(Session().generator(), LynxGenerator))
+
+
+class LynxPreprocessorTester(LynxTester):
+    """
+    This class aggregates all of the tests for the Lynx Preprocessor
+    """
 
     pp_lynxloader = '#lynx.loader %s'
 
@@ -339,33 +350,19 @@ class LynxPreprocessorTester(unittest.TestCase):
         except ParseException:
             pass
 
-class LynxCompilerTester(unittest.TestCase):
+class LynxCompilerTester(LynxTester):
     """
     This class aggregates all of the tests for the Lynx Compiler
     """
-
-    def setUp(self):
-        Session().parse_args(['--platform=Lynx'])
-
-    def tearDown(self):
-        Session().compiler().reset_state()
-
-    def testLynxPreprocessor(self):
-        self.assertTrue(isinstance(Session().compiler(), LynxCompiler))
+    pass
 
 
-class LynxLnxTester(unittest.TestCase):
+class LynxLnxTester(LynxTester):
     """
     This class aggregates all of the tests for the Lynx .LNX header class
     """
 
     VALID_HEADER = 'LYNX\x00\x04\x00\x00\x01\x00CALGAMES.040\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Atari\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-
-    def setUp(self):
-        Session().parse_args(['--platform=Lynx'])
-
-    def tearDown(self):
-        Session().preprocessor().reset_state()
 
     def _checkScannerParserResolver(self, cc, scanner, parser, resolver):
         # check the scanner output
@@ -629,6 +626,7 @@ jmp $FB00
         ]
 
         cc = Session().compiler()
+        #import pdb; pdb.set_trace()
         cc.compile(pp_tokens, True)
         self._checkScannerParserResolver(cc, scanner, parser, resolver)
 

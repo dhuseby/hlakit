@@ -28,7 +28,6 @@ or implied, of David Huseby.
 """
 import os
 import sys
-from types import NoneType
 import unittest
 from pyparsing import ParseException, ParseFatalException
 from cStringIO import StringIO
@@ -45,13 +44,6 @@ from hlakit.common.function import Function
 from hlakit.common.functionreturn import FunctionReturn
 from hlakit.common.conditional import Conditional
 from hlakit.common.label import Label
-from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
-from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
-from hlakit.cpu.mos6502.register import Register
-from hlakit.cpu.mos6502.opcode import Opcode
-from hlakit.cpu.mos6502.operand import Operand
-from hlakit.cpu.mos6502.instructionline import InstructionLine
-from hlakit.cpu.mos6502.conditionaldecl import ConditionalDecl
 from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
 from hlakit.common.functiondecl import FunctionDecl
@@ -60,22 +52,41 @@ from hlakit.common.scopemarkers import ScopeBegin, ScopeEnd
 from hlakit.common.immediate import Immediate
 from hlakit.common.variable import Variable
 from hlakit.common.variableinitializer import VariableInitializer
+from hlakit.cpu.mos6502.preprocessor import Preprocessor as MOS6502Preprocessor
+from hlakit.cpu.mos6502.compiler import Compiler as MOS6502Compiler
+from hlakit.cpu.mos6502.generator import Generator as MOS6502Generator
+from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
+from hlakit.cpu.mos6502.register import Register
+from hlakit.cpu.mos6502.opcode import Opcode
+from hlakit.cpu.mos6502.operand import Operand
+from hlakit.cpu.mos6502.instructionline import InstructionLine
+from hlakit.cpu.mos6502.conditionaldecl import ConditionalDecl
 
-class MOS6502PreprocessorTester(unittest.TestCase):
-    """
-    This class aggregates all of the tests for the 6502 Preprocessor
-    """
-
+class MOS6502Tester(unittest.TestCase):
     def setUp(self):
         Session().parse_args(['--cpu=6502'])
 
     def tearDown(self):
         Session().preprocessor().reset_state()
+        Session().compiler().reset_state()
+        TypeRegistry().reset_state()
+        SymbolTable().reset_state()
+        Label.reset_state()
 
     def test6502Preprocessor(self):
-        session = Session()
-        session.parse_args(['--cpu=6502'])
-        self.assertTrue(isinstance(session._target.preprocessor(), MOS6502Preprocessor))
+        self.assertTrue(isinstance(Session().preprocessor(), MOS6502Preprocessor))
+
+    def test6502Compiler(self):
+        self.assertTrue(isinstance(Session().compiler(), MOS6502Compiler))
+
+    def test6502Generator(self):
+        self.assertTrue(isinstance(Session().generator(), MOS6502Generator))
+
+
+class MOS6502PreprocessorTester(MOS6502Tester):
+    """
+    This class aggregates all of the tests for the 6502 Preprocessor
+    """
 
     def testInitialTypes(self):
         tr = TypeRegistry()
@@ -136,19 +147,10 @@ class MOS6502PreprocessorTester(unittest.TestCase):
             pass
 
 
-class MOS6502CompilerTester(unittest.TestCase):
+class MOS6502CompilerTester(MOS6502Tester):
     """
     This class aggregates all of the tests for the MOS6502 CPU compiler.
     """
-
-    def setUp(self):
-        Session().parse_args(['--cpu=6502'])
-
-    def tearDown(self):
-        Session().compiler().reset_state()
-        TypeRegistry().reset_state()
-        SymbolTable().reset_state()
-        Label.reset_state()
 
     def _checkScannerParserResolver(self, cc, scanner, parser, resolver):
         # check the scanner output
@@ -168,10 +170,6 @@ class MOS6502CompilerTester(unittest.TestCase):
         for i in range(0,len(resolver)):
             self.assertTrue(isinstance(cc.get_resolver_output()[i], resolver[i][0]), '%d' % i)
             self.assertEquals(str(cc.get_resolver_output()[i]), resolver[i][1], '%d' % i)
-
-    def testCompiler(self):
-        session = Session()
-        self.assertTrue(isinstance(session.compiler(), MOS6502Compiler))
 
     def testLineNoOperand(self):
         cc = Session().compiler()

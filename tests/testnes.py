@@ -54,30 +54,43 @@ from hlakit.common.variable import Variable
 from hlakit.common.variableinitializer import VariableInitializer
 from hlakit.common.label import Label
 from hlakit.common.conditional import Conditional
-from hlakit.cpu.mos6502 import MOS6502Preprocessor, MOS6502Compiler
 from hlakit.cpu.mos6502.interrupt import InterruptStart, InterruptNMI, InterruptIRQ
 from hlakit.cpu.mos6502.register import Register
 from hlakit.cpu.mos6502.opcode import Opcode
 from hlakit.cpu.mos6502.operand import Operand
 from hlakit.cpu.mos6502.instructionline import InstructionLine
 from hlakit.cpu.mos6502.conditionaldecl import ConditionalDecl
-from hlakit.platform.nes import NESPreprocessor, NESCompiler
+from hlakit.platform.nes.preprocessor import Preprocessor as NESPreprocessor
+from hlakit.platform.nes.compiler import Compiler as NESCompiler
+from hlakit.platform.nes.generator import Generator as NESGenerator
 from hlakit.platform.nes.chr import ChrBanksize, ChrBank, ChrLink, ChrEnd
 from hlakit.platform.nes.ines import iNESMapper, iNESMirroring, iNESFourscreen, iNESBattery, iNESTrainer, iNESPrgRepeat, iNESChrRepeat, iNESOff
 
-class NESPreprocessorTester(unittest.TestCase):
-    """
-    This class aggregates all of the tests for the NES Preprocessor
-    """
-
+class NESTester(unittest.TestCase):
     def setUp(self):
         Session().parse_args(['--platform=NES'])
 
     def tearDown(self):
         Session().preprocessor().reset_state()
+        Session().compiler().reset_state()
+        TypeRegistry().reset_state()
+        SymbolTable().reset_state()
+        Label.reset_state()
 
     def testNESPreprocessor(self):
         self.assertTrue(isinstance(Session().preprocessor(), NESPreprocessor))
+
+    def testNESCompiler(self):
+        self.assertTrue(isinstance(Session().compiler(), NESCompiler))
+
+    def testNESGenerator(self):
+        self.assertTrue(isinstance(Session().generator(), NESGenerator))
+
+
+class NESPreprocessorTester(NESTester):
+    """
+    This class aggregates all of the tests for the NES Preprocessor
+    """
 
     pp_chrbanksize = '#chr.banksize %s\n'
     pp_chrend = '#chr.end'
@@ -277,18 +290,10 @@ class NESPreprocessorTester(unittest.TestCase):
         self.assertTrue(isinstance(tokens[1], iNESOff))
 
 
-class NESCompilerTester(unittest.TestCase):
+class NESCompilerTester(NESTester):
     """
     This class aggregates all of the tests for the NES Compiler
     """
-
-    def setUp(self):
-        Session().parse_args(['--platform=NES'])
-
-    def tearDown(self):
-        Session().compiler().reset_state()
-        TypeRegistry().reset_state()
-        SymbolTable().reset_state()
 
     def _checkScannerParserResolver(self, cc, scanner, parser, resolver):
         # check the scanner output
@@ -308,9 +313,6 @@ class NESCompilerTester(unittest.TestCase):
         for i in range(0,len(resolver)):
             self.assertTrue(isinstance(cc.get_resolver_output()[i], resolver[i][0]), '%d' % i)
             self.assertEquals(str(cc.get_resolver_output()[i]), resolver[i][1], '%d' % i)
-
-    def testNESCompiler(self):
-        self.assertTrue(isinstance(Session().compiler(), NESCompiler))
 
     def testExampleGame(self):
         code = """
