@@ -44,6 +44,7 @@ from functioncall import FunctionCall
 from functionreturn import FunctionReturn
 from conditional import Conditional
 from conditionaldecl import ConditionalDecl
+from instructionline import InstructionLine
 from codeblock import CodeBlock
 from filemarkers import FileBegin, FileEnd
 from scopemarkers import ScopeBegin, ScopeEnd
@@ -192,6 +193,396 @@ class Compiler(object):
     def _put_token(self, token):
         self._in_tokens.insert(0, token)
 
+    def _open_scoped_block(self, cond, token):
+        st = SymbolTable()
+
+        # it's a scoped block
+        self._append_token_to_scope(token)
+        self._increment_depth()
+
+        # open the symbol table scope and tell the conditional
+        # what the scope name is for the block
+        st.scope_push(st.get_namespace(cond.get_name()))
+        cond.set_scope(st.current_namespace())
+
+    def _close_scoped_block(self, cond, token):
+        # append the token and close the block
+        self._append_token_to_scope(token)
+        self._decrement_depth()
+        cond.close_block()
+
+        # close the symbol table scope
+        st = SymbolTable()
+        st.scope_pop()
+
+    def _close_conditional(self, cond, token):
+        # close the scoped block
+        self._close_scoped_block(cond, token)
+        
+        # this conditional is done, so pop the conditional and add
+        # it to the parent scope
+        (token, depth) = self._pop_scope()
+        self._append_token_to_scope(token)
+
+        if self._one_line_count > 0:
+            self._put_token(ScopeEnd())
+            self._one_line_count -= 1
+
+    def _close_if(self, cond, token):
+        # check to see if the one line if block is followed by an else 
+        next = self._peek_token()
+
+        if isinstance(next, ConditionalDecl) and \
+           next.get_mode() == ConditionalDecl.ELSE:
+            # yes it is, so close the if block and return None
+            # so that the else block will be processed
+            self._close_scoped_block(cond, token)
+        else:
+            # close conditional
+            self._close_conditional(cond, token)
+
+    def _close_do(self, cond, token):
+        # check for the while
+        w = self._get_token()
+        if isinstance(w, ConditionalDecl) and \
+           w.get_mode() == ConditionalDecl.WHILE:
+            # replace the block's decl
+            cond.replace_block_decl(w)
+            self._close_conditional(cond, token)
+        else:
+            raise ParseFatalException('missing while after one-line do block')
+
+    def _close_switch(self, cond, token):
+        # decrement depth
+        self._decrement_depth()
+
+        # close the symbol table scope
+        st = SymbolTable()
+        st.scope_pop()
+
+        # this conditional is done, so pop the conditional and add
+        # it to the parent scope
+        (token, depth) = self._pop_scope()
+        self._append_token_to_scope(token)
+
+        if depth != 0:
+            raise ParseFatalException('switch block not closed properly')
+
+        if self._one_line_count > 0:
+            raise ParseFatalException('switch block with one-line count > 0')
+
+    def _close_case(self, cond, token):
+        # close the scoped block
+        self._close_scoped_block(cond, token)
+
+        # need to pop the case off
+        (case, depth) = self._pop_scope()
+
+        if depth != 0:
+            raise ParseFatalException('case block not closed properly')
+
+        if self._one_line_count > 0:
+            raise ParseFatalException('case block with one-line count > 0')
+
+        if len(case.get_blocks()) != 1:
+            raise ParseFatalException('case conditional has more than one block')
+
+        # get the parent switch conditional
+        switch = self._get_scope_context()
+
+        # so else decls can only happen immediately after an if block
+        if (not isinstance(switch, Conditional)) or \
+           (switch.get_type() not in (Conditional.SWITCH, Conditional.SWITCH_DEFAULT)):
+            raise ParseFatalException('case block not in a switch decl')
+        
+        # check to make sure the if block isn't still open 
+        if switch.is_block_open():
+            raise ParseFatalException('case block in an open conditional block')
+
+        # add it to the switch conditional
+        switch.add_block(case.get_blocks()[0])
+
+    def _process_if(self, token):
+        # start a new conditional
+        cond = Conditional(self._get_depth())
+        cond.set_type(Conditional.IF)
+        self._push_scope(cond)
+        
+        # start a new conditional block
+        cond.new_block(token)
+
+        # we have to check the token following the decl to figure out what
+        # to do next...
+        token = self._get_token()
+        if isinstance(token, ScopeBegin):
+            # starting a scoped if block
+            self._open_scoped_block(cond, token)
+
+        elif isinstance(token, ConditionalDecl):
+            # put the token back and go around for another pass
+            self._open_scoped_block(cond, ScopeBegin())
+            self._put_token(token)
+            self._one_line_count += 1
+
+        elif isinstance(token, InstructionLine):
+            # it's a one-liner, so manually add the ScopeBegin and the ScopeEnd
+            # tokens around the one line and then close the if conditional
+            self._open_scoped_block(cond, ScopeBegin())
+            self._append_token_to_scope(token)
+            self._put_token(ScopeEnd())
+
+        else:
+            # invalid token
+            raise ParseFatalException('invalid token following if declaration')
+
+
+    def _process_else(self, token):
+        # get the current context
+        cond = self._get_scope_context()
+
+        # so else decls can only happen immediately after an if block
+        if (not isinstance(cond, Conditional)) or \
+           (cond.get_type() != Conditional.IF):
+            raise ParseFatalException('else block without preceding if block')
+        
+        # check to make sure the if block isn't still open 
+        if cond.is_block_open():
+            raise ParseFatalException('else block in open if block')
+
+        # update the conditional type
+        cond.set_type(Conditional.IF_ELSE)
+
+        # the else block
+        cond.new_block(token)
+
+        # we have to check the token after the else decl to know what
+        # to do next...
+        token = self._get_token()
+        if isinstance(token, ScopeBegin):
+            # starting a scoped else block
+            self._open_scoped_block(cond, token)
+
+        elif isinstance(token, ConditionalDecl):
+            # put the token back and go around for another pass
+            self._open_scoped_block(cond, ScopeBegin())
+            self._put_token(token)
+            self._one_line_count += 1
+
+        elif isinstance(token, InstructionLine):
+            # one line else block so open a scoped block, add the token
+            # then push a ScopeEnd() back on the stack so that it will
+            # get closed properly
+            self._open_scoped_block(cond, ScopeBegin())
+            self._append_token_to_scope(token)
+            self._put_token(ScopeEnd())
+        
+        else:
+            # invalid token...
+            raise ParseFatalException('invalid token after else')
+
+
+    def _process_do(self, token):
+        # start a new conditional
+        cond = Conditional(self._get_depth())
+        cond.set_type(Conditional.DO_WHILE)
+        self._push_scope(cond)
+       
+        # start a new conditional block
+        cond.new_block(token)
+
+        # now we have to check the next token to figure out what
+        # to do next...
+        token = self._get_token()
+        if isinstance(token, ScopeBegin):
+            # starting a scoped do block
+            self._open_scoped_block(cond, token)
+
+        elif isinstance(token, ConditionalDecl):
+            # put the token back and go around for another pass
+            self._open_scoped_block(cond, ScopeBegin())
+            self._put_token(token)
+            self._one_line_count += 1
+
+        elif isinstance(token, InstructionLine):
+            self._open_scoped_block(cond, ScopeBegin())
+            self._append_token_to_scope(token)
+            self._put_token(ScopeEnd())
+
+    def _process_while(self, token):
+        # start a new conditional
+        cond = Conditional(self._get_depth())
+        cond.set_type(Conditional.WHILE)
+        self._push_scope(cond)
+        
+        # start a new conditional block
+        cond.new_block(token)
+
+        # now we have to check the next token to figure out what
+        # to do next...
+        token = self._get_token()
+        if isinstance(token, ScopeBegin):
+            # starting a scoped block
+            self._open_scoped_block(cond, token)
+
+        elif isinstance(token, ConditionalDecl):
+            # put the token back and go around for another pass
+            self._open_scoped_block(cond, ScopeBegin())
+            self._put_token(token)
+            self._one_line_count += 1
+
+        elif isinstance(token, InstructionLine):
+            self._open_scoped_block(cond, ScopeBegin())
+            self._append_token_to_scope(token)
+            self._put_token(ScopeEnd())
+
+    def _process_forever(self, token):
+        # start a new conditional
+        cond = Conditional(self._get_depth())
+        cond.set_type(Conditional.FOREVER)
+        self._push_scope(cond)
+        
+        # start a new conditional block
+        cond.new_block(token)
+
+        # now we have to check the next token to figure out what
+        # to do next...
+        token = self._get_token()
+        if isinstance(token, ScopeBegin):
+            # starting a scoped block
+            self._open_scoped_block(cond, token)
+
+        elif isinstance(token, ConditionalDecl):
+            # put the token back and go around for another pass
+            self._open_scoped_block(cond, ScopeBegin())
+            self._put_token(token)
+            self._one_line_count += 1
+
+        elif isinstance(token, InstructionLine):
+            self._open_scoped_block(cond, ScopeBegin())
+            self._append_token_to_scope(token)
+            self._put_token(ScopeEnd())
+
+    def _process_switch(self, token):
+        # start a new conditional
+        cond = Conditional(self._get_depth())
+        cond.set_type(Conditional.SWITCH)
+        self._push_scope(cond)
+       
+        # switch decls start with an empty block that contains the switch decl
+        cond.new_block(token)
+        cond.close_block()
+
+        # now we have to check the next token to figure out what
+        # to do next...
+        token = self._get_token()
+
+        if not isinstance(token, ScopeBegin):
+            raise ParseFatalException('switch decl not followed by curly brace')
+
+        # eat the token since there is no open block to append it to
+
+        # increment the depth
+        self._increment_depth()
+
+        # open the symbol table scope and tell the conditional
+        # what the scope name is for the block
+        st = SymbolTable()
+        st.scope_push(st.get_namespace(cond.get_name()))
+        cond.set_scope(st.current_namespace())
+
+    def _process_case(self, token):
+        # get the current context
+        cond = self._get_scope_context()
+
+        # so else decls can only happen immediately after an if block
+        if (not isinstance(cond, Conditional)) or \
+           (cond.get_type() != Conditional.SWITCH):
+            raise ParseFatalException('case block not in a switch decl')
+        
+        # check to make sure the if block isn't still open 
+        if cond.is_block_open():
+            raise ParseFatalException('case block in an open conditional block')
+
+        # start a new conditional
+        cond = Conditional(self._get_depth())
+        cond.set_type(Conditional.CASE)
+        self._push_scope(cond)
+
+        # the case block
+        cond.new_block(token)
+
+        # we have to check the token after the case decl to know what
+        # to do next...
+        token = self._get_token()
+        if isinstance(token, ScopeBegin):
+            # starting a scoped else block
+            self._open_scoped_block(cond, token)
+
+        elif isinstance(token, ConditionalDecl):
+            # put the token back and go around for another pass
+            self._open_scoped_block(cond, ScopeBegin())
+            self._put_token(token)
+            self._one_line_count += 1
+
+        elif isinstance(token, InstructionLine):
+            # one line case block so add the token and close the block
+            self._open_scoped_block(cond, ScopeBegin())
+            self._append_token_to_scope(token)
+            self._put_token(ScopeEnd())
+
+        else:
+            # invalid token...
+            raise ParseFatalException('invalid token after case')
+
+    def _process_default(self, token):
+        # get the current context
+        cond = self._get_scope_context()
+
+        # so else decls can only happen immediately after an if block
+        if (not isinstance(cond, Conditional)) or \
+           (cond.get_type() != Conditional.SWITCH):
+            raise ParseFatalException('default block not in a switch decl')
+        
+        # check to make sure the if block isn't still open 
+        if cond.is_block_open():
+            raise ParseFatalException('default block in an open conditional block')
+
+        # update the condtional type
+        cond.set_type(Conditional.SWITCH_DEFAULT)
+
+        # start a new conditional
+        cond = Conditional(self._get_depth())
+        cond.set_type(Conditional.DEFAULT)
+        self._push_scope(cond)
+
+        # the case block
+        cond.new_block(token)
+
+        # we have to check the token after the case decl to know what
+        # to do next...
+        token = self._get_token()
+        if isinstance(token, ScopeBegin):
+            # starting a scoped else block
+            self._open_scoped_block(cond, token)
+
+        elif isinstance(token, ConditionalDecl):
+            # put the token back and go around for another pass
+            self._open_scoped_block(cond, ScopeBegin())
+            self._put_token(token)
+            self._one_line_count += 1
+
+        elif isinstance(token, InstructionLine):
+            # one line case block so add the token and close the block
+            self._open_scoped_block(cond, ScopeBegin())
+            self._append_token_to_scope(token)
+            self._put_token(ScopeEnd())
+
+        else:
+            # invalid token...
+            raise ParseFatalException('invalid token after case')
+
+
+
     def _parse_next(self):
         st = SymbolTable()
 
@@ -251,6 +642,49 @@ class Compiler(object):
             # it is in.  this allows it to emit the correct opcode
             token.set_type(fn.get_type()) 
 
+        # handle the different types of conditional decls
+        elif isinstance(token, ConditionalDecl):
+            
+            if token.get_mode() == ConditionalDecl.IF:
+                self._process_if(token)
+                return
+
+            elif token.get_mode() == ConditionalDecl.ELSE:
+                self._process_else(token)
+                return
+
+            elif token.get_mode() == ConditionalDecl.DO:
+                self._process_do(token)
+                return
+
+            elif token.get_mode() == ConditionalDecl.WHILE:
+                self._process_while(token)
+                return
+
+            elif token.get_mode() == ConditionalDecl.FOREVER:
+                self._process_forever(token)
+                return
+                       
+            elif token.get_mode() == ConditionalDecl.SWITCH:
+                self._process_switch(token)
+                return
+
+            elif token.get_mode() == ConditionalDecl.CASE:
+                self._process_case(token)
+                return
+
+            elif token.get_mode() == ConditionalDecl.DEFAULT:
+                self._process_default(token)
+                return
+
+            else:
+                raise ParseFatalException('unknown conditional decl type')
+
+        elif isinstance(token, InstructionLine):
+            # set the scope for the instruction line so that it can properly
+            # resolve symbolic names later
+            token.set_scope(ctx.get_scope())
+ 
         elif isinstance(token, Variable):
             st.new_symbol(token)
 
@@ -283,18 +717,54 @@ class Compiler(object):
             st.scope_push()
 
         elif isinstance(token, ScopeEnd):
-            self._append_token_to_scope(token)
-            self._decrement_depth()
-            if self._get_depth() == 0:
+            # handle closing braces on conditionals
+            cond = self._get_scope_context()
 
-                # end the symbol table scope 
-                st.scope_pop()
+            if isinstance(cond, Conditional) and \
+               (self._get_depth() == 1):
 
-                (token, depth) = self._pop_scope()
+                # we're closing a conditional
+                if (cond.get_type() == Conditional.IF):
+                    self._close_if(cond, token)
+                    return
 
-                # if we were defining a function, then add it as a symbol
-                if isinstance(token, Function):
-                    st.new_symbol(token)
+                elif cond.get_type() in (Conditional.IF_ELSE,
+                                         Conditional.WHILE,
+                                         Conditional.FOREVER):
+                    self._close_conditional(cond, token)
+                    return
+
+                elif cond.get_type() == Conditional.DO_WHILE:
+                    self._close_do(cond, token)
+                    return
+
+                elif cond.get_type() in (Conditional.CASE,
+                                         Conditional.DEFAULT):
+                    self._close_case(cond, token)
+                    return
+
+                elif cond.get_type() in (Conditional.SWITCH,
+                                        Conditional.SWITCH_DEFAULT):
+                    self._close_switch(cond, token)
+                    return
+
+                else:
+                    raise ParseFatalException('unknown conditional type')
+
+                self._append_token_to_scope(token)
+            else:
+                self._append_token_to_scope(token)
+                self._decrement_depth()
+                if self._get_depth() == 0:
+
+                    # end the symbol table scope 
+                    st.scope_pop()
+
+                    (token, depth) = self._pop_scope()
+
+                    # if we were defining a function, then add it as a symbol
+                    if isinstance(token, Function):
+                        st.new_symbol(token)
 
         elif isinstance(token, Label):
             # add the label to the global scope
@@ -308,6 +778,7 @@ class Compiler(object):
         self._scope_stack = []
         self._in_tokens = copy.copy(tokens)
         self._parsed_tokens = []
+        self._one_line_count = 0
 
         # create a basic scope
         bs = BasicScope()
