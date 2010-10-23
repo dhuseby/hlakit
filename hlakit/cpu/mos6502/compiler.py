@@ -423,33 +423,6 @@ class Compiler(CommonCompiler):
                 return (token, 1)
             return (token, 0)
 
-        elif isinstance(token, Conditional):
-            tokens = []
-            cond = token
-
-            if cond.get_type() == Conditional.IF:
-                return self._resolve_if(cond)
-           
-            elif cond.get_type() == Conditional.IF_ELSE:
-                return self._resolve_if_else(cond)
-
-            elif cond.get_type() == Conditional.WHILE:
-                return self._resolve_while(cond)
-
-            elif cond.get_type() == Conditional.DO_WHILE:
-                return self._resolve_do_while(cond)
-
-            elif cond.get_type() == Conditional.FOREVER:
-                return self._resolve_forever(cond)
-
-            elif cond.get_type() in (Conditional.SWITCH,
-                                     Conditional.SWITCH_DEFAULT):
-                return self._resolve_switch(cond)
-            else:
-                raise ParseFatalException("unimplimented conditional type")
-
-            return (token, 0)
-
         elif isinstance(token, FunctionCall):
             tokens = []
 
