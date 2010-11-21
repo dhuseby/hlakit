@@ -70,7 +70,6 @@ class Generator(object):
         elif isinstance(token, Label):
             # locate the label at the current addr
             token.set_address(romfile.get_current_pos())
-            romfile.set_current_label(token)
 
         elif isinstance(token, TellBank):
             print 'MESSAGE: Current bank is %d' % romfile.get_current_bank()
@@ -127,10 +126,42 @@ class Generator(object):
         return self._romfile
 
     def build_rom(self, tokens):
+        """ go through all of the resolved tokens and start locating and
+        and generating the bytes that will eventually be written to the
+        rom file.  this process will resolve labels into addresses and
+        calculate relative branch addresses. """
 
-        # process each of the tokens
-        for t in tokens:
-            self._process_token(t)
+        out_tokens = tokens
+        while True:
+            left_to_generate = 0
+            round_tokens = []
+            for t in out_tokens:
+                (token, ungenerated) = self._process_token(t)
+
+                # count how many are left to generate
+                left_to_generate += ungenerated
+
+                # process what we get back
+                if isinstance(token, list):
+                    round_tokens.extend(token)
+                else:
+                    round_tokens.append(token)
+
+            # check to see if we're not making any more progress
+            if (left_to_generate > 0) and \
+               (out_tokens == round_tokens):
+                   raise ParseFatalException('failed to generate all code')
+
+            # copy the round tokens to the out_tokens slot
+            out_tokens = round_tokens
+
+            # if nothing left to generate, then we're done
+            if left_to_generate == 0:
+                break
+
+        #TODO: build the rom file here
 
         # finalize the rom output pass
         self._finalize_rom()
+
+

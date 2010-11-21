@@ -36,9 +36,6 @@ from rompp import LynxRomOrg
 
 class Generator(MOS6502Generator):
 
-    def _resolve_value(self, name, type_):
-        pass
-
     def _process_token(self, token):
 
         # get the rom file
@@ -47,29 +44,40 @@ class Generator(MOS6502Generator):
         # handle Lynx specific token
         if isinstance(token, LynxLoader):
             romfile.set_loader(token.get_fn())
+        
         elif isinstance(token, LnxSetting):
             type_ = token.get_type()
+
             if type_ == LnxSetting.OFF:
                 romfile.set_no_header()
+            
             elif type_ == LnxSetting.PSB0:
                 romfile.set_page_size_bank0(token.get_size())
+            
             elif type_ == LnxSetting.PSB1:
                 romfile.set_page_size_bank1(token.get_size())
+            
             elif type_ == LnxSetting.VERSION:
                 romfile.set_version(token.get_version())
+            
             elif type_ == LnxSetting.CART_NAME:
                 romfile.set_cart_name(token.get_name())
+            
             elif type_ == LnxSetting.MANU_NAME:
                 romfile.set_manufacturer_name(token.get_name())
+            
             elif type_ == LnxSetting.ROTATION:
                 romfile.set_rotation(token.get_rotation())
+        
         elif isinstance(token, LynxRomOrg):
             # intercept LynxRomOrg tokens and set the rom addr
             romfile.set_rom_org(token.get_segment(), 
                                 token.get_counter(), 
                                 token.get_maxsize())
+        
         elif isinstance(token, RomOrg):
             raise ParseFatalException('there should not be any RomOrg tokens in a Lynx compile')
+        
         else:
             # pass the token along to the CPU generator
             super(Generator, self)._process_token(token)
@@ -77,28 +85,5 @@ class Generator(MOS6502Generator):
     def _initialize_rom(self):
         """ This function returns the RomFile to be used for this session """
         return Lnx()
-
-    def _finalize_rom(self):
-        # look up the loader function, encrypt it and put it at the front of
-        # the rom list
-
-        # output all blocks in the rom list to the rom
-        romfile = self.romfile()
-        #bufs = romfile.get_buffers()
-        #print "Buffers:"
-        #for b in bufs:
-        #    print '%s' % b
-
-    def build_rom(self, tokens):
-
-        # process each of the tokens
-        for t in tokens:
-            self._process_token(t)
-
-        # finalize the rom output pass
-        self._finalize_rom()
-
-        # return the rom
-        return self.romfile()
 
 

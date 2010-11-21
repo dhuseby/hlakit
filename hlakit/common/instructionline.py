@@ -80,6 +80,7 @@ class InstructionLine(object):
         self._opcode = opcode
         self._operand = operand
         self._fn = None
+        self._addr = None
 
     def get_opcode(self):
         return self._opcode
@@ -104,6 +105,15 @@ class InstructionLine(object):
 
     def resolve(self):
         return self._operand.resolve()
+
+    def set_addr(self, addr):
+        self._addr = addr
+
+    def get_addr(self):
+        return addr
+
+    def generate(self):
+        raise ParseFatalException('must overload this in a cpu/platform specific class')
 
     def __str__(self):
         s = str(self._opcode)

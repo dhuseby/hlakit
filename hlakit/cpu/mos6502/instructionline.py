@@ -66,6 +66,28 @@ class InstructionLine(CommonInstructionLine):
         if operand is None:
             operand = Operand()
 
+        # on the 6502, instructions convert to at most 3 bytes
+        self._bytes = []
+
         super(InstructionLine, self).__init__(opcode, operand)
+
+    def generate(self):
+        # we need to figure out what the 1-3 bytes are for this
+        # instruction line
+       
+        # reset the bytes
+        self._bytes = []
+
+        # first we handle the opcodes without operands, they're the easiest
+        if self.get_opcode().get_op() in Opcode.IMPLIED:
+
+            # get the byte for the opcode...there is no operand
+            self._bytes.append(self.get_opcode().emit(self.get_operand().get_mode()))
+
+            return (self, 0)
+
+        else:
+            pass
+
 
 

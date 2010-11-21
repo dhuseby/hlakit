@@ -1,0 +1,1878 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.7	//
+-platform	examples/6502/nes/Makefile	/^	..\/..\/..\/hlakit.py --platform=NES --include=..\/..\/..\/include\/cpu --include=..\/..\/..\/include\/platform $<$/;"	m
+ADDRESS	include/platform/nes/nes_video.h	/^    ADDRESS     = $2006,$/;"	e	enum:PPU
+ATTRIBUTE_TABLE_0_ADDRESS	include/platform/nes/nes_video.h	156;"	d
+ATTRIBUTE_TABLE_1_ADDRESS	include/platform/nes/nes_video.h	159;"	d
+ATTRIBUTE_TABLE_2_ADDRESS	include/platform/nes/nes_video.h	161;"	d
+ATTRIBUTE_TABLE_3_ADDRESS	include/platform/nes/nes_video.h	163;"	d
+ATTRIBUTE_TABLE_SIZE	include/platform/nes/nes_video.h	157;"	d
+Align	hlakit/common/align.py	/^class Align(object):$/;"	c
+ArrayItem	hlakit/common/arrayvalue.py	/^class ArrayItem(object):$/;"	c
+ArrayValue	hlakit/common/arrayvalue.py	/^class ArrayValue(object):$/;"	c
+BANK_MAIN_ENTRY	examples/6502/nes/game.s	/^#define BANK_MAIN_ENTRY $C000$/;"	d
+BAR	tests/old/test_macro_expansion.s	/^#define BAR "blah " FOO$/;"	d
+BAZ	tests/old/test_macro_expansion.s	/^#define BAZ$/;"	d
+BGCHR_BANK_SELECT_2K_0000	include/platform/nes/nes_mappers.h	/^    BGCHR_BANK_SELECT_2K_0000 = 0x5128,$/;"	e	enum:MMC5
+BGCHR_BANK_SELECT_2K_0800	include/platform/nes/nes_mappers.h	/^    BGCHR_BANK_SELECT_2K_0800 = 0x5129,$/;"	e	enum:MMC5
+BGCHR_BANK_SELECT_2K_1000	include/platform/nes/nes_mappers.h	/^    BGCHR_BANK_SELECT_2K_1000 = 0x512A,$/;"	e	enum:MMC5
+BGCHR_BANK_SELECT_2K_1800	include/platform/nes/nes_mappers.h	/^    BGCHR_BANK_SELECT_2K_1800 = 0x512B,$/;"	e	enum:MMC5
+BG_SCROLL	include/platform/nes/nes_video.h	/^    BG_SCROLL   = $2005,$/;"	e	enum:PPU
+BLAH	tests/old/test3.s	/^#define BLAH$/;"	d
+BLAH_BLAH	tests/old/test3.s	/^#define BLAH_BLAH 1$/;"	d
+BLUE	examples/6502/nes/main.h	/^    BLUE  = 0x01,$/;"	e	enum:COLOUR
+BUTTON_A	include/platform/nes/nes_io.h	32;"	d
+BUTTON_B	include/platform/nes/nes_io.h	33;"	d
+BUTTON_DOWN	include/platform/nes/nes_io.h	37;"	d
+BUTTON_LEFT	include/platform/nes/nes_io.h	38;"	d
+BUTTON_RIGHT	include/platform/nes/nes_io.h	39;"	d
+BUTTON_SELECT	include/platform/nes/nes_io.h	34;"	d
+BUTTON_START	include/platform/nes/nes_io.h	35;"	d
+BUTTON_UP	include/platform/nes/nes_io.h	36;"	d
+BasicScope	hlakit/common/compiler.py	/^class BasicScope(object):$/;"	c
+BinaryOperator	hlakit/common/binaryoperator.py	/^class BinaryOperator(object):$/;"	c
+Buffer	hlakit/common/buffer.py	/^class Buffer(object):$/;"	c
+BufferTester	tests/testcommon.py	/^class BufferTester(unittest.TestCase):$/;"	c
+CHR_BANKSIZE	include/platform/nes/nes_mappers.h	/^    CHR_BANKSIZE    = 0x5101,$/;"	e	enum:MMC5
+CHR_BANK_FOUR_1K	include/platform/nes/nes_mappers.h	/^    CHR_BANK_FOUR_1K   = 3,$/;"	e	enum:MMC5
+CHR_BANK_ONE_8K	include/platform/nes/nes_mappers.h	/^    CHR_BANK_ONE_8K    = 0,$/;"	e	enum:MMC5
+CHR_BANK_THREE_2K	include/platform/nes/nes_mappers.h	/^    CHR_BANK_THREE_2K   = 2,$/;"	e	enum:MMC5
+CHR_BANK_TWO_4K	include/platform/nes/nes_mappers.h	/^    CHR_BANK_TWO_4K    = 1,$/;"	e	enum:MMC5
+CHR_FONT_BANK	examples/6502/nes/game.s	/^#define CHR_FONT_BANK $0000$/;"	d
+CNT0	include/platform/nes/nes_audio.h	/^    CNT0                    = $4000,$/;"	e	enum:SQUAREWAVEA
+CNT0	include/platform/nes/nes_audio.h	/^    CNT0                    = $4004,$/;"	e	enum:SQUAREWAVEB
+CNT0	include/platform/nes/nes_audio.h	/^    CNT0                    = $4008,$/;"	e	enum:TRIANGLEWAVE
+CNT0	include/platform/nes/nes_io.h	/^    CNT0 = $4016,$/;"	e	enum:JOYSTICK
+CNT0	include/platform/nes/nes_video.h	/^    CNT0        = $2000,$/;"	e	enum:PPU
+CNT1	include/platform/nes/nes_audio.h	/^    CNT1                    = $4001,$/;"	e	enum:SQUAREWAVEA
+CNT1	include/platform/nes/nes_audio.h	/^    CNT1                    = $4005,$/;"	e	enum:SQUAREWAVEB
+CNT1	include/platform/nes/nes_audio.h	/^    CNT1                    = $4009,$/;"	e	enum:TRIANGLEWAVE
+CNT1	include/platform/nes/nes_io.h	/^    CNT1 = $4017,$/;"	e	enum:JOYSTICK
+CNT1	include/platform/nes/nes_video.h	/^    CNT1        = $2001,$/;"	e	enum:PPU
+COLOUR	examples/6502/nes/main.h	/^enum COLOUR {$/;"	g
+CR_ADDRINC32	include/platform/nes/nes_video.h	96;"	d
+CR_BACKADDR1000	include/platform/nes/nes_video.h	94;"	d
+CR_BACKNOCLIP	include/platform/nes/nes_video.h	104;"	d
+CR_BACKVISIBLE	include/platform/nes/nes_video.h	102;"	d
+CR_MONOCHROME	include/platform/nes/nes_video.h	105;"	d
+CR_NAMETABLEBITS	include/platform/nes/nes_video.h	97;"	d
+CR_NMI	include/platform/nes/nes_video.h	91;"	d
+CR_PALETTEINTENSITY	include/platform/nes/nes_video.h	100;"	d
+CR_PPUSLAVE	include/platform/nes/nes_video.h	92;"	d
+CR_SPRADDR1000	include/platform/nes/nes_video.h	95;"	d
+CR_SPRITE8x16	include/platform/nes/nes_video.h	93;"	d
+CR_SPRITESVISIBLE	include/platform/nes/nes_video.h	101;"	d
+CR_SPRNOCLIP	include/platform/nes/nes_video.h	103;"	d
+ChrBank	hlakit/platform/nes/chr.py	/^class ChrBank(object):$/;"	c
+ChrBanksize	hlakit/platform/nes/chr.py	/^class ChrBanksize(object):$/;"	c
+ChrEnd	hlakit/platform/nes/chr.py	/^class ChrEnd(object):$/;"	c
+ChrLink	hlakit/platform/nes/chr.py	/^class ChrLink(object):$/;"	c
+CodeBlock	hlakit/common/codeblock.py	/^class CodeBlock(object):$/;"	c
+CodeLine	hlakit/common/codeline.py	/^class CodeLine(object):$/;"	c
+CommandLineError	hlakit/common/session.py	/^class CommandLineError(Exception):$/;"	c
+CommandLineError	utils/lnx_creator.py	/^class CommandLineError(Exception):$/;"	c
+CommandLineOptionsTester	tests/testcommon.py	/^class CommandLineOptionsTester(unittest.TestCase):$/;"	c
+Compiler	hlakit/common/compiler.py	/^class Compiler(object):$/;"	c
+Compiler	hlakit/cpu/mos6502/compiler.py	/^class Compiler(CommonCompiler):$/;"	c
+Compiler	hlakit/platform/lynx/compiler.py	/^class Compiler(MOS6502Compiler):$/;"	c
+Compiler	hlakit/platform/nes/compiler.py	/^class Compiler(MOS6502Compiler):$/;"	c
+CompilerTester	tests/testcompiler.py	/^class CompilerTester(unittest.TestCase):$/;"	c
+Conditional	hlakit/common/conditional.py	/^class Conditional(object):$/;"	c
+ConditionalBlock	hlakit/common/conditional.py	/^class ConditionalBlock(object):$/;"	c
+ConditionalDecl	hlakit/common/conditionaldecl.py	/^class ConditionalDecl(object):$/;"	c
+ConditionalDecl	hlakit/cpu/mos6502/conditionaldecl.py	/^class ConditionalDecl(CommonConditionalDecl):$/;"	c
+DMC	include/platform/nes/nes_audio.h	/^    DMC                     = %00010000$/;"	e	enum:SNDENABLE
+Define	hlakit/common/define.py	/^class Define(object):$/;"	c
+DummyOptions	hlakit/common/session.py	/^class DummyOptions(object):$/;"	c
+EXRAM_ADDRESS	include/platform/nes/nes_mappers.h	/^    EXRAM_ADDRESS    = 0x5C00, \/\/ 0x5C00-0x5FFF$/;"	e	enum:MMC5
+Else	hlakit/common/else_.py	/^class Else(object):$/;"	c
+Endif	hlakit/common/endif.py	/^class Endif(object):$/;"	c
+Enum	hlakit/common/enum.py	/^class Enum(Symbol):$/;"	c
+Error	hlakit/common/error.py	/^class Error(Message):$/;"	c
+FALSE	include/cpu/6502/std.h	17;"	d
+FOO	tests/dummy.h	1;"	d
+FOO	tests/old/test1.s	/^#define FOO "BAR"$/;"	d
+FOO	tests/old/test_macro_expansion.s	/^#define FOO "blah"$/;"	d
+FOO	tests/old/test_nes_pp.s	/^#define FOO 1$/;"	d
+FREQ0	include/platform/nes/nes_audio.h	/^    FREQ0                   = $4002,$/;"	e	enum:SQUAREWAVEA
+FREQ0	include/platform/nes/nes_audio.h	/^    FREQ0                   = $4006,$/;"	e	enum:SQUAREWAVEB
+FREQ0	include/platform/nes/nes_audio.h	/^    FREQ0                   = $400A,$/;"	e	enum:TRIANGLEWAVE
+FREQ1	include/platform/nes/nes_audio.h	/^    FREQ1                   = $4003$/;"	e	enum:SQUAREWAVEA
+FREQ1	include/platform/nes/nes_audio.h	/^    FREQ1                   = $4007$/;"	e	enum:SQUAREWAVEB
+FREQ1	include/platform/nes/nes_audio.h	/^    FREQ1                   = $400B$/;"	e	enum:TRIANGLEWAVE
+File	hlakit/common/file.py	/^class File(object):$/;"	c
+FileBegin	hlakit/common/filemarkers.py	/^class FileBegin(object):$/;"	c
+FileEnd	hlakit/common/filemarkers.py	/^class FileEnd(object):$/;"	c
+Function	hlakit/common/function.py	/^class Function(Symbol):$/;"	c
+FunctionCall	hlakit/common/functioncall.py	/^class FunctionCall(object):$/;"	c
+FunctionDecl	hlakit/common/functiondecl.py	/^class FunctionDecl(object):$/;"	c
+FunctionParameter	hlakit/common/functionparameter.py	/^class FunctionParameter(object):$/;"	c
+FunctionReturn	hlakit/common/functionreturn.py	/^class FunctionReturn(object):$/;"	c
+FunctionType	hlakit/common/functiontype.py	/^class FunctionType(Type):$/;"	c
+GRAPHICS_MODE	include/platform/nes/nes_mappers.h	/^    GRAPHICS_MODE    = 0x5104,$/;"	e	enum:MMC5
+GRAPHMODE_EXGRAPHIC	include/platform/nes/nes_mappers.h	/^    GRAPHMODE_EXGRAPHIC   = 0x01,$/;"	e	enum:MMC5
+GRAPHMODE_EXRAMWRITE	include/platform/nes/nes_mappers.h	/^    GRAPHMODE_EXRAMWRITE  = 0x00,\/\/0x02,$/;"	e	enum:MMC5
+GRAPHMODE_NORMAL	include/platform/nes/nes_mappers.h	/^    GRAPHMODE_NORMAL   = 0x03,$/;"	e	enum:MMC5
+GRAPHMODE_SPLIT	include/platform/nes/nes_mappers.h	/^    GRAPHMODE_SPLIT    = 0x02,$/;"	e	enum:MMC5
+GREEN	examples/6502/nes/main.h	/^    GREEN  = 0x09,$/;"	e	enum:COLOUR
+Generator	hlakit/common/generator.py	/^class Generator(object):$/;"	c
+Generator	hlakit/cpu/mos6502/generator.py	/^class Generator(CommonGenerator):$/;"	c
+Generator	hlakit/platform/lynx/generator.py	/^class Generator(MOS6502Generator):$/;"	c
+Generator	hlakit/platform/nes/generator.py	/^class Generator(MOS6502Generator):$/;"	c
+INT	tests/old/test_vars.s	/^INT x$/;"	l
+IO	include/platform/nes/nes_video.h	/^    IO          = $2007,$/;"	e	enum:PPU
+IRQ_ADDR_HI	examples/6502/lynx/task_switch_init.s	/^#define IRQ_ADDR_HI  $FFFF$/;"	d
+IRQ_ADDR_LO	examples/6502/lynx/task_switch_init.s	/^#define IRQ_ADDR_LO  $FFFE$/;"	d
+IRQ_CNT	include/platform/nes/nes_mappers.h	/^    IRQ_CNT      = 0x5204,$/;"	e	enum:MMC5
+IRQ_ENABLE	include/platform/nes/nes_mappers.h	/^    IRQ_ENABLE     = 0x80,$/;"	e	enum:MMC5
+IRQ_LINE	include/platform/nes/nes_mappers.h	/^    IRQ_LINE     = 0x5203,$/;"	e	enum:MMC5
+Ifdef	hlakit/common/ifdef.py	/^class Ifdef(object):$/;"	c
+Ifndef	hlakit/common/ifndef.py	/^class Ifndef(object):$/;"	c
+Immediate	hlakit/common/immediate.py	/^class Immediate(object):$/;"	c
+Incbin	hlakit/common/incbin.py	/^class Incbin(File):$/;"	c
+Include	hlakit/common/include.py	/^class Include(File):$/;"	c
+InstructionLine	hlakit/common/instructionline.py	/^class InstructionLine(object):$/;"	c
+InstructionLine	hlakit/cpu/mos6502/instructionline.py	/^class InstructionLine(CommonInstructionLine):$/;"	c
+Interrupt	hlakit/cpu/mos6502/interrupt.py	/^class Interrupt(object):$/;"	c
+InterruptIRQ	hlakit/cpu/mos6502/interrupt.py	/^class InterruptIRQ(Interrupt):$/;"	c
+InterruptNMI	hlakit/cpu/mos6502/interrupt.py	/^class InterruptNMI(Interrupt):$/;"	c
+InterruptStart	hlakit/cpu/mos6502/interrupt.py	/^class InterruptStart(Interrupt):$/;"	c
+JOYSTICK	include/platform/nes/nes_io.h	/^enum JOYSTICK {$/;"	g
+JS_DATA	include/platform/nes/nes_io.h	29;"	d
+JS_ZAPPEREXPMASK	include/platform/nes/nes_io.h	28;"	d
+JS_ZAPPERSPRITE	include/platform/nes/nes_io.h	26;"	d
+JS_ZAPPERTRIGGER	include/platform/nes/nes_io.h	27;"	d
+L0229	tmp/hallo.asm	/^L0229:$/;"	l
+L0237	tmp/hallo.asm	/^L0237:$/;"	l
+L0246	tmp/hallo.asm	/^L0246:$/;"	l
+L0255	tmp/hallo.asm	/^L0255:$/;"	l
+L0263	tmp/hallo.asm	/^L0263:$/;"	l
+L0271	tmp/hallo.asm	/^L0271:$/;"	l
+L0278	tmp/hallo.asm	/^L0278:$/;"	l
+L027F	tmp/hallo.asm	/^L027F:$/;"	l
+L0287	tmp/hallo.asm	/^L0287:$/;"	l
+L0298	tmp/hallo.asm	/^L0298:$/;"	l
+L02BA	tmp/hallo.asm	/^L02BA:$/;"	l
+L02D9	tmp/hallo.asm	/^L02D9:$/;"	l
+L02F1	tmp/hallo.asm	/^L02F1:$/;"	l
+L0311	tmp/hallo.asm	/^L0311:$/;"	l
+L0326	tmp/hallo.asm	/^L0326:$/;"	l
+L0346	tmp/hallo.asm	/^L0346:$/;"	l
+L0348	tmp/hallo.asm	/^L0348:$/;"	l
+L0354	tmp/hallo.asm	/^L0354:$/;"	l
+L0364	tmp/hallo.asm	/^L0364:$/;"	l
+L0367	tmp/hallo.asm	/^L0367:$/;"	l
+L0392	tmp/hallo.asm	/^L0392:$/;"	l
+Label	hlakit/common/label.py	/^class Label(Symbol):$/;"	c
+Lnx	hlakit/platform/lynx/lnx.py	/^class Lnx(MOS6502RomFile):$/;"	c
+LnxSetting	hlakit/platform/lynx/lnxsetting.py	/^class LnxSetting(object):$/;"	c
+Lynx	hlakit/platform/lynx/lynx.py	/^class Lynx(MOS6502):$/;"	c
+LynxCompilerTester	tests/testlynx.py	/^class LynxCompilerTester(LynxTester):$/;"	c
+LynxLnxTester	tests/testlynx.py	/^class LynxLnxTester(LynxTester):$/;"	c
+LynxLoader	hlakit/platform/lynx/loader.py	/^class LynxLoader(object):$/;"	c
+LynxPreprocessorTester	tests/testlynx.py	/^class LynxPreprocessorTester(LynxTester):$/;"	c
+LynxRomOrg	hlakit/platform/lynx/rompp.py	/^class LynxRomOrg(object):$/;"	c
+LynxTester	tests/testlynx.py	/^class LynxTester(unittest.TestCase):$/;"	c
+MMC5	include/platform/nes/nes_mappers.h	/^enum MMC5 {$/;"	g
+MOS6502	hlakit/cpu/mos6502/mos6502.py	/^class MOS6502(Target):$/;"	c
+MOS6502CompilerTester	tests/testmos6502.py	/^class MOS6502CompilerTester(MOS6502Tester):$/;"	c
+MOS6502PreprocessorTester	tests/testmos6502.py	/^class MOS6502PreprocessorTester(MOS6502Tester):$/;"	c
+MOS6502RomFile	hlakit/cpu/mos6502/romfile.py	/^class MOS6502RomFile(RomFile):$/;"	c
+MOS6502Tester	tests/testmos6502.py	/^class MOS6502Tester(unittest.TestCase):$/;"	c
+MULT_RESULT	include/platform/nes/nes_mappers.h	/^    MULT_RESULT     = 0x5205,  \/\/ could be read using 16 bit macros$/;"	e	enum:MMC5
+MULT_RESULT_HI	include/platform/nes/nes_mappers.h	/^    MULT_RESULT_HI    = 0x5206, \/\/ hi( A * B )$/;"	e	enum:MMC5
+MULT_RESULT_LO	include/platform/nes/nes_mappers.h	/^    MULT_RESULT_LO    = 0x5205, \/\/ lo( A * B )$/;"	e	enum:MMC5
+MULT_VALUE_A	include/platform/nes/nes_mappers.h	/^    MULT_VALUE_A    = 0x5205,$/;"	e	enum:MMC5
+MULT_VALUE_B	include/platform/nes/nes_mappers.h	/^    MULT_VALUE_B    = 0x5206,$/;"	e	enum:MMC5
+Member	hlakit/common/enum.py	/^    class Member(Symbol):$/;"	c	class:Enum
+Member	hlakit/common/struct_.py	/^    class Member(Type):$/;"	c	class:Struct
+Message	hlakit/common/message.py	/^class Message(object):$/;"	c
+NAMETABLE_HEIGHT	include/platform/nes/nes_video.h	150;"	d
+NAMETABLE_SELECT	include/platform/nes/nes_mappers.h	/^    NAMETABLE_SELECT   = 0x5105,$/;"	e	enum:MMC5
+NAMETABLE_WIDTH	include/platform/nes/nes_video.h	149;"	d
+NAME_TABLE_0_ADDRESS	include/platform/nes/nes_video.h	154;"	d
+NAME_TABLE_1_ADDRESS	include/platform/nes/nes_video.h	158;"	d
+NAME_TABLE_2_ADDRESS	include/platform/nes/nes_video.h	160;"	d
+NAME_TABLE_3_ADDRESS	include/platform/nes/nes_video.h	162;"	d
+NAME_TABLE_SIZE	include/platform/nes/nes_video.h	155;"	d
+NES	hlakit/platform/nes/nes.py	/^class NES(MOS6502):$/;"	c
+NESCompilerTester	tests/testnes.py	/^class NESCompilerTester(NESTester):$/;"	c
+NESPreprocessorTester	tests/testnes.py	/^class NESPreprocessorTester(NESTester):$/;"	c
+NESTester	tests/testnes.py	/^class NESTester(unittest.TestCase):$/;"	c
+NOISE	include/platform/nes/nes_audio.h	/^    NOISE                   = %00001000,$/;"	e	enum:SNDENABLE
+Name	hlakit/common/name.py	/^class Name(object):$/;"	c
+NumericValue	hlakit/common/numericvalue.py	/^class NumericValue(object):$/;"	c
+OAM_ENTRY_	include/platform/nes/nes_video.h	/^typedef struct OAM_ENTRY_ {$/;"	s
+Opcode	hlakit/common/opcode.py	/^class Opcode(object):$/;"	c
+Opcode	hlakit/cpu/mos6502/opcode.py	/^class Opcode(CommonOpcode):$/;"	c
+Operand	hlakit/common/operand.py	/^class Operand(object):$/;"	c
+Operand	hlakit/cpu/mos6502/operand.py	/^class Operand(CommonOperand):$/;"	c
+PALENT_	include/platform/nes/nes_video.h	/^typedef struct PALENT_ {$/;"	s
+PALETTE_	include/platform/nes/nes_video.h	/^typedef struct PALETTE_ {$/;"	s
+PAL_0_ADDRESS	include/platform/nes/nes_video.h	126;"	d
+PAL_1_ADDRESS	include/platform/nes/nes_video.h	127;"	d
+PAL_ADDRESS	include/platform/nes/nes_video.h	125;"	d
+PATTERN_TABLE_0_ADDRESS	include/platform/nes/nes_video.h	145;"	d
+PATTERN_TABLE_1_ADDRESS	include/platform/nes/nes_video.h	146;"	d
+PPU	include/platform/nes/nes_video.h	/^enum PPU {$/;"	g
+PRG_BANKSIZE	include/platform/nes/nes_mappers.h	/^    PRG_BANKSIZE    = 0x5100,$/;"	e	enum:MMC5
+PRG_BANKSIZE_16K	include/platform/nes/nes_mappers.h	/^    PRG_BANKSIZE_16K   = 1,$/;"	e	enum:MMC5
+PRG_BANKSIZE_32K	include/platform/nes/nes_mappers.h	/^    PRG_BANKSIZE_32K   = 0,$/;"	e	enum:MMC5
+PRG_BANKSIZE_8K	include/platform/nes/nes_mappers.h	/^    PRG_BANKSIZE_8K    = 3,$/;"	e	enum:MMC5
+PRG_BANK_SELECT_16K_8000	include/platform/nes/nes_mappers.h	/^    PRG_BANK_SELECT_16K_8000 = 0x5115,$/;"	e	enum:MMC5
+PRG_BANK_SELECT_16K_C000	include/platform/nes/nes_mappers.h	/^    PRG_BANK_SELECT_16K_C000 = 0x5117,$/;"	e	enum:MMC5
+PRG_BANK_SELECT_32K	include/platform/nes/nes_mappers.h	/^    PRG_BANK_SELECT_32K   = 0x5117,$/;"	e	enum:MMC5
+PRG_BANK_SELECT_8000	include/platform/nes/nes_mappers.h	/^    PRG_BANK_SELECT_8000  = 0x5114,$/;"	e	enum:MMC5
+PRG_BANK_SELECT_A000	include/platform/nes/nes_mappers.h	/^    PRG_BANK_SELECT_A000  = 0x5115,$/;"	e	enum:MMC5
+PRG_BANK_SELECT_C000	include/platform/nes/nes_mappers.h	/^    PRG_BANK_SELECT_C000  = 0x5116,$/;"	e	enum:MMC5
+PRG_BANK_SELECT_E000	include/platform/nes/nes_mappers.h	/^    PRG_BANK_SELECT_E000  = 0x5117,$/;"	e	enum:MMC5
+PROJECT_NAME	tmp/Makefile	/^PROJECT_NAME=dave$/;"	m
+Preprocessor	hlakit/common/preprocessor.py	/^class Preprocessor(object):$/;"	c
+Preprocessor	hlakit/cpu/mos6502/preprocessor.py	/^class Preprocessor(CommonPreprocessor):$/;"	c
+Preprocessor	hlakit/platform/lynx/preprocessor.py	/^class Preprocessor(MOS6502Preprocessor):$/;"	c
+Preprocessor	hlakit/platform/nes/preprocessor.py	/^class Preprocessor(MOS6502Preprocessor):$/;"	c
+PreprocessorTester	tests/testpreprocessor.py	/^class PreprocessorTester(unittest.TestCase):$/;"	c
+RED	examples/6502/nes/main.h	/^    RED  = 0x05,$/;"	e	enum:COLOUR
+RSA_LOAD	include/platform/lynx/lynx.h	100;"	d
+RamEnd	hlakit/common/rampp.py	/^class RamEnd(object):$/;"	c
+RamOrg	hlakit/common/rampp.py	/^class RamOrg(object):$/;"	c
+Register	hlakit/cpu/mos6502/register.py	/^class Register(object):$/;"	c
+RomBank	hlakit/common/rompp.py	/^class RomBank(object):$/;"	c
+RomBanksize	hlakit/common/rompp.py	/^class RomBanksize(object):$/;"	c
+RomEnd	hlakit/common/rompp.py	/^class RomEnd(object):$/;"	c
+RomFile	hlakit/common/romfile.py	/^class RomFile(object):$/;"	c
+RomOrg	hlakit/common/rompp.py	/^class RomOrg(object):$/;"	c
+SCREEN_HEIGHT	include/platform/nes/nes_video.h	152;"	d
+SCREEN_WIDTH	include/platform/nes/nes_video.h	151;"	d
+SECONDARY_LOADER	examples/6502/lynx/micro_loader.s	/^#define SECONDARY_LOADER $FB00$/;"	d
+SELECT_PRG_ACTIVATE	include/platform/nes/nes_mappers.h	/^    SELECT_PRG_ACTIVATE   = 0x80,$/;"	e	enum:MMC5
+SELECT_PRG_MASK	include/platform/nes/nes_mappers.h	/^    SELECT_PRG_MASK    = 0x7F,$/;"	e	enum:MMC5
+SET_CART_SEGMENT_ADDRESS	include/platform/lynx/lynx.h	99;"	d
+SNDENABLE	include/platform/nes/nes_audio.h	/^enum SNDENABLE {$/;"	g
+SOUND_CH1_FREQ_HI	include/platform/nes/nes_mappers.h	/^    SOUND_CH1_FREQ_HI = 0x5003,$/;"	e	enum:MMC5
+SOUND_CH1_FREQ_LO	include/platform/nes/nes_mappers.h	/^    SOUND_CH1_FREQ_LO = 0x5002,$/;"	e	enum:MMC5
+SOUND_CH1_PULSECNT	include/platform/nes/nes_mappers.h	/^    SOUND_CH1_PULSECNT = 0x5000,$/;"	e	enum:MMC5
+SOUND_CH2_FREQ_HI	include/platform/nes/nes_mappers.h	/^    SOUND_CH2_FREQ_HI = 0x5007,$/;"	e	enum:MMC5
+SOUND_CH2_FREQ_LO	include/platform/nes/nes_mappers.h	/^    SOUND_CH2_FREQ_LO = 0x5006,$/;"	e	enum:MMC5
+SOUND_CH2_PULSECNT	include/platform/nes/nes_mappers.h	/^    SOUND_CH2_PULSECNT = 0x5004,$/;"	e	enum:MMC5
+SOUND_CH3_VOICE_CH	include/platform/nes/nes_mappers.h	/^    SOUND_CH3_VOICE_CH = 0x5010,$/;"	e	enum:MMC5
+SOUND_CH4_VOICE_CH	include/platform/nes/nes_mappers.h	/^    SOUND_CH4_VOICE_CH = 0x5011,$/;"	e	enum:MMC5
+SOUND_CH_OUTPUT	include/platform/nes/nes_mappers.h	/^    SOUND_CH_OUTPUT  = 0x5015,$/;"	e	enum:MMC5
+SOURCE_NAME	tmp/Makefile	/^SOURCE_NAME:=hallo_a3.asm$/;"	m
+SPLITMODE_ENABLED	include/platform/nes/nes_mappers.h	/^    SPLITMODE_ENABLED   = 0x80,$/;"	e	enum:MMC5
+SPLITMODE_RIGHT	include/platform/nes/nes_mappers.h	/^    SPLITMODE_RIGHT    = 0x40,$/;"	e	enum:MMC5
+SPLIT_CNT	include/platform/nes/nes_mappers.h	/^    SPLIT_CNT     = 0x5200,$/;"	e	enum:MMC5
+SPLIT_PAGE	include/platform/nes/nes_mappers.h	/^    SPLIT_PAGE     = 0x5202,$/;"	e	enum:MMC5
+SPLIT_SCROLL	include/platform/nes/nes_mappers.h	/^    SPLIT_SCROLL    = 0x5201,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_1K_0000	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_1K_0000 = 0x5120,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_1K_0400	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_1K_0400 = 0x5121,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_1K_0800	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_1K_0800 = 0x5122,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_1K_0C00	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_1K_0C00 = 0x5123,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_1K_1000	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_1K_1000 = 0x5124,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_1K_1400	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_1K_1400 = 0x5125,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_1K_1800	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_1K_1800 = 0x5126,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_1K_1C00	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_1K_1C00 = 0x5127,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_2K_0000	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_2K_0000 = 0x5121,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_2K_0800	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_2K_0800 = 0x5123,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_2K_1000	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_2K_1000 = 0x5125,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_2K_1800	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_2K_1800 = 0x5127,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_4K_0000	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_4K_0000 = 0x5123,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_4K_1000	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_4K_1000 = 0x5127,$/;"	e	enum:MMC5
+SPRCHR_BANK_SELECT_8K_0000	include/platform/nes/nes_mappers.h	/^    SPRCHR_BANK_SELECT_8K_0000 = 0x5127,$/;"	e	enum:MMC5
+SPR_ADDRESS	include/platform/nes/nes_video.h	/^    SPR_ADDRESS = $2003,$/;"	e	enum:PPU
+SPR_DMA	include/platform/nes/nes_video.h	/^    SPR_DMA     = $4014,$/;"	e	enum:PPU
+SPR_IO	include/platform/nes/nes_video.h	/^    SPR_IO      = $2004,$/;"	e	enum:PPU
+SPR_OAM_SIZE	include/platform/nes/nes_video.h	115;"	d
+SPR_OAM_TOTAL	include/platform/nes/nes_video.h	114;"	d
+SQUAREWAVEA	include/platform/nes/nes_audio.h	/^enum SQUAREWAVEA {$/;"	g
+SQUAREWAVEB	include/platform/nes/nes_audio.h	/^enum SQUAREWAVEB {$/;"	g
+SQUARE_0	include/platform/nes/nes_audio.h	/^    SQUARE_0                = %00000001,$/;"	e	enum:SNDENABLE
+SQUARE_1	include/platform/nes/nes_audio.h	/^    SQUARE_1                = %00000010,$/;"	e	enum:SNDENABLE
+SRAM_ADDRESS	include/platform/nes/nes_mappers.h	/^    SRAM_ADDRESS    = 0x6000, \/\/ 0x6000-0x7FFF$/;"	e	enum:MMC5
+SRAM_BANK_SELECT_6000	include/platform/nes/nes_mappers.h	/^    SRAM_BANK_SELECT_6000  = 0x5113,$/;"	e	enum:MMC5
+SRAM_ENABLE_A	include/platform/nes/nes_mappers.h	/^    SRAM_ENABLE_A    = 0x5102,$/;"	e	enum:MMC5
+SRAM_ENABLE_A_CODE	include/platform/nes/nes_mappers.h	/^    SRAM_ENABLE_A_CODE   = 0x02,$/;"	e	enum:MMC5
+SRAM_ENABLE_B	include/platform/nes/nes_mappers.h	/^    SRAM_ENABLE_B    = 0x5103,$/;"	e	enum:MMC5
+SRAM_ENABLE_B_CODE	include/platform/nes/nes_mappers.h	/^    SRAM_ENABLE_B_CODE   = 0x01,$/;"	e	enum:MMC5
+STATUS	include/platform/nes/nes_video.h	/^    STATUS      = $2002,$/;"	e	enum:PPU
+ST_SCANSPROVERFLOW	include/platform/nes/nes_video.h	110;"	d
+ST_SPRITE0	include/platform/nes/nes_video.h	109;"	d
+ST_VBLANK	include/platform/nes/nes_video.h	108;"	d
+ST_VRAM_NOWRITE	include/platform/nes/nes_video.h	111;"	d
+ScopeBegin	hlakit/common/scopemarkers.py	/^class ScopeBegin(object):$/;"	c
+ScopeEnd	hlakit/common/scopemarkers.py	/^class ScopeEnd(object):$/;"	c
+Session	hlakit/common/session.py	/^class Session(object):$/;"	c
+SetPad	hlakit/common/setpad.py	/^class SetPad(object):$/;"	c
+StateFrame	hlakit/common/preprocessor.py	/^    class StateFrame(object):$/;"	c	class:Preprocessor
+StringValue	hlakit/common/arrayvalue.py	/^class StringValue(ArrayValue):$/;"	c
+Struct	hlakit/common/struct_.py	/^class Struct(Type):$/;"	c
+Symbol	hlakit/common/symbol.py	/^class Symbol(object):$/;"	c
+SymbolTable	hlakit/common/symboltable.py	/^class SymbolTable(object):$/;"	c
+TRIANGLE	include/platform/nes/nes_audio.h	/^    TRIANGLE                = %00000100,$/;"	e	enum:SNDENABLE
+TRIANGLEWAVE	include/platform/nes/nes_audio.h	/^enum TRIANGLEWAVE {$/;"	g
+TRUE	include/cpu/6502/std.h	16;"	d
+Target	hlakit/common/target.py	/^class Target(object):$/;"	c
+Tell	hlakit/common/tell.py	/^class Tell(object):$/;"	c
+TellBank	hlakit/common/tell.py	/^class TellBank(Tell):$/;"	c
+TellBankFree	hlakit/common/tell.py	/^class TellBankFree(Tell):$/;"	c
+TellBankOffset	hlakit/common/tell.py	/^class TellBankOffset(Tell):$/;"	c
+TellBankSize	hlakit/common/tell.py	/^class TellBankSize(Tell):$/;"	c
+TellBankType	hlakit/common/tell.py	/^class TellBankType(Tell):$/;"	c
+Todo	hlakit/common/todo.py	/^class Todo(Message):$/;"	c
+Type	hlakit/common/type_.py	/^class Type(object):$/;"	c
+TypeRegistry	hlakit/common/typeregistry.py	/^class TypeRegistry(object):$/;"	c
+Typedef	hlakit/common/typedef.py	/^class Typedef(Type):$/;"	c
+Undef	hlakit/common/undef.py	/^class Undef(object):$/;"	c
+UnresolvedSymbolError	hlakit/common/immediate.py	/^class UnresolvedSymbolError(Exception):$/;"	c
+Usepath	hlakit/common/usepath.py	/^class Usepath(File):$/;"	c
+Value	hlakit/common/value.py	/^class Value(object):$/;"	c
+Variable	hlakit/common/variable.py	/^class Variable(Symbol):$/;"	c
+VariableInitializer	hlakit/common/variableinitializer.py	/^class VariableInitializer(object):$/;"	c
+Warning	hlakit/common/warning.py	/^class Warning(Message):$/;"	c
+YELLOW	examples/6502/nes/main.h	/^    YELLOW = 0x07,$/;"	e	enum:COLOUR
+_BLAH_FOO	tests/old/test1.s	/^#define _BLAH_FOO (1)$/;"	d
+_BLAH_FOO	tests/old/test3.s	/^#define _BLAH_FOO "blah blah blah"$/;"	d
+_FOO	tests/old/test1.s	/^#define _FOO$/;"	d
+_LYNX_H	include/platform/lynx/lynx.h	31;"	d
+_NES_AUDIO_H	include/platform/nes/nes_audio.h	11;"	d
+_NES_H	include/platform/nes/nes.h	11;"	d
+_NES_IO_H	include/platform/nes/nes_io.h	11;"	d
+_NES_MAPPERS_H	include/platform/nes/nes_mappers.h	11;"	d
+_NES_MEMORY_H	include/platform/nes/nes_memory.h	15;"	d
+_NES_SYSTEM_H	include/platform/nes/nes_system.h	11;"	d
+_NES_VIDEO_H	include/platform/nes/nes_video.h	11;"	d
+_STD_ASSIGNMENT_H	include/cpu/6502/std_assignment.h	11;"	d
+_STD_BITWISE_H	include/cpu/6502/std_bitwise.h	11;"	d
+_STD_BOOLEAN_H	include/cpu/6502/std_boolean.h	11;"	d
+_STD_H	include/cpu/6502/std.h	11;"	d
+_STD_MATH_H	include/cpu/6502/std_math.h	11;"	d
+_STD_MEMORY_H	include/cpu/6502/std_memory.h	15;"	d
+_STD_STACK_H	include/cpu/6502/std_stack.h	11;"	d
+__call__	hlakit/common/immediate.py	/^    def __call__(self, pstring, location, tokens):$/;"	m	class:bind1	file:
+__call__	hlakit/platform/lynx/lnxsetting.py	/^    def __call__(self, pstring, location, tokens):$/;"	m	class:bind1	file:
+__cmp__	hlakit/common/name.py	/^    def __cmp__(self, name):$/;"	m	class:Name	file:
+__cmp__	hlakit/common/type_.py	/^    def __cmp__(self, t):$/;"	m	class:Type	file:
+__delitem__	hlakit/common/codeblock.py	/^    def __delitem__(self, key):$/;"	m	class:CodeBlock	file:
+__getitem__	hlakit/common/codeblock.py	/^    def __getitem__(self, key):$/;"	m	class:CodeBlock	file:
+__getitem__	hlakit/common/typeregistry.py	/^    def __getitem__(self, t):$/;"	m	class:TypeRegistry	file:
+__hash__	hlakit/common/functiontype.py	/^    def __hash__(self):$/;"	m	class:FunctionType	file:
+__hash__	hlakit/common/name.py	/^    def __hash__(self):$/;"	m	class:Name	file:
+__hash__	hlakit/cpu/mos6502/opcode.py	/^    def __hash__(self):$/;"	m	class:Opcode	file:
+__hash__	hlakit/cpu/mos6502/register.py	/^    def __hash__(self):$/;"	m	class:Register	file:
+__init__	hlakit/common/align.py	/^    def __init__(self, value):$/;"	m	class:Align
+__init__	hlakit/common/arrayvalue.py	/^    def __init__(self, item, labels = []):$/;"	m	class:ArrayItem
+__init__	hlakit/common/arrayvalue.py	/^    def __init__(self, items=[]):$/;"	m	class:ArrayValue
+__init__	hlakit/common/arrayvalue.py	/^    def __init__(self, value):$/;"	m	class:StringValue
+__init__	hlakit/common/binaryoperator.py	/^    def __init__(self, symbol=None, value=None):$/;"	m	class:BinaryOperator
+__init__	hlakit/common/buffer.py	/^    def __init__(self, org, maxsize=None, padding=0):$/;"	m	class:Buffer
+__init__	hlakit/common/codeblock.py	/^    def __init__(self, lines=[]):$/;"	m	class:CodeBlock
+__init__	hlakit/common/codeline.py	/^    def __init__(self, code):$/;"	m	class:CodeLine
+__init__	hlakit/common/compiler.py	/^    def __init__(self):$/;"	m	class:BasicScope
+__init__	hlakit/common/compiler.py	/^    def __init__(self):$/;"	m	class:Compiler
+__init__	hlakit/common/conditional.py	/^    def __init__(self, decl):$/;"	m	class:ConditionalBlock
+__init__	hlakit/common/conditional.py	/^    def __init__(self, depth):$/;"	m	class:Conditional
+__init__	hlakit/common/conditionaldecl.py	/^    def __init__(self, mode, cond=None):$/;"	m	class:ConditionalDecl
+__init__	hlakit/common/enum.py	/^        def __init__(self, name, type_, value):$/;"	m	class:Enum.Member
+__init__	hlakit/common/enum.py	/^    def __init__(self, name, type_):$/;"	m	class:Enum
+__init__	hlakit/common/filemarkers.py	/^    def __init__(self, name):$/;"	m	class:FileBegin
+__init__	hlakit/common/filemarkers.py	/^    def __init__(self, name):$/;"	m	class:FileEnd
+__init__	hlakit/common/function.py	/^    def __init__(self, decl):$/;"	m	class:Function
+__init__	hlakit/common/functioncall.py	/^    def __init__(self, name, type_, params=None):$/;"	m	class:FunctionCall
+__init__	hlakit/common/functiondecl.py	/^    def __init__(self, name, fn_type, params=None):$/;"	m	class:FunctionDecl
+__init__	hlakit/common/functionparameter.py	/^    def __init__(self, symbol=None, value=None):$/;"	m	class:FunctionParameter
+__init__	hlakit/common/functionreturn.py	/^    def __init__(self):$/;"	m	class:FunctionReturn
+__init__	hlakit/common/functiontype.py	/^    def __init__(self, type_, sub_type=None, noreturn=False):$/;"	m	class:FunctionType
+__init__	hlakit/common/generator.py	/^    def __init__(self):$/;"	m	class:Generator
+__init__	hlakit/common/immediate.py	/^    def __init__(self, fn, type):$/;"	m	class:bind1
+__init__	hlakit/common/immediate.py	/^    def __init__(self, type_, *args_):$/;"	m	class:Immediate
+__init__	hlakit/common/immediate.py	/^    def __init__(self, value):$/;"	m	class:UnresolvedSymbolError
+__init__	hlakit/common/incbin.py	/^    def __init__(self, f, label = None):$/;"	m	class:Incbin
+__init__	hlakit/common/instructionline.py	/^    def __init__(self, opcode, operand):$/;"	m	class:InstructionLine
+__init__	hlakit/common/label.py	/^    def __init__(self, name=None, fn=None):$/;"	m	class:Label
+__init__	hlakit/common/name.py	/^    def __init__(self, name):$/;"	m	class:Name
+__init__	hlakit/common/numericvalue.py	/^    def __init__(self, token, value):$/;"	m	class:NumericValue
+__init__	hlakit/common/preprocessor.py	/^        def __init__(self, f, exprs):$/;"	m	class:Preprocessor.StateFrame
+__init__	hlakit/common/preprocessor.py	/^    def __init__(self):$/;"	m	class:Preprocessor
+__init__	hlakit/common/rampp.py	/^    def __init__(self, address, maxsize=None):$/;"	m	class:RamOrg
+__init__	hlakit/common/romfile.py	/^    def __init__(self):$/;"	m	class:RomFile
+__init__	hlakit/common/rompp.py	/^    def __init__(self, address, maxsize=None):$/;"	m	class:RomOrg
+__init__	hlakit/common/rompp.py	/^    def __init__(self, number, maxsize=None):$/;"	m	class:RomBank
+__init__	hlakit/common/rompp.py	/^    def __init__(self, size):$/;"	m	class:RomBanksize
+__init__	hlakit/common/session.py	/^    def __init__(self, value):$/;"	m	class:CommandLineError
+__init__	hlakit/common/setpad.py	/^    def __init__(self, value):$/;"	m	class:SetPad
+__init__	hlakit/common/struct_.py	/^        def __init__(self, name, type_, size=None):$/;"	m	class:Struct.Member
+__init__	hlakit/common/struct_.py	/^    def __init__(self, name):$/;"	m	class:Struct
+__init__	hlakit/common/symbol.py	/^    def __init__(self, name, type_=None, addr=None):$/;"	m	class:Symbol
+__init__	hlakit/common/target.py	/^    def __init__(self):$/;"	m	class:Target
+__init__	hlakit/common/type_.py	/^    def __init__(self, name):$/;"	m	class:Type
+__init__	hlakit/common/typedef.py	/^    def __init__(self, name, aliased_type, array_=False, size=None):$/;"	m	class:Typedef
+__init__	hlakit/common/typeregistry.py	/^    def __init__(self):$/;"	m	class:TypeRegistry
+__init__	hlakit/common/variable.py	/^    def __init__(self, name, type_, shared=False, array_=False, size=None, address=None):$/;"	m	class:Variable
+__init__	hlakit/common/variableinitializer.py	/^    def __init__(self, value):$/;"	m	class:VariableInitializer
+__init__	hlakit/cpu/mos6502/conditionaldecl.py	/^    def __init__(self, mode, cond=None):$/;"	m	class:ConditionalDecl
+__init__	hlakit/cpu/mos6502/instructionline.py	/^    def __init__(self, opcode, operand):$/;"	m	class:InstructionLine
+__init__	hlakit/cpu/mos6502/interrupt.py	/^    def __init__(self, fn):$/;"	m	class:Interrupt
+__init__	hlakit/cpu/mos6502/mos6502.py	/^    def __init__(self):$/;"	m	class:MOS6502
+__init__	hlakit/cpu/mos6502/opcode.py	/^    def __init__(self, op=None):$/;"	m	class:Opcode
+__init__	hlakit/cpu/mos6502/operand.py	/^    def __init__(self, mode=IMP, resolved=False, addr=None, reg=None, value=None):$/;"	m	class:Operand
+__init__	hlakit/cpu/mos6502/register.py	/^    def __init__(self, name=None):$/;"	m	class:Register
+__init__	hlakit/cpu/mos6502/romfile.py	/^    def __init__(self):$/;"	m	class:MOS6502RomFile
+__init__	hlakit/platform/lynx/lnx.py	/^    def __init__(self, inf=None):$/;"	m	class:Lnx
+__init__	hlakit/platform/lynx/lnxsetting.py	/^    def __init__(self, fn, type):$/;"	m	class:bind1
+__init__	hlakit/platform/lynx/lnxsetting.py	/^    def __init__(self, type_, *args_):$/;"	m	class:LnxSetting
+__init__	hlakit/platform/lynx/loader.py	/^    def __init__(self, fn):$/;"	m	class:LynxLoader
+__init__	hlakit/platform/lynx/lynx.py	/^    def __init__(self):$/;"	m	class:Lynx
+__init__	hlakit/platform/lynx/rompp.py	/^    def __init__(self, segment, counter=None, maxsize=None):$/;"	m	class:LynxRomOrg
+__init__	hlakit/platform/nes/chr.py	/^    def __init__(self, filename, size=None):$/;"	m	class:ChrLink
+__init__	hlakit/platform/nes/chr.py	/^    def __init__(self, number, maxsize=None):$/;"	m	class:ChrBank
+__init__	hlakit/platform/nes/chr.py	/^    def __init__(self, size):$/;"	m	class:ChrBanksize
+__init__	hlakit/platform/nes/ines.py	/^    def __init__(self):$/;"	m	class:iNES
+__init__	hlakit/platform/nes/ines.py	/^    def __init__(self, mapper):$/;"	m	class:iNESMapper
+__init__	hlakit/platform/nes/ines.py	/^    def __init__(self, mirroring):$/;"	m	class:iNESMirroring
+__init__	hlakit/platform/nes/ines.py	/^    def __init__(self, repeat):$/;"	m	class:iNESChrRepeat
+__init__	hlakit/platform/nes/ines.py	/^    def __init__(self, repeat):$/;"	m	class:iNESPrgRepeat
+__init__	hlakit/platform/nes/ines.py	/^    def __init__(self, value):$/;"	m	class:iNESBattery
+__init__	hlakit/platform/nes/ines.py	/^    def __init__(self, value):$/;"	m	class:iNESFourscreen
+__init__	hlakit/platform/nes/ines.py	/^    def __init__(self, value):$/;"	m	class:iNESTrainer
+__init__	hlakit/platform/nes/nes.py	/^    def __init__(self):$/;"	m	class:NES
+__init__	utils/lnx_creator.py	/^    def __init__(self, value):$/;"	m	class:CommandLineError
+__int__	hlakit/common/numericvalue.py	/^    def __int__(self):$/;"	m	class:NumericValue	file:
+__iter__	hlakit/common/codeblock.py	/^    def __iter__(self):$/;"	m	class:CodeBlock	file:
+__len__	hlakit/common/arrayvalue.py	/^    def __len__(self):$/;"	m	class:ArrayItem	file:
+__len__	hlakit/common/arrayvalue.py	/^    def __len__(self):$/;"	m	class:ArrayValue	file:
+__len__	hlakit/common/codeblock.py	/^    def __len__(self):$/;"	m	class:CodeBlock	file:
+__len__	hlakit/common/numericvalue.py	/^    def __len__(self):$/;"	m	class:NumericValue	file:
+__new__	hlakit/common/compiler.py	/^    def __new__(cls, *a, **k):$/;"	m	class:Compiler	file:
+__new__	hlakit/common/generator.py	/^    def __new__(cls, *a, **k):$/;"	m	class:Generator	file:
+__new__	hlakit/common/preprocessor.py	/^    def __new__(cls, *a, **k):$/;"	m	class:Preprocessor	file:
+__new__	hlakit/common/session.py	/^    def __new__(cls, *a, **k):$/;"	m	class:Session	file:
+__new__	hlakit/common/symboltable.py	/^    def __new__(cls, *a, **k):$/;"	m	class:SymbolTable	file:
+__new__	hlakit/common/typeregistry.py	/^    def __new__(cls, *a, **k):$/;"	m	class:TypeRegistry	file:
+__nonzero__	hlakit/common/numericvalue.py	/^    def __nonzero__(self):$/;"	m	class:NumericValue	file:
+__repr__	hlakit/common/arrayvalue.py	/^    def __repr__(self):$/;"	m	class:StringValue	file:
+__repr__	hlakit/common/numericvalue.py	/^    def __repr__(self):$/;"	m	class:NumericValue	file:
+__setitem__	hlakit/common/codeblock.py	/^    def __setitem__(self, key, value):$/;"	m	class:CodeBlock	file:
+__setitem__	hlakit/common/typeregistry.py	/^    def __setitem__(self, name, t):$/;"	m	class:TypeRegistry	file:
+__str__	hlakit/common/align.py	/^    def __str__(self):$/;"	m	class:Align	file:
+__str__	hlakit/common/arrayvalue.py	/^    def __str__(self):$/;"	m	class:ArrayItem	file:
+__str__	hlakit/common/arrayvalue.py	/^    def __str__(self):$/;"	m	class:ArrayValue	file:
+__str__	hlakit/common/arrayvalue.py	/^    def __str__(self):$/;"	m	class:StringValue	file:
+__str__	hlakit/common/buffer.py	/^    def __str__(self):$/;"	m	class:Buffer	file:
+__str__	hlakit/common/codeblock.py	/^    def __str__(self):$/;"	m	class:CodeBlock	file:
+__str__	hlakit/common/codeline.py	/^    def __str__(self):$/;"	m	class:CodeLine	file:
+__str__	hlakit/common/conditional.py	/^    def __str__(self):$/;"	m	class:Conditional	file:
+__str__	hlakit/common/conditionaldecl.py	/^    def __str__(self):$/;"	m	class:ConditionalDecl	file:
+__str__	hlakit/common/enum.py	/^        def __str__(self):$/;"	m	class:Enum.Member	file:
+__str__	hlakit/common/enum.py	/^    def __str__(self):$/;"	m	class:Enum	file:
+__str__	hlakit/common/filemarkers.py	/^    def __str__(self):$/;"	m	class:FileBegin	file:
+__str__	hlakit/common/filemarkers.py	/^    def __str__(self):$/;"	m	class:FileEnd	file:
+__str__	hlakit/common/function.py	/^    def __str__(self):$/;"	m	class:Function	file:
+__str__	hlakit/common/functioncall.py	/^    def __str__(self):$/;"	m	class:FunctionCall	file:
+__str__	hlakit/common/functiondecl.py	/^    def __str__(self):$/;"	m	class:FunctionDecl	file:
+__str__	hlakit/common/functionparameter.py	/^    def __str__(self):$/;"	m	class:FunctionParameter	file:
+__str__	hlakit/common/functionreturn.py	/^    def __str__(self):$/;"	m	class:FunctionReturn	file:
+__str__	hlakit/common/functiontype.py	/^    def __str__(self):$/;"	m	class:FunctionType	file:
+__str__	hlakit/common/immediate.py	/^    def __str__(self):$/;"	m	class:Immediate	file:
+__str__	hlakit/common/immediate.py	/^    def __str__(self):$/;"	m	class:UnresolvedSymbolError	file:
+__str__	hlakit/common/incbin.py	/^    def __str__(self):$/;"	m	class:Incbin	file:
+__str__	hlakit/common/instructionline.py	/^    def __str__(self):$/;"	m	class:InstructionLine	file:
+__str__	hlakit/common/label.py	/^    def __str__(self):$/;"	m	class:Label	file:
+__str__	hlakit/common/name.py	/^    def __str__(self):$/;"	m	class:Name	file:
+__str__	hlakit/common/numericvalue.py	/^    def __str__(self):$/;"	m	class:NumericValue	file:
+__str__	hlakit/common/rampp.py	/^    def __str__(self):$/;"	m	class:RamEnd	file:
+__str__	hlakit/common/rampp.py	/^    def __str__(self):$/;"	m	class:RamOrg	file:
+__str__	hlakit/common/rompp.py	/^    def __str__(self):$/;"	m	class:RomBank	file:
+__str__	hlakit/common/rompp.py	/^    def __str__(self):$/;"	m	class:RomBanksize	file:
+__str__	hlakit/common/rompp.py	/^    def __str__(self):$/;"	m	class:RomEnd	file:
+__str__	hlakit/common/rompp.py	/^    def __str__(self):$/;"	m	class:RomOrg	file:
+__str__	hlakit/common/scopemarkers.py	/^    def __str__(self):$/;"	m	class:ScopeBegin	file:
+__str__	hlakit/common/scopemarkers.py	/^    def __str__(self):$/;"	m	class:ScopeEnd	file:
+__str__	hlakit/common/session.py	/^    def __str__(self):$/;"	m	class:CommandLineError	file:
+__str__	hlakit/common/setpad.py	/^    def __str__(self):$/;"	m	class:SetPad	file:
+__str__	hlakit/common/struct_.py	/^        def __str__(self):$/;"	m	class:Struct.Member	file:
+__str__	hlakit/common/tell.py	/^    def __str__(self):$/;"	m	class:Tell	file:
+__str__	hlakit/common/type_.py	/^    def __str__(self):$/;"	m	class:Type	file:
+__str__	hlakit/common/typedef.py	/^    def __str__(self):$/;"	m	class:Typedef	file:
+__str__	hlakit/common/variable.py	/^    def __str__(self):$/;"	m	class:Variable	file:
+__str__	hlakit/common/variableinitializer.py	/^    def __str__(self):$/;"	m	class:VariableInitializer	file:
+__str__	hlakit/cpu/mos6502/interrupt.py	/^    def __str__(self):$/;"	m	class:Interrupt	file:
+__str__	hlakit/cpu/mos6502/opcode.py	/^    def __str__(self):$/;"	m	class:Opcode	file:
+__str__	hlakit/cpu/mos6502/operand.py	/^    def __str__(self):$/;"	m	class:Operand	file:
+__str__	hlakit/cpu/mos6502/register.py	/^    def __str__(self):$/;"	m	class:Register	file:
+__str__	hlakit/platform/lynx/lnx.py	/^    def __str__(self):$/;"	m	class:Lnx	file:
+__str__	hlakit/platform/lynx/lnxsetting.py	/^    def __str__(self):$/;"	m	class:LnxSetting	file:
+__str__	hlakit/platform/lynx/loader.py	/^    def __str__(self):$/;"	m	class:LynxLoader	file:
+__str__	hlakit/platform/lynx/rompp.py	/^    def __str__(self):$/;"	m	class:LynxRomOrg	file:
+__str__	hlakit/platform/nes/chr.py	/^    def __str__(self):$/;"	m	class:ChrBank	file:
+__str__	hlakit/platform/nes/chr.py	/^    def __str__(self):$/;"	m	class:ChrBanksize	file:
+__str__	hlakit/platform/nes/chr.py	/^    def __str__(self):$/;"	m	class:ChrEnd	file:
+__str__	hlakit/platform/nes/chr.py	/^    def __str__(self):$/;"	m	class:ChrLink	file:
+__str__	hlakit/platform/nes/ines.py	/^    def __str__(self):$/;"	m	class:iNES	file:
+__str__	hlakit/platform/nes/ines.py	/^    def __str__(self):$/;"	m	class:iNESBattery	file:
+__str__	hlakit/platform/nes/ines.py	/^    def __str__(self):$/;"	m	class:iNESChrRepeat	file:
+__str__	hlakit/platform/nes/ines.py	/^    def __str__(self):$/;"	m	class:iNESFourscreen	file:
+__str__	hlakit/platform/nes/ines.py	/^    def __str__(self):$/;"	m	class:iNESMapper	file:
+__str__	hlakit/platform/nes/ines.py	/^    def __str__(self):$/;"	m	class:iNESMirroring	file:
+__str__	hlakit/platform/nes/ines.py	/^    def __str__(self):$/;"	m	class:iNESOff	file:
+__str__	hlakit/platform/nes/ines.py	/^    def __str__(self):$/;"	m	class:iNESPrgRepeat	file:
+__str__	hlakit/platform/nes/ines.py	/^    def __str__(self):$/;"	m	class:iNESTrainer	file:
+__str__	utils/lnx_creator.py	/^    def __str__(self):$/;"	m	class:CommandLineError	file:
+_add	hlakit/common/immediate.py	/^    def _add(self, lhs, rhs):$/;"	m	class:Immediate
+_and	hlakit/common/immediate.py	/^    def _and(self, lhs, rhs):$/;"	m	class:Immediate
+_append_token_to_scope	hlakit/common/compiler.py	/^    def _append_token_to_scope(self, token):$/;"	m	class:Compiler
+_append_tokens	hlakit/common/compiler.py	/^    def _append_tokens(self, tokens):$/;"	m	class:Compiler
+_checkScannerParserResolver	tests/testlynx.py	/^    def _checkScannerParserResolver(self, cc, scanner, parser, resolver):$/;"	m	class:LynxLnxTester
+_checkScannerParserResolver	tests/testmos6502.py	/^    def _checkScannerParserResolver(self, cc, scanner, parser, resolver):$/;"	m	class:MOS6502CompilerTester
+_checkScannerParserResolver	tests/testnes.py	/^    def _checkScannerParserResolver(self, cc, scanner, parser, resolver):$/;"	m	class:NESCompilerTester
+_check_buffer_size	hlakit/common/buffer.py	/^    def _check_buffer_size(self):$/;"	m	class:Buffer
+_close_case	hlakit/common/compiler.py	/^    def _close_case(self, cond, token):$/;"	m	class:Compiler
+_close_conditional	hlakit/common/compiler.py	/^    def _close_conditional(self, cond, token):$/;"	m	class:Compiler
+_close_do	hlakit/common/compiler.py	/^    def _close_do(self, cond, token):$/;"	m	class:Compiler
+_close_if	hlakit/common/compiler.py	/^    def _close_if(self, cond, token):$/;"	m	class:Compiler
+_close_scoped_block	hlakit/common/compiler.py	/^    def _close_scoped_block(self, cond, token):$/;"	m	class:Compiler
+_close_switch	hlakit/common/compiler.py	/^    def _close_switch(self, cond, token):$/;"	m	class:Compiler
+_create_code_blocks	hlakit/common/preprocessor.py	/^    def _create_code_blocks(self, tokens):$/;"	m	class:Preprocessor
+_decrement_depth	hlakit/common/compiler.py	/^    def _decrement_depth(self):$/;"	m	class:Compiler
+_div	hlakit/common/immediate.py	/^    def _div(self, lhs, rhs):$/;"	m	class:Immediate
+_equal	hlakit/common/immediate.py	/^    def _equal(self, lhs, rhs):$/;"	m	class:Immediate
+_finalize_rom	hlakit/common/generator.py	/^    def _finalize_rom(self):$/;"	m	class:Generator
+_finalize_rom	hlakit/platform/nes/generator.py	/^    def _finalize_rom(self):$/;"	m	class:Generator
+_get_conditions	hlakit/cpu/mos6502/conditionaldecl.py	/^    def _get_conditions(klass):$/;"	m	class:ConditionalDecl
+_get_cur_bank_byte_offset	hlakit/platform/lynx/lnx.py	/^    def _get_cur_bank_byte_offset(self):$/;"	m	class:Lnx
+_get_cur_bank_maxsize	hlakit/platform/lynx/lnx.py	/^    def _get_cur_bank_maxsize(self):$/;"	m	class:Lnx
+_get_cur_bank_page_size	hlakit/platform/lynx/lnx.py	/^    def _get_cur_bank_page_size(self):$/;"	m	class:Lnx
+_get_depth	hlakit/common/compiler.py	/^    def _get_depth(self):$/;"	m	class:Compiler
+_get_fn_call	hlakit/common/compiler.py	/^    def _get_fn_call(self, fn, parent_fn):$/;"	m	class:Compiler
+_get_fn_call	hlakit/cpu/mos6502/compiler.py	/^    def _get_fn_call(self, fn, parent_fn):$/;"	m	class:Compiler
+_get_fn_context	hlakit/common/compiler.py	/^    def _get_fn_context(self):$/;"	m	class:Compiler
+_get_fn_return	hlakit/common/compiler.py	/^    def _get_fn_return(self, fn, parent_fn):$/;"	m	class:Compiler
+_get_fn_return	hlakit/cpu/mos6502/compiler.py	/^    def _get_fn_return(self, fn, parent_fn):$/;"	m	class:Compiler
+_get_int_padding	hlakit/common/buffer.py	/^    def _get_int_padding(self, value):$/;"	m	class:Buffer
+_get_keyword	hlakit/common/error.py	/^    def _get_keyword(klass):$/;"	m	class:Error
+_get_keyword	hlakit/common/incbin.py	/^    def _get_keyword(klass):$/;"	m	class:Incbin
+_get_keyword	hlakit/common/include.py	/^    def _get_keyword(klass):$/;"	m	class:Include
+_get_keyword	hlakit/common/tell.py	/^    def _get_keyword(klass):$/;"	m	class:TellBank
+_get_keyword	hlakit/common/tell.py	/^    def _get_keyword(klass):$/;"	m	class:TellBankFree
+_get_keyword	hlakit/common/tell.py	/^    def _get_keyword(klass):$/;"	m	class:TellBankOffset
+_get_keyword	hlakit/common/tell.py	/^    def _get_keyword(klass):$/;"	m	class:TellBankSize
+_get_keyword	hlakit/common/tell.py	/^    def _get_keyword(klass):$/;"	m	class:TellBankType
+_get_keyword	hlakit/common/todo.py	/^    def _get_keyword(klass):$/;"	m	class:Todo
+_get_keyword	hlakit/common/usepath.py	/^    def _get_keyword(klass):$/;"	m	class:Usepath
+_get_keyword	hlakit/common/warning.py	/^    def _get_keyword(klass):$/;"	m	class:Warning
+_get_keyword	hlakit/cpu/mos6502/interrupt.py	/^    def _get_keyword(klass):$/;"	m	class:InterruptIRQ
+_get_keyword	hlakit/cpu/mos6502/interrupt.py	/^    def _get_keyword(klass):$/;"	m	class:InterruptNMI
+_get_keyword	hlakit/cpu/mos6502/interrupt.py	/^    def _get_keyword(klass):$/;"	m	class:InterruptStart
+_get_no_operands	hlakit/common/opcode.py	/^    def _get_no_operands(klass):$/;"	m	class:Opcode
+_get_no_operands	hlakit/cpu/mos6502/opcode.py	/^    def _get_no_operands(klass):$/;"	m	class:Opcode
+_get_scope_context	hlakit/common/compiler.py	/^    def _get_scope_context(self):$/;"	m	class:Compiler
+_get_str_padding	hlakit/common/buffer.py	/^    def _get_str_padding(self, value):$/;"	m	class:Buffer
+_get_switch_registers	hlakit/cpu/mos6502/conditionaldecl.py	/^    def _get_switch_registers(klass):$/;"	m	class:ConditionalDecl
+_get_token	hlakit/common/compiler.py	/^    def _get_token(self):$/;"	m	class:Compiler
+_get_tokens	hlakit/common/compiler.py	/^    def _get_tokens(self):$/;"	m	class:Compiler
+_get_with_operands	hlakit/common/opcode.py	/^    def _get_with_operands(klass):$/;"	m	class:Opcode
+_get_with_operands	hlakit/cpu/mos6502/opcode.py	/^    def _get_with_operands(klass):$/;"	m	class:Opcode
+_gt	hlakit/common/immediate.py	/^    def _gt(self, lhs, rhs):$/;"	m	class:Immediate
+_gte	hlakit/common/immediate.py	/^    def _gte(self, lhs, rhs):$/;"	m	class:Immediate
+_handle_file	hlakit/common/incbin.py	/^    def _handle_file(klass, path, implied=False):$/;"	m	class:Incbin
+_handle_file	hlakit/common/include.py	/^    def _handle_file(klass, path, implied=False):$/;"	m	class:Include
+_handle_file	hlakit/common/usepath.py	/^    def _handle_file(klass, path, implied=False):$/;"	m	class:Usepath
+_handle_message	hlakit/common/error.py	/^    def _handle_message(klass, message):$/;"	m	class:Error
+_handle_message	hlakit/common/todo.py	/^    def _handle_message(klass, message):$/;"	m	class:Todo
+_handle_message	hlakit/common/warning.py	/^    def _handle_message(klass, message):$/;"	m	class:Warning
+_hexxy0	examples/6502/nes/visuals.s	/^_hexxy0:$/;"	l
+_hexxy0d	examples/6502/nes/visuals.s	/^_hexxy0d:$/;"	l
+_hexxy1	examples/6502/nes/visuals.s	/^_hexxy1:$/;"	l
+_hexxy1d	examples/6502/nes/visuals.s	/^_hexxy1d:$/;"	l
+_hi	hlakit/common/immediate.py	/^    def _hi(self, value):$/;"	m	class:Immediate
+_increment_depth	hlakit/common/compiler.py	/^    def _increment_depth(self):$/;"	m	class:Compiler
+_initialize_rom	hlakit/common/generator.py	/^    def _initialize_rom(self):$/;"	m	class:Generator
+_initialize_rom	hlakit/cpu/mos6502/generator.py	/^    def _initialize_rom(self):$/;"	m	class:Generator
+_initialize_rom	hlakit/platform/lynx/generator.py	/^    def _initialize_rom(self):$/;"	m	class:Generator
+_initialize_rom	hlakit/platform/nes/generator.py	/^    def _initialize_rom(self):$/;"	m	class:Generator
+_lo	hlakit/common/immediate.py	/^    def _lo(self, value):$/;"	m	class:Immediate
+_lt	hlakit/common/immediate.py	/^    def _lt(self, lhs, rhs):$/;"	m	class:Immediate
+_lte	hlakit/common/immediate.py	/^    def _lte(self, lhs, rhs):$/;"	m	class:Immediate
+_mod	hlakit/common/immediate.py	/^    def _mod(self, lhs, rhs):$/;"	m	class:Immediate
+_mul	hlakit/common/immediate.py	/^    def _mul(self, lhs, rhs):$/;"	m	class:Immediate
+_nbytes	hlakit/common/immediate.py	/^    def _nbytes(self, value):$/;"	m	class:Immediate
+_neg	hlakit/common/immediate.py	/^    def _neg(self, value):$/;"	m	class:Immediate
+_not	hlakit/common/immediate.py	/^    def _not(self, value):$/;"	m	class:Immediate
+_not_equal	hlakit/common/immediate.py	/^    def _not_equal(self, lhs, rhs):$/;"	m	class:Immediate
+_nyhi	hlakit/common/immediate.py	/^    def _nyhi(self, value):$/;"	m	class:Immediate
+_nylo	hlakit/common/immediate.py	/^    def _nylo(self, value):$/;"	m	class:Immediate
+_open_scoped_block	hlakit/common/compiler.py	/^    def _open_scoped_block(self, cond, token):$/;"	m	class:Compiler
+_or	hlakit/common/immediate.py	/^    def _or(self, lhs, rhs):$/;"	m	class:Immediate
+_pack_banks	hlakit/platform/lynx/lnx.py	/^    def _pack_banks(self, outf):$/;"	m	class:Lnx
+_pack_header	hlakit/platform/lynx/lnx.py	/^    def _pack_header(self, outf):$/;"	m	class:Lnx
+_pad_buffer	hlakit/common/buffer.py	/^    def _pad_buffer(self, start, len):$/;"	m	class:Buffer
+_pad_with_value	hlakit/common/buffer.py	/^    def _pad_with_value(self, start, length, value):$/;"	m	class:Buffer
+_pal_ptr	include/platform/nes/nes_ram.s	/^_pal_ptr$/;"	l
+_parse	hlakit/common/compiler.py	/^    def _parse(self, tokens):$/;"	m	class:Compiler
+_parse_next	hlakit/common/compiler.py	/^    def _parse_next(self):$/;"	m	class:Compiler
+_peek_token	hlakit/common/compiler.py	/^    def _peek_token(self):$/;"	m	class:Compiler
+_pop_scope	hlakit/common/compiler.py	/^    def _pop_scope(self):$/;"	m	class:Compiler
+_process_case	hlakit/common/compiler.py	/^    def _process_case(self, token):$/;"	m	class:Compiler
+_process_default	hlakit/common/compiler.py	/^    def _process_default(self, token):$/;"	m	class:Compiler
+_process_do	hlakit/common/compiler.py	/^    def _process_do(self, token):$/;"	m	class:Compiler
+_process_else	hlakit/common/compiler.py	/^    def _process_else(self, token):$/;"	m	class:Compiler
+_process_forever	hlakit/common/compiler.py	/^    def _process_forever(self, token):$/;"	m	class:Compiler
+_process_if	hlakit/common/compiler.py	/^    def _process_if(self, token):$/;"	m	class:Compiler
+_process_switch	hlakit/common/compiler.py	/^    def _process_switch(self, token):$/;"	m	class:Compiler
+_process_token	hlakit/common/generator.py	/^    def _process_token(self, token):$/;"	m	class:Generator
+_process_token	hlakit/cpu/mos6502/generator.py	/^    def _process_token(self, token):$/;"	m	class:Generator
+_process_token	hlakit/platform/lynx/generator.py	/^    def _process_token(self, token):$/;"	m	class:Generator
+_process_token	hlakit/platform/nes/generator.py	/^    def _process_token(self, token):$/;"	m	class:Generator
+_process_variable	hlakit/common/generator.py	/^    def _process_variable(self, var):$/;"	m	class:Generator
+_process_while	hlakit/common/compiler.py	/^    def _process_while(self, token):$/;"	m	class:Compiler
+_push_scope	hlakit/common/compiler.py	/^    def _push_scope(self, scope):$/;"	m	class:Compiler
+_put_token	hlakit/common/compiler.py	/^    def _put_token(self, token):$/;"	m	class:Compiler
+_resolve	hlakit/common/compiler.py	/^    def _resolve(self, tokens):$/;"	m	class:Compiler
+_resolve_arg	hlakit/common/immediate.py	/^    def _resolve_arg(self, arg):$/;"	m	class:Immediate
+_resolve_do_while	hlakit/common/compiler.py	/^    def _resolve_do_while(self, cond):$/;"	m	class:Compiler
+_resolve_do_while	hlakit/cpu/mos6502/compiler.py	/^    def _resolve_do_while(self, cond):$/;"	m	class:Compiler
+_resolve_forever	hlakit/common/compiler.py	/^    def _resolve_forever(self, cond):$/;"	m	class:Compiler
+_resolve_forever	hlakit/cpu/mos6502/compiler.py	/^    def _resolve_forever(self, cond):$/;"	m	class:Compiler
+_resolve_if	hlakit/common/compiler.py	/^    def _resolve_if(self, cond):$/;"	m	class:Compiler
+_resolve_if	hlakit/cpu/mos6502/compiler.py	/^    def _resolve_if(self, cond):$/;"	m	class:Compiler
+_resolve_if_else	hlakit/common/compiler.py	/^    def _resolve_if_else(self, cond):$/;"	m	class:Compiler
+_resolve_if_else	hlakit/cpu/mos6502/compiler.py	/^    def _resolve_if_else(self, cond):$/;"	m	class:Compiler
+_resolve_switch	hlakit/common/compiler.py	/^    def _resolve_switch(self, cond):$/;"	m	class:Compiler
+_resolve_switch	hlakit/cpu/mos6502/compiler.py	/^    def _resolve_switch(self, cond):$/;"	m	class:Compiler
+_resolve_token	hlakit/common/compiler.py	/^    def _resolve_token(self, token):$/;"	m	class:Compiler
+_resolve_value	hlakit/platform/nes/generator.py	/^    def _resolve_value(self, name, type_):$/;"	m	class:Generator
+_resolve_while	hlakit/common/compiler.py	/^    def _resolve_while(self, cond):$/;"	m	class:Compiler
+_resolve_while	hlakit/cpu/mos6502/compiler.py	/^    def _resolve_while(self, cond):$/;"	m	class:Compiler
+_scan	hlakit/common/compiler.py	/^    def _scan(self, tokens):$/;"	m	class:Compiler
+_scope_depth	hlakit/common/compiler.py	/^    def _scope_depth(self):$/;"	m	class:Compiler
+_shift_left	hlakit/common/immediate.py	/^    def _shift_left(self, lhs, rhs):$/;"	m	class:Immediate
+_shift_right	hlakit/common/immediate.py	/^    def _shift_right(self, lhs, rhs):$/;"	m	class:Immediate
+_sign	hlakit/common/immediate.py	/^    def _sign(self, sign, value):$/;"	m	class:Immediate
+_sizeof	hlakit/common/immediate.py	/^    def _sizeof(self, value):$/;"	m	class:Immediate
+_sub	hlakit/common/immediate.py	/^    def _sub(self, lhs, rhs):$/;"	m	class:Immediate
+_unpack_banks	hlakit/platform/lynx/lnx.py	/^    def _unpack_banks(self, inf):$/;"	m	class:Lnx
+_unpack_header	hlakit/platform/lynx/lnx.py	/^    def _unpack_header(self, inf):$/;"	m	class:Lnx
+_xor	hlakit/common/immediate.py	/^    def _xor(self, lhs, rhs):$/;"	m	class:Immediate
+a	tests/old/test_arrays.s	/^    a: $/;"	l
+abs	include/cpu/6502/std_math.h	/^inline abs(number)$/;"	f
+abs_16	include/cpu/6502/std_math.h	/^inline abs_16(number)$/;"	f
+abs_a	include/cpu/6502/std_math.h	/^inline abs_a()$/;"	f
+add	include/cpu/6502/std_math.h	/^inline add(dest,value)$/;"	f
+add	tests/old/test_macro_expansion.s	/^add y, BAZ$/;"	l
+add_16_16	include/cpu/6502/std_math.h	/^inline add_16_16(dest,value)$/;"	f
+add_16_16_to	include/cpu/6502/std_math.h	/^inline add_16_16_to(valuea,valueb,dest)$/;"	f
+add_16_16_x	include/cpu/6502/std_math.h	/^inline add_16_16_x(dest,value)$/;"	f
+add_16_8	include/cpu/6502/std_math.h	/^inline add_16_8(dest,value)$/;"	f
+add_16_8_a	include/cpu/6502/std_math.h	/^inline add_16_8_a(dest)$/;"	f
+add_16_8_a_to_x	include/cpu/6502/std_math.h	/^inline add_16_8_a_to_x(src,dest)$/;"	f
+add_16_8_a_x	include/cpu/6502/std_math.h	/^inline add_16_8_a_x(dest)$/;"	f
+add_16_8_to	include/cpu/6502/std_math.h	/^inline add_16_8_to(src,value,dest)$/;"	f
+add_16_8_x	include/cpu/6502/std_math.h	/^inline add_16_8_x(dest,value)$/;"	f
+add_16_8yind_to	include/cpu/6502/std_math.h	/^inline add_16_8yind_to(src,value,dest)$/;"	f
+add_16i	include/cpu/6502/std_math.h	/^inline add_16i(dest,value)$/;"	f
+add_16i_x	include/cpu/6502/std_math.h	/^inline add_16i_x(dest,value)$/;"	f
+add_8y_16x_to_16	include/cpu/6502/std_math.h	/^inline add_8y_16x_to_16(var8, var16, dest16)$/;"	f
+add_block	hlakit/common/conditional.py	/^    def add_block(self, block):$/;"	m	class:Conditional
+add_dependency	hlakit/common/function.py	/^    def add_dependency(self, fn):$/;"	m	class:Function
+add_include_dir	hlakit/common/session.py	/^    def add_include_dir(self, path):$/;"	m	class:Session
+add_x	include/cpu/6502/std_math.h	/^inline add_x(dest,value)$/;"	f
+add_x_a	include/cpu/6502/std_math.h	/^inline add_x_a(dest)$/;"	f
+adds_16_8	include/cpu/6502/std_math.h	/^inline adds_16_8(dest,value)$/;"	f
+adds_16_8_a	include/cpu/6502/std_math.h	/^inline adds_16_8_a(dest)$/;"	f
+adds_16_8_a_x	include/cpu/6502/std_math.h	/^inline adds_16_8_a_x(dest)$/;"	f
+adds_16_8_a_x_to	include/cpu/6502/std_math.h	/^inline adds_16_8_a_x_to(src, dest)$/;"	f
+adds_16_8_x	include/cpu/6502/std_math.h	/^inline adds_16_8_x(dest,value)$/;"	f
+adds_16_8yind_to	include/cpu/6502/std_math.h	/^inline adds_16_8yind_to(src,value,dest)$/;"	f
+and_16_16	include/cpu/6502/std_bitwise.h	/^inline and_16_16(dest,mask)$/;"	f
+and_16_16_x	include/cpu/6502/std_bitwise.h	/^inline and_16_16_x(dest,mask)$/;"	f
+and_16_8	include/cpu/6502/std_bitwise.h	/^inline and_16_8(dest,mask)$/;"	f
+and_16_8_x	include/cpu/6502/std_bitwise.h	/^inline and_16_8_x(dest,mask)$/;"	f
+and_16i	include/cpu/6502/std_bitwise.h	/^inline and_16i(dest,mask)$/;"	f
+and_16i_x	include/cpu/6502/std_bitwise.h	/^inline and_16i_x(dest,mask)$/;"	f
+and_8	include/cpu/6502/std_bitwise.h	/^inline and_8(dest,mask)$/;"	f
+and_or	include/cpu/6502/std_bitwise.h	/^inline and_or(dest,and_mask,or_mask)$/;"	f
+and_x	include/cpu/6502/std_bitwise.h	/^inline and_x(dest,mask)$/;"	f
+and_y	include/cpu/6502/std_bitwise.h	/^inline and_y(dest,mask)$/;"	f
+append	hlakit/common/codeblock.py	/^    def append(self, line):$/;"	m	class:CodeBlock
+append_bank	hlakit/platform/lynx/lnx.py	/^    def append_bank(self, inf):$/;"	m	class:Lnx
+append_member	hlakit/common/enum.py	/^    def append_member(self, member):$/;"	m	class:Enum
+append_member	hlakit/common/struct_.py	/^    def append_member(self, member):$/;"	m	class:Struct
+append_token	hlakit/common/compiler.py	/^    def append_token(self, token):$/;"	m	class:BasicScope
+append_token	hlakit/common/conditional.py	/^    def append_token(self, token):$/;"	m	class:Conditional
+append_token	hlakit/common/conditional.py	/^    def append_token(self, token):$/;"	m	class:ConditionalBlock
+append_token	hlakit/common/function.py	/^    def append_token(self, token):$/;"	m	class:Function
+asl2_8_a_to_16	include/cpu/6502/std_math.h	/^inline asl2_8_a_to_16( dest )$/;"	f
+asl2_a	include/cpu/6502/std_math.h	/^inline asl2_a()$/;"	f
+asl3_a	include/cpu/6502/std_math.h	/^inline asl3_a()$/;"	f
+asl4_a	include/cpu/6502/std_math.h	/^inline asl4_a()$/;"	f
+asl5_a	include/cpu/6502/std_math.h	/^inline asl5_a()$/;"	f
+asl6_a	include/cpu/6502/std_math.h	/^inline asl6_a()$/;"	f
+asl7_a	include/cpu/6502/std_math.h	/^inline asl7_a()$/;"	f
+asl_16	include/cpu/6502/std_math.h	/^inline asl_16( dest, amount )$/;"	f
+asl_16_1	include/cpu/6502/std_math.h	/^inline asl_16_1( dest )$/;"	f
+asl_16_to	include/cpu/6502/std_math.h	/^inline asl_16_to( dest, src, amount )$/;"	f
+asl_8_to_16	include/cpu/6502/std_math.h	/^inline asl_8_to_16( dest, src, amount )$/;"	f
+assign	include/cpu/6502/std_assignment.h	/^inline assign(dest,value)$/;"	f
+assign_16_16	include/cpu/6502/std_assignment.h	/^inline assign_16_16(dest,value)$/;"	f
+assign_16_16_x	include/cpu/6502/std_assignment.h	/^inline assign_16_16_x(dest,value)$/;"	f
+assign_16_16_y	include/cpu/6502/std_assignment.h	/^inline assign_16_16_y(dest,value)$/;"	f
+assign_16_8	include/cpu/6502/std_assignment.h	/^inline assign_16_8(dest,value)$/;"	f
+assign_16_8_x	include/cpu/6502/std_assignment.h	/^inline assign_16_8_x(dest,value)$/;"	f
+assign_16_8_y	include/cpu/6502/std_assignment.h	/^inline assign_16_8_y(dest,value)$/;"	f
+assign_16i	include/cpu/6502/std_assignment.h	/^inline assign_16i(dest,value)$/;"	f
+assign_16i_x	include/cpu/6502/std_assignment.h	/^inline assign_16i_x(dest,value)$/;"	f
+assign_16i_y	include/cpu/6502/std_assignment.h	/^inline assign_16i_y(dest,value)$/;"	f
+assign_ind	include/cpu/6502/std_assignment.h	/^inline assign_ind(dest,value)$/;"	f
+assign_ind_y	include/cpu/6502/std_assignment.h	/^inline assign_ind_y(dest,value)$/;"	f
+assign_x	include/cpu/6502/std_assignment.h	/^inline assign_x(dest,value)$/;"	f
+assign_y	include/cpu/6502/std_assignment.h	/^inline assign_y(dest,value)$/;"	f
+attributes	include/platform/nes/nes_video.h	/^    attributes,$/;"	m	struct:OAM_ENTRY_
+b	tests/old/test_arrays.s	/^    b: 0x00, 0x01, $/;"	l
+back_SCB	tmp/hallo_a3.asm	/^back_SCB        dc.b $00,$10,$00                ; Background, collideable wieso war 0?$/;"	d
+back_cls_data	tmp/hallo_a3.asm	/^back_cls_data:$/;"	l
+back_data	tmp/hallo_a3.asm	/^back_data       dc.w back_cls_data$/;"	d
+basic_types	hlakit/common/session.py	/^    def basic_types(self):$/;"	m	class:Session
+basic_types	hlakit/common/target.py	/^    def basic_types(self):$/;"	m	class:Target
+basic_types	hlakit/cpu/mos6502/mos6502.py	/^    def basic_types(klass):$/;"	m	class:MOS6502
+basic_types_names	hlakit/common/session.py	/^    def basic_types_names(self):$/;"	m	class:Session
+basic_types_names	hlakit/common/target.py	/^    def basic_types_names(self):$/;"	m	class:Target
+basic_types_names	hlakit/cpu/mos6502/mos6502.py	/^    def basic_types_names(self):$/;"	m	class:MOS6502
+bind1	hlakit/common/immediate.py	/^class bind1(object):$/;"	c
+bind1	hlakit/platform/lynx/lnxsetting.py	/^class bind1(object):$/;"	c
+bool	tests/old/test_vars.s	/^bool c2$/;"	l
+bool	tests/old/test_vars.s	/^bool g2 = true$/;"	l
+bool	tests/old/test_vars.s	/^bool g3[] = { true, false, true }$/;"	l
+build	hlakit/common/session.py	/^    def build(self):$/;"	m	class:Session
+build_code_block	tests/utils.py	/^def build_code_block(code):$/;"	f
+build_rom	hlakit/common/generator.py	/^    def build_rom(self, tokens):$/;"	m	class:Generator
+build_rom	hlakit/platform/nes/generator.py	/^    def build_rom(self, tokens):$/;"	m	class:Generator
+build_rom	utils/lnx_creator.py	/^def build_rom(options):$/;"	f
+byte	examples/6502/lynx/game.s	/^byte    CART_CHUNKS_PER_SEG     = $08$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    CART_CHUNKS_PER_SEG_ADDR = $85$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    END_ADDR                = $00$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    GAME_EXE_LOC_LO_ADDR    = $82$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    GAME_EXE_LOC_LO_ADDR    = $83$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    GAME_EXE_SEGMENT        = $01$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    GAME_EXE_SEGMENT_ADDR   = $84$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    GAME_EXE_SIZE_HI        = hi(sizeof(main) + sizeof(irq))$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    GAME_EXE_SIZE_HI_ADDR   = $81$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    GAME_EXE_SIZE_LO        = lo(sizeof(main) + sizeof(irq))$/;"	l
+byte	examples/6502/lynx/game.s	/^byte    GAME_EXE_SIZE_LO_ADDR   = $80$/;"	l
+byte	examples/6502/lynx/task_switch_init.s	/^byte current_task    : $2 = #0    \/\/ current task index$/;"	l
+byte	examples/6502/lynx/task_switch_init.s	/^byte task0_sp        : $0 = #$ff  \/\/ task 0 stack pointer storage$/;"	l
+byte	examples/6502/lynx/task_switch_init.s	/^byte task1_sp        : $1 = #$7f  \/\/ task 1 stack pointer storage$/;"	l
+byte	examples/6502/nes/ramdata.s	/^byte counter$/;"	l
+byte	examples/6502/nes/ramdata.s	/^byte palcol$/;"	l
+byte	examples/6502/nes/visuals.s	/^byte setamt[] = {0,0,0,0,0,0,0,7}$/;"	l
+byte	include/cpu/6502/std_ram.s	/^byte _b_remainder$/;"	l
+byte	include/cpu/6502/std_ram.s	/^byte _b_temp$/;"	l
+byte	include/cpu/6502/std_ram.s	/^byte _random_ticks$/;"	l
+byte	include/cpu/6502/std_ram.s	/^byte _random_value$/;"	l
+byte	include/platform/nes/nes_ram.s	/^byte pBankA000_prev, pBankA000_cur$/;"	l
+byte	tests/old/test_arrays.s	/^byte foo[] : 0x0200 = $/;"	l
+byte	tests/old/test_arrays.s	/^byte player_tiles[] =$/;"	l
+byte	tests/old/test_var.s	/^byte b$/;"	l
+byte	tests/old/test_vars.s	/^byte a$/;"	l
+byte	tests/old/test_vars.s	/^byte e: $FFD2$/;"	l
+byte	tests/old/test_vars.s	/^byte f = 1$/;"	l
+byte	tests/old/test_vars.s	/^byte g[2]$/;"	l
+byte	tests/old/test_vars.s	/^byte n: 4096 = 3$/;"	l
+byte	tests/old/test_vars.s	/^byte o[]: 1K = "Bar"$/;"	l
+byte	tests/old/test_vars.s	/^byte p[2] = { 3, 4 }$/;"	l
+byte	tests/old/test_vars.s	/^byte q[3]: $D000 = { 5, 6, 7 }$/;"	l
+c	tests/old/test_arrays.s	/^    c: 0x02, 0x03 $/;"	l
+char	examples/6502/nes/main.s	/^char strHello[] = "Hello, World!"$/;"	l
+char	examples/6502/nes/main.s	/^char strTitle[] = "\\a\\a\\a\\a\\a\\a\\aNESHLA Demo Program"$/;"	l
+char	examples/6502/nes/ramdata.s	/^char msgbuf[64]$/;"	l
+char	tests/old/test_arrays.s	/^char strHello[] = "Hello, World!"$/;"	l
+char	tests/old/test_arrays.s	/^char strTitle[] = "\\n\\n\\n\\n\\n\\n\\nNESHLA Demo Program"$/;"	l
+clear_banks	hlakit/platform/lynx/lnx.py	/^    def clear_banks(self):$/;"	m	class:Lnx
+clear_carry_flag	include/platform/nes/nes_system.h	/^inline clear_carry_flag()$/;"	f
+clip_16	include/cpu/6502/std_math.h	/^inline clip_16(number)$/;"	f
+close	hlakit/common/conditional.py	/^    def close(self):$/;"	m	class:ConditionalBlock
+close_block	hlakit/common/conditional.py	/^    def close_block(self):$/;"	m	class:Conditional
+col1	include/platform/nes/nes_video.h	/^    col1,$/;"	m	struct:PALENT_
+col2	include/platform/nes/nes_video.h	/^    col2,$/;"	m	struct:PALENT_
+colBackground	include/platform/nes/nes_video.h	/^    byte colBackground,$/;"	m	struct:PALENT_
+compare	include/cpu/6502/std_boolean.h	/^inline compare(src, value)$/;"	f
+compare_16_16	include/cpu/6502/std_boolean.h	/^inline compare_16_16(src, value)$/;"	f
+compare_16_16_x	include/cpu/6502/std_boolean.h	/^inline compare_16_16_x(src, value)$/;"	f
+compare_16_16_y	include/cpu/6502/std_boolean.h	/^inline compare_16_16_y(src, value)$/;"	f
+compare_16_x_16_x	include/cpu/6502/std_boolean.h	/^inline compare_16_x_16_x(src, value)$/;"	f
+compare_16_x_16_y	include/cpu/6502/std_boolean.h	/^inline compare_16_x_16_y(src, value)$/;"	f
+compare_16_y_16_x	include/cpu/6502/std_boolean.h	/^inline compare_16_y_16_x(src, value)$/;"	f
+compare_16i	include/cpu/6502/std_boolean.h	/^inline compare_16i(src, value)$/;"	f
+compare_8_x_8	include/cpu/6502/std_boolean.h	/^inline compare_8_x_8(src, value)$/;"	f
+compare_8_x_8_x	include/cpu/6502/std_boolean.h	/^inline compare_8_x_8_x(src, value)$/;"	f
+compare_8_x_8_y	include/cpu/6502/std_boolean.h	/^inline compare_8_x_8_y(src, value)$/;"	f
+compare_8_y_8_x	include/cpu/6502/std_boolean.h	/^inline compare_8_y_8_x(src, value)$/;"	f
+compare_8_y_8_y	include/cpu/6502/std_boolean.h	/^inline compare_8_y_8_y(src, value)$/;"	f
+compare_x	include/cpu/6502/std_boolean.h	/^inline compare_x(src, value)$/;"	f
+compile	hlakit/common/compiler.py	/^    def compile(self, tokens, debug=False):$/;"	m	class:Compiler
+compiler	hlakit/common/session.py	/^    def compiler(self):$/;"	m	class:Session
+compiler	hlakit/common/target.py	/^    def compiler(self):$/;"	m	class:Target
+compiler	hlakit/cpu/mos6502/mos6502.py	/^    def compiler(self):$/;"	m	class:MOS6502
+compiler	hlakit/platform/lynx/lynx.py	/^    def compiler(self):$/;"	m	class:Lynx
+compiler	hlakit/platform/nes/nes.py	/^    def compiler(self):$/;"	m	class:NES
+conditions	hlakit/common/session.py	/^    def conditions(self):$/;"	m	class:Session
+conditions	hlakit/common/target.py	/^    def conditions(self):$/;"	m	class:Target
+conditions	hlakit/cpu/mos6502/mos6502.py	/^    def conditions(self):$/;"	m	class:MOS6502
+context_switch	examples/6502/lynx/task_switch.h	/^interrupt context_switch() {$/;"	f
+current_namespace	hlakit/common/symboltable.py	/^    def current_namespace(self):$/;"	m	class:SymbolTable
+dec_16	include/cpu/6502/std_math.h	/^inline dec_16(number)$/;"	f
+dec_16_x	include/cpu/6502/std_math.h	/^inline dec_16_x(number)$/;"	f
+delete_symbol	hlakit/common/preprocessor.py	/^    def delete_symbol(self, label):$/;"	m	class:Preprocessor
+disable_decimal_mode	include/platform/nes/nes_system.h	/^inline disable_decimal_mode()$/;"	f
+disable_interrupts	include/platform/nes/nes_system.h	/^inline disable_interrupts()$/;"	f
+div	include/cpu/6502/std_math.h	/^inline div( dest, amount )$/;"	f
+div_16_8_to_x	include/cpu/6502/std_math.h	/^inline div_16_8_to_x( dest, amount )$/;"	f
+div_with_rem	include/cpu/6502/std_math.h	/^inline div_with_rem( dest, amount )$/;"	f
+emit	hlakit/cpu/mos6502/opcode.py	/^    def emit(self, mode):$/;"	m	class:Opcode
+emit	hlakit/cpu/mos6502/operand.py	/^    def emit(self, addr):$/;"	m	class:Operand
+emit	hlakit/platform/lynx/lnx.py	/^    def emit(self, bytes=[], msg=None):$/;"	m	class:Lnx
+enable_decimal_mode	include/platform/nes/nes_system.h	/^inline enable_decimal_mode()$/;"	f
+enable_interrupts	include/platform/nes/nes_system.h	/^inline enable_interrupts()$/;"	f
+expand_symbols	hlakit/common/preprocessor.py	/^    def expand_symbols(self, line):$/;"	m	class:Preprocessor
+exprs	hlakit/common/align.py	/^    def exprs(klass):$/;"	m	class:Align
+exprs	hlakit/common/arrayvalue.py	/^    def exprs(klass):$/;"	m	class:ArrayValue
+exprs	hlakit/common/arrayvalue.py	/^    def exprs(klass):$/;"	m	class:StringValue
+exprs	hlakit/common/binaryoperator.py	/^    def exprs(klass):$/;"	m	class:BinaryOperator
+exprs	hlakit/common/codeline.py	/^    def exprs(klass):$/;"	m	class:CodeLine
+exprs	hlakit/common/compiler.py	/^    def exprs(klass):$/;"	m	class:Compiler
+exprs	hlakit/common/conditionaldecl.py	/^    def exprs(klass):$/;"	m	class:ConditionalDecl
+exprs	hlakit/common/define.py	/^    def exprs(klass):$/;"	m	class:Define
+exprs	hlakit/common/else_.py	/^    def exprs(klass):$/;"	m	class:Else
+exprs	hlakit/common/endif.py	/^    def exprs(klass):$/;"	m	class:Endif
+exprs	hlakit/common/enum.py	/^    def exprs(klass):$/;"	m	class:Enum
+exprs	hlakit/common/file.py	/^    def exprs(klass):$/;"	m	class:File
+exprs	hlakit/common/functioncall.py	/^    def exprs(klass):$/;"	m	class:FunctionCall
+exprs	hlakit/common/functiondecl.py	/^    def exprs(klass):$/;"	m	class:FunctionDecl
+exprs	hlakit/common/functionparameter.py	/^    def exprs(klass):$/;"	m	class:FunctionParameter
+exprs	hlakit/common/functionreturn.py	/^    def exprs(klass):$/;"	m	class:FunctionReturn
+exprs	hlakit/common/functiontype.py	/^    def exprs(klass):$/;"	m	class:FunctionType
+exprs	hlakit/common/ifdef.py	/^    def exprs(klass):$/;"	m	class:Ifdef
+exprs	hlakit/common/ifndef.py	/^    def exprs(klass):$/;"	m	class:Ifndef
+exprs	hlakit/common/immediate.py	/^    def exprs(klass):$/;"	m	class:Immediate
+exprs	hlakit/common/instructionline.py	/^    def exprs(klass):$/;"	m	class:InstructionLine
+exprs	hlakit/common/label.py	/^    def exprs(klass):$/;"	m	class:Label
+exprs	hlakit/common/message.py	/^    def exprs(klass):$/;"	m	class:Message
+exprs	hlakit/common/name.py	/^    def exprs(klass):$/;"	m	class:Name
+exprs	hlakit/common/numericvalue.py	/^    def exprs(klass):$/;"	m	class:NumericValue
+exprs	hlakit/common/opcode.py	/^    def exprs(klass):$/;"	m	class:Opcode
+exprs	hlakit/common/operand.py	/^    def exprs(klass):$/;"	m	class:Operand
+exprs	hlakit/common/preprocessor.py	/^    def exprs(klass):$/;"	m	class:Preprocessor
+exprs	hlakit/common/rampp.py	/^    def exprs(klass):$/;"	m	class:RamEnd
+exprs	hlakit/common/rampp.py	/^    def exprs(klass):$/;"	m	class:RamOrg
+exprs	hlakit/common/rompp.py	/^    def exprs(klass):$/;"	m	class:RomBank
+exprs	hlakit/common/rompp.py	/^    def exprs(klass):$/;"	m	class:RomBanksize
+exprs	hlakit/common/rompp.py	/^    def exprs(klass):$/;"	m	class:RomEnd
+exprs	hlakit/common/rompp.py	/^    def exprs(klass):$/;"	m	class:RomOrg
+exprs	hlakit/common/scopemarkers.py	/^    def exprs(klass):$/;"	m	class:ScopeBegin
+exprs	hlakit/common/scopemarkers.py	/^    def exprs(klass):$/;"	m	class:ScopeEnd
+exprs	hlakit/common/setpad.py	/^    def exprs(klass):$/;"	m	class:SetPad
+exprs	hlakit/common/struct_.py	/^    def exprs(klass):$/;"	m	class:Struct
+exprs	hlakit/common/tell.py	/^    def exprs(klass):$/;"	m	class:Tell
+exprs	hlakit/common/type_.py	/^    def exprs(klass):$/;"	m	class:Type
+exprs	hlakit/common/typedef.py	/^    def exprs(klass):$/;"	m	class:Typedef
+exprs	hlakit/common/undef.py	/^    def exprs(klass):$/;"	m	class:Undef
+exprs	hlakit/common/value.py	/^    def exprs(klass):$/;"	m	class:Value
+exprs	hlakit/common/variable.py	/^    def exprs(klass):$/;"	m	class:Variable
+exprs	hlakit/common/variableinitializer.py	/^    def exprs(klass):$/;"	m	class:VariableInitializer
+exprs	hlakit/cpu/mos6502/instructionline.py	/^    def exprs(klass):$/;"	m	class:InstructionLine
+exprs	hlakit/cpu/mos6502/interrupt.py	/^    def exprs(klass):$/;"	m	class:Interrupt
+exprs	hlakit/cpu/mos6502/opcode.py	/^    def exprs(klass):$/;"	m	class:Opcode
+exprs	hlakit/cpu/mos6502/operand.py	/^    def exprs(klass):$/;"	m	class:Operand
+exprs	hlakit/cpu/mos6502/register.py	/^    def exprs(klass):$/;"	m	class:Register
+exprs	hlakit/platform/lynx/lnxsetting.py	/^    def exprs(klass):$/;"	m	class:LnxSetting
+exprs	hlakit/platform/lynx/loader.py	/^    def exprs(klass):$/;"	m	class:LynxLoader
+exprs	hlakit/platform/lynx/rompp.py	/^    def exprs(klass):$/;"	m	class:LynxRomOrg
+exprs	hlakit/platform/nes/chr.py	/^    def exprs(klass):$/;"	m	class:ChrBank
+exprs	hlakit/platform/nes/chr.py	/^    def exprs(klass):$/;"	m	class:ChrBanksize
+exprs	hlakit/platform/nes/chr.py	/^    def exprs(klass):$/;"	m	class:ChrEnd
+exprs	hlakit/platform/nes/chr.py	/^    def exprs(klass):$/;"	m	class:ChrLink
+exprs	hlakit/platform/nes/ines.py	/^    def exprs(klass):$/;"	m	class:iNESBattery
+exprs	hlakit/platform/nes/ines.py	/^    def exprs(klass):$/;"	m	class:iNESChrRepeat
+exprs	hlakit/platform/nes/ines.py	/^    def exprs(klass):$/;"	m	class:iNESFourscreen
+exprs	hlakit/platform/nes/ines.py	/^    def exprs(klass):$/;"	m	class:iNESMapper
+exprs	hlakit/platform/nes/ines.py	/^    def exprs(klass):$/;"	m	class:iNESMirroring
+exprs	hlakit/platform/nes/ines.py	/^    def exprs(klass):$/;"	m	class:iNESOff
+exprs	hlakit/platform/nes/ines.py	/^    def exprs(klass):$/;"	m	class:iNESPrgRepeat
+exprs	hlakit/platform/nes/ines.py	/^    def exprs(klass):$/;"	m	class:iNESTrainer
+first_exprs	hlakit/common/compiler.py	/^    def first_exprs(klass):$/;"	m	class:Compiler
+first_exprs	hlakit/common/preprocessor.py	/^    def first_exprs(klass):$/;"	m	class:Preprocessor
+first_exprs	hlakit/cpu/mos6502/compiler.py	/^    def first_exprs(klass):$/;"	m	class:Compiler
+first_exprs	hlakit/cpu/mos6502/preprocessor.py	/^    def first_exprs(klass):$/;"	m	class:Preprocessor
+first_exprs	hlakit/platform/lynx/compiler.py	/^    def first_exprs(klass):$/;"	m	class:Compiler
+first_exprs	hlakit/platform/lynx/preprocessor.py	/^    def first_exprs(klass):$/;"	m	class:Preprocessor
+first_exprs	hlakit/platform/nes/compiler.py	/^    def first_exprs(klass):$/;"	m	class:Compiler
+first_exprs	hlakit/platform/nes/preprocessor.py	/^    def first_exprs(klass):$/;"	m	class:Preprocessor
+function	examples/6502/lynx/main.s	/^function noreturn main()$/;"	l
+function	examples/6502/lynx/micro_loader.s	/^function noreturn micro_loader()$/;"	l
+function	examples/6502/lynx/secondary_loader.s	/^function noreturn secondary_loader()$/;"	l
+function	examples/6502/lynx/task_switch_init.s	/^function noreturn asset_loader() {$/;"	l
+function	examples/6502/lynx/task_switch_init.s	/^function noreturn game_loop() {$/;"	l
+function	examples/6502/lynx/task_switch_init.s	/^function noreturn startup() {$/;"	l
+function	examples/6502/nes/main.s	/^function jsr_ind()$/;"	l
+function	examples/6502/nes/visuals.s	/^function Turn_Video_Off()$/;"	l
+function	examples/6502/nes/visuals.s	/^function Turn_Video_On()$/;"	l
+function	examples/6502/nes/visuals.s	/^function message_error()$/;"	l
+function	examples/6502/nes/visuals.s	/^function pal_animate()$/;"	l
+function	examples/6502/nes/visuals.s	/^function pal_animate2()$/;"	l
+function	examples/6502/nes/visuals.s	/^function palette_memset()$/;"	l
+function	examples/6502/nes/visuals.s	/^function vram_init()$/;"	l
+function	examples/6502/nes/visuals.s	/^function vram_write_hex_a()$/;"	l
+function	examples/6502/nes/visuals.s	/^function vram_write_string()$/;"	l
+function	examples/6502/nes/visuals.s	/^function wait_for_func()$/;"	l
+function	include/cpu/6502/std_init.s	/^function clear_ram()$/;"	l
+function	include/cpu/6502/std_jumps.s	/^function noreturn jsrind_f()$/;"	l
+function	include/cpu/6502/std_math.s	/^function do_clock()$/;"	l
+function	include/cpu/6502/std_math.s	/^function random()$/;"	l
+function	include/cpu/6502/std_math.s	/^function random_more()$/;"	l
+function	include/cpu/6502/std_memory.s	/^function memcpy()$/;"	l
+function	include/cpu/6502/std_memory.s	/^function memset()$/;"	l
+function	include/platform/nes/nes_memory.s	/^function memset_ram_name_n_attr_table()$/;"	l
+function	include/platform/nes/nes_memory.s	/^function memset_ram_name_table()$/;"	l
+function	include/platform/nes/nes_memory.s	/^function vram_clear_name_tables()$/;"	l
+function	include/platform/nes/nes_memory.s	/^function vram_memcpy()$/;"	l
+function	include/platform/nes/nes_memory.s	/^function vram_memcpy_name_table()$/;"	l
+function	include/platform/nes/nes_memory.s	/^function vram_memset()$/;"	l
+function	include/platform/nes/nes_memory.s	/^function vram_memset_attribute_table()$/;"	l
+function	include/platform/nes/nes_memory.s	/^function vram_memset_name_table()$/;"	l
+function	include/platform/nes/nes_memory.s	/^function vram_memset_rows()$/;"	l
+function	include/platform/nes/nes_palette.s	/^function set_palette_entry_x()$/;"	l
+function	include/platform/nes/nes_palette.s	/^function set_ptr_palette()$/;"	l
+function	include/platform/nes/nes_palette.s	/^function write_palette()$/;"	l
+function	tests/old/test1.s	/^function blah(boo, bar)$/;"	l
+function	tests/old/test_fns.s	/^function foo()$/;"	l
+generate	hlakit/common/instructionline.py	/^    def generate(self):$/;"	m	class:InstructionLine
+generate	hlakit/cpu/mos6502/instructionline.py	/^    def generate(self):$/;"	m	class:InstructionLine
+generator	hlakit/common/session.py	/^    def generator(self):$/;"	m	class:Session
+generator	hlakit/common/target.py	/^    def generator(self):$/;"	m	class:Target
+generator	hlakit/cpu/mos6502/mos6502.py	/^    def generator(self):$/;"	m	class:MOS6502
+generator	hlakit/platform/lynx/lynx.py	/^    def generator(self):$/;"	m	class:Lynx
+generator	hlakit/platform/nes/nes.py	/^    def generator(self):$/;"	m	class:NES
+get_addr	hlakit/common/instructionline.py	/^    def get_addr(self):$/;"	m	class:InstructionLine
+get_addr	hlakit/cpu/mos6502/operand.py	/^    def get_addr(self):$/;"	m	class:Operand
+get_address	hlakit/common/function.py	/^    def get_address(self):$/;"	m	class:Function
+get_address	hlakit/common/rampp.py	/^    def get_address(self):$/;"	m	class:RamOrg
+get_address	hlakit/common/rompp.py	/^    def get_address(self):$/;"	m	class:RomOrg
+get_address	hlakit/common/symbol.py	/^    def get_address(self):$/;"	m	class:Symbol
+get_aliased_type	hlakit/common/typedef.py	/^    def get_aliased_type(self):$/;"	m	class:Typedef
+get_args	hlakit/common/immediate.py	/^    def get_args(self):$/;"	m	class:Immediate
+get_args	hlakit/common/immediate.py	/^def get_args(tokens):$/;"	f
+get_args	hlakit/common/session.py	/^    def get_args(self):$/;"	m	class:Session
+get_array_size	hlakit/common/struct_.py	/^        def get_array_size(self):$/;"	m	class:Struct.Member
+get_array_size	hlakit/common/typedef.py	/^    def get_array_size(self):$/;"	m	class:Typedef
+get_array_size	hlakit/common/variable.py	/^    def get_array_size(self):$/;"	m	class:Variable
+get_battery	hlakit/platform/nes/ines.py	/^    def get_battery(self):$/;"	m	class:iNESBattery
+get_blocks	hlakit/common/conditional.py	/^    def get_blocks(self):$/;"	m	class:Conditional
+get_buffers	hlakit/platform/lynx/lnx.py	/^    def get_buffers(self):$/;"	m	class:Lnx
+get_cart_name	hlakit/platform/lynx/lnx.py	/^    def get_cart_name(self):$/;"	m	class:Lnx
+get_cond	hlakit/common/conditionaldecl.py	/^    def get_cond(self):$/;"	m	class:ConditionalDecl
+get_condition	hlakit/cpu/mos6502/conditionaldecl.py	/^    def get_condition(self):$/;"	m	class:ConditionalDecl
+get_counter	hlakit/platform/lynx/rompp.py	/^    def get_counter(self):$/;"	m	class:LynxRomOrg
+get_current_bank	hlakit/common/romfile.py	/^    def get_current_bank(self):$/;"	m	class:RomFile
+get_current_bankfree	hlakit/common/romfile.py	/^    def get_current_bankfree(self):$/;"	m	class:RomFile
+get_current_banksize	hlakit/common/romfile.py	/^    def get_current_banksize(self):$/;"	m	class:RomFile
+get_current_banktype	hlakit/common/romfile.py	/^    def get_current_banktype(self):$/;"	m	class:RomFile
+get_current_offset	hlakit/common/romfile.py	/^    def get_current_offset(self):$/;"	m	class:RomFile
+get_current_pos	hlakit/common/romfile.py	/^    def get_current_pos(self):$/;"	m	class:RomFile
+get_current_pos	hlakit/platform/lynx/lnx.py	/^    def get_current_pos(self):$/;"	m	class:Lnx
+get_data	hlakit/common/incbin.py	/^    def get_data(self):$/;"	m	class:Incbin
+get_debug_listing	hlakit/platform/lynx/lnx.py	/^    def get_debug_listing(self):$/;"	m	class:Lnx
+get_decl	hlakit/common/conditional.py	/^    def get_decl(self):$/;"	m	class:ConditionalBlock
+get_dependencies	hlakit/common/function.py	/^    def get_dependencies(self):$/;"	m	class:Function
+get_depth	hlakit/common/conditional.py	/^    def get_depth(self):$/;"	m	class:Conditional
+get_distance	hlakit/cpu/mos6502/conditionaldecl.py	/^    def get_distance(self):$/;"	m	class:ConditionalDecl
+get_exprs	hlakit/common/compiler.py	/^    def get_exprs(self):$/;"	m	class:Compiler
+get_exprs	hlakit/common/preprocessor.py	/^    def get_exprs(self):$/;"	m	class:Preprocessor
+get_file_dir	hlakit/common/session.py	/^    def get_file_dir(self, f):$/;"	m	class:Session
+get_file_path	hlakit/common/preprocessor.py	/^        def get_file_path(self):$/;"	m	class:Preprocessor.StateFrame
+get_file_path	hlakit/common/session.py	/^    def get_file_path(self, f):$/;"	m	class:Session
+get_filename	hlakit/platform/nes/chr.py	/^    def get_filename(self):$/;"	m	class:ChrLink
+get_fn	hlakit/common/conditional.py	/^    def get_fn(self):$/;"	m	class:Conditional
+get_fn	hlakit/common/functioncall.py	/^    def get_fn(self):$/;"	m	class:FunctionCall
+get_fn	hlakit/common/functionreturn.py	/^    def get_fn(self):$/;"	m	class:FunctionReturn
+get_fn	hlakit/common/instructionline.py	/^    def get_fn(self):$/;"	m	class:InstructionLine
+get_fn	hlakit/common/label.py	/^    def get_fn(self):$/;"	m	class:Label
+get_fn	hlakit/common/scopemarkers.py	/^    def get_fn(self):$/;"	m	class:ScopeBegin
+get_fn	hlakit/common/scopemarkers.py	/^    def get_fn(self):$/;"	m	class:ScopeEnd
+get_fn	hlakit/common/variable.py	/^    def get_fn(self):$/;"	m	class:Variable
+get_fn	hlakit/cpu/mos6502/interrupt.py	/^    def get_fn(self):$/;"	m	class:Interrupt
+get_fn	hlakit/platform/lynx/loader.py	/^    def get_fn(self):$/;"	m	class:LynxLoader
+get_fn_type	hlakit/common/functiondecl.py	/^    def get_fn_type(self):$/;"	m	class:FunctionDecl
+get_fourscreen	hlakit/platform/nes/ines.py	/^    def get_fourscreen(self):$/;"	m	class:iNESFourscreen
+get_ignore_stack	hlakit/common/preprocessor.py	/^    def get_ignore_stack(self):$/;"	m	class:Preprocessor
+get_include_dirs	hlakit/common/session.py	/^    def get_include_dirs(self):$/;"	m	class:Session
+get_interrupt_name	hlakit/common/function.py	/^    def get_interrupt_name(self):$/;"	m	class:Function
+get_irq_interrupt	hlakit/cpu/mos6502/romfile.py	/^    def get_irq_interrupt(self):$/;"	m	class:MOS6502RomFile
+get_label	hlakit/common/incbin.py	/^    def get_label(self):$/;"	m	class:Incbin
+get_loader	hlakit/platform/lynx/lnx.py	/^    def get_loader(self):$/;"	m	class:Lnx
+get_manufacturer_name	hlakit/platform/lynx/lnx.py	/^    def get_manufacturer_name(self):$/;"	m	class:Lnx
+get_mapper	hlakit/platform/nes/ines.py	/^    def get_mapper(self):$/;"	m	class:iNESMapper
+get_maxsize	hlakit/common/rampp.py	/^    def get_maxsize(self):$/;"	m	class:RamOrg
+get_maxsize	hlakit/common/rompp.py	/^    def get_maxsize(self):$/;"	m	class:RomBank
+get_maxsize	hlakit/common/rompp.py	/^    def get_maxsize(self):$/;"	m	class:RomOrg
+get_maxsize	hlakit/platform/lynx/rompp.py	/^    def get_maxsize(self):$/;"	m	class:LynxRomOrg
+get_maxsize	hlakit/platform/nes/chr.py	/^    def get_maxsize(self):$/;"	m	class:ChrBank
+get_member	hlakit/common/enum.py	/^    def get_member(self, name):$/;"	m	class:Enum
+get_member	hlakit/common/struct_.py	/^        def get_member(self, name):$/;"	m	class:Struct.Member
+get_member	hlakit/common/struct_.py	/^    def get_member(self, name):$/;"	m	class:Struct
+get_mirroring	hlakit/platform/nes/ines.py	/^    def get_mirroring(self):$/;"	m	class:iNESMirroring
+get_mode	hlakit/common/conditional.py	/^    def get_mode(self):$/;"	m	class:ConditionalBlock
+get_mode	hlakit/common/conditionaldecl.py	/^    def get_mode(self):$/;"	m	class:ConditionalDecl
+get_mode	hlakit/cpu/mos6502/operand.py	/^    def get_mode(self):$/;"	m	class:Operand
+get_modifier	hlakit/cpu/mos6502/conditionaldecl.py	/^    def get_modifier(self):$/;"	m	class:ConditionalDecl
+get_name	hlakit/common/conditional.py	/^    def get_name(self):$/;"	m	class:Conditional
+get_name	hlakit/common/filemarkers.py	/^    def get_name(self):$/;"	m	class:FileBegin
+get_name	hlakit/common/filemarkers.py	/^    def get_name(self):$/;"	m	class:FileEnd
+get_name	hlakit/common/function.py	/^    def get_name(self):$/;"	m	class:Function
+get_name	hlakit/common/functioncall.py	/^    def get_name(self):$/;"	m	class:FunctionCall
+get_name	hlakit/common/functiondecl.py	/^    def get_name(self):$/;"	m	class:FunctionDecl
+get_name	hlakit/common/name.py	/^    def get_name(self):$/;"	m	class:Name
+get_name	hlakit/common/symbol.py	/^    def get_name(self):$/;"	m	class:Symbol
+get_name	hlakit/common/type_.py	/^    def get_name(self):$/;"	m	class:Type
+get_name	hlakit/cpu/mos6502/register.py	/^    def get_name(self):$/;"	m	class:Register
+get_name	hlakit/platform/lynx/lnxsetting.py	/^    def get_name(self):$/;"	m	class:LnxSetting
+get_namespace	hlakit/common/symboltable.py	/^    def get_namespace(self, prefix='ST'):$/;"	m	class:SymbolTable
+get_nmi_interrupt	hlakit/cpu/mos6502/romfile.py	/^    def get_nmi_interrupt(self):$/;"	m	class:MOS6502RomFile
+get_noreturn	hlakit/common/function.py	/^    def get_noreturn(self):$/;"	m	class:Function
+get_noreturn	hlakit/common/functiondecl.py	/^    def get_noreturn(self):$/;"	m	class:FunctionDecl
+get_noreturn	hlakit/common/functiontype.py	/^    def get_noreturn(self):$/;"	m	class:FunctionType
+get_number	hlakit/common/rompp.py	/^    def get_number(self):$/;"	m	class:RomBank
+get_number	hlakit/platform/nes/chr.py	/^    def get_number(self):$/;"	m	class:ChrBank
+get_numeric_parameter	hlakit/platform/lynx/lnxsetting.py	/^    def get_numeric_parameter(klass, tokens, keyname):$/;"	m	class:LnxSetting
+get_op	hlakit/cpu/mos6502/opcode.py	/^    def get_op(self):$/;"	m	class:Opcode
+get_opcode	hlakit/common/instructionline.py	/^    def get_opcode(self):$/;"	m	class:InstructionLine
+get_operand	hlakit/common/instructionline.py	/^    def get_operand(self):$/;"	m	class:InstructionLine
+get_org	hlakit/common/buffer.py	/^    def get_org(self):$/;"	m	class:Buffer
+get_output	hlakit/common/compiler.py	/^    def get_output(self):$/;"	m	class:Compiler
+get_page_size_bank0	hlakit/platform/lynx/lnx.py	/^    def get_page_size_bank0(self):$/;"	m	class:Lnx
+get_page_size_bank1	hlakit/platform/lynx/lnx.py	/^    def get_page_size_bank1(self):$/;"	m	class:Lnx
+get_params	hlakit/common/function.py	/^    def get_params(self):$/;"	m	class:Function
+get_params	hlakit/common/functioncall.py	/^    def get_params(self):$/;"	m	class:FunctionCall
+get_params	hlakit/common/functiondecl.py	/^    def get_params(self):$/;"	m	class:FunctionDecl
+get_parser_output	hlakit/common/compiler.py	/^    def get_parser_output(self):$/;"	m	class:Compiler
+get_ram_pos	hlakit/common/romfile.py	/^    def get_ram_pos(self):$/;"	m	class:RomFile
+get_reg	hlakit/cpu/mos6502/operand.py	/^    def get_reg(self):$/;"	m	class:Operand
+get_relative_jmp	hlakit/platform/lynx/lnx.py	/^    def get_relative_jmp(self, label):$/;"	m	class:Lnx
+get_repeat	hlakit/platform/nes/ines.py	/^    def get_repeat(self):$/;"	m	class:iNESChrRepeat
+get_repeat	hlakit/platform/nes/ines.py	/^    def get_repeat(self):$/;"	m	class:iNESPrgRepeat
+get_reset_interrupt	hlakit/cpu/mos6502/romfile.py	/^    def get_reset_interrupt(self):$/;"	m	class:MOS6502RomFile
+get_resolver_output	hlakit/common/compiler.py	/^    def get_resolver_output(self):$/;"	m	class:Compiler
+get_rom_pos	hlakit/common/romfile.py	/^    def get_rom_pos(self):$/;"	m	class:RomFile
+get_rotation	hlakit/platform/lynx/lnx.py	/^    def get_rotation(self):$/;"	m	class:Lnx
+get_rotation	hlakit/platform/lynx/lnxsetting.py	/^    def get_rotation(self):$/;"	m	class:LnxSetting
+get_save_game_size	hlakit/platform/lynx/lnx.py	/^    def get_save_game_size(self):$/;"	m	class:Lnx
+get_scanner_output	hlakit/common/compiler.py	/^    def get_scanner_output(self):$/;"	m	class:Compiler
+get_scope	hlakit/common/compiler.py	/^    def get_scope(self):$/;"	m	class:BasicScope
+get_scope	hlakit/common/conditional.py	/^    def get_scope(self):$/;"	m	class:Conditional
+get_scope	hlakit/common/conditional.py	/^    def get_scope(self):$/;"	m	class:ConditionalBlock
+get_scope	hlakit/common/function.py	/^    def get_scope(self):$/;"	m	class:Function
+get_scope	hlakit/common/functioncall.py	/^    def get_scope(self):$/;"	m	class:FunctionCall
+get_scope	hlakit/common/immediate.py	/^    def get_scope(self):$/;"	m	class:Immediate
+get_scope	hlakit/common/instructionline.py	/^    def get_scope(self):$/;"	m	class:InstructionLine
+get_scope	hlakit/common/variable.py	/^    def get_scope(self):$/;"	m	class:Variable
+get_scope	hlakit/cpu/mos6502/operand.py	/^    def get_scope(self):$/;"	m	class:Operand
+get_scopes	hlakit/common/symboltable.py	/^    def get_scopes(self):$/;"	m	class:SymbolTable
+get_segment	hlakit/platform/lynx/rompp.py	/^    def get_segment(self):$/;"	m	class:LynxRomOrg
+get_size	hlakit/common/rompp.py	/^    def get_size(self):$/;"	m	class:RomBanksize
+get_size	hlakit/platform/lynx/lnxsetting.py	/^    def get_size(self):$/;"	m	class:LnxSetting
+get_size	hlakit/platform/nes/chr.py	/^    def get_size(self):$/;"	m	class:ChrBanksize
+get_size	hlakit/platform/nes/chr.py	/^    def get_size(self):$/;"	m	class:ChrLink
+get_start_label	hlakit/common/function.py	/^    def get_start_label(self):$/;"	m	class:Function
+get_state_stack	hlakit/common/preprocessor.py	/^    def get_state_stack(self):$/;"	m	class:Preprocessor
+get_string_parameter	hlakit/platform/lynx/lnxsetting.py	/^    def get_string_parameter(klass, tokens, keyname):$/;"	m	class:LnxSetting
+get_sub_type	hlakit/common/functiondecl.py	/^    def get_sub_type(self):$/;"	m	class:FunctionDecl
+get_sub_type	hlakit/common/functiontype.py	/^    def get_sub_type(self):$/;"	m	class:FunctionType
+get_symbol	hlakit/common/binaryoperator.py	/^    def get_symbol(self):$/;"	m	class:BinaryOperator
+get_symbol	hlakit/common/functionparameter.py	/^    def get_symbol(self):$/;"	m	class:FunctionParameter
+get_symbol	hlakit/common/preprocessor.py	/^    def get_symbol(self, label):$/;"	m	class:Preprocessor
+get_symbols	hlakit/common/preprocessor.py	/^    def get_symbols(self):$/;"	m	class:Preprocessor
+get_tokens	hlakit/common/compiler.py	/^    def get_tokens(self):$/;"	m	class:BasicScope
+get_tokens	hlakit/common/conditional.py	/^    def get_tokens(self):$/;"	m	class:ConditionalBlock
+get_tokens	hlakit/common/conditional.py	/^    def get_tokens(self, block=0):$/;"	m	class:Conditional
+get_tokens	hlakit/common/function.py	/^    def get_tokens(self):$/;"	m	class:Function
+get_trainer	hlakit/platform/nes/ines.py	/^    def get_trainer(self):$/;"	m	class:iNESTrainer
+get_type	hlakit/common/conditional.py	/^    def get_type(self):$/;"	m	class:Conditional
+get_type	hlakit/common/function.py	/^    def get_type(self):$/;"	m	class:Function
+get_type	hlakit/common/functioncall.py	/^    def get_type(self):$/;"	m	class:FunctionCall
+get_type	hlakit/common/functiondecl.py	/^    def get_type(self):$/;"	m	class:FunctionDecl
+get_type	hlakit/common/functionreturn.py	/^    def get_type(self):$/;"	m	class:FunctionReturn
+get_type	hlakit/common/functiontype.py	/^    def get_type(self):$/;"	m	class:FunctionType
+get_type	hlakit/common/immediate.py	/^    def get_type(self):$/;"	m	class:Immediate
+get_type	hlakit/common/immediate.py	/^    def get_type(self):$/;"	m	class:bind1
+get_type	hlakit/common/struct_.py	/^        def get_type(self):$/;"	m	class:Struct.Member
+get_type	hlakit/common/symbol.py	/^    def get_type(self):$/;"	m	class:Symbol
+get_type	hlakit/platform/lynx/lnxsetting.py	/^    def get_type(self):$/;"	m	class:LnxSetting
+get_type	hlakit/platform/lynx/lnxsetting.py	/^    def get_type(self):$/;"	m	class:bind1
+get_type_name	hlakit/common/functiondecl.py	/^    def get_type_name(self):$/;"	m	class:FunctionDecl
+get_use_cart_strobe	hlakit/platform/lynx/lnx.py	/^    def get_use_cart_strobe(self):$/;"	m	class:Lnx
+get_value	hlakit/common/align.py	/^    def get_value(self):$/;"	m	class:Align
+get_value	hlakit/common/binaryoperator.py	/^    def get_value(self):$/;"	m	class:BinaryOperator
+get_value	hlakit/common/enum.py	/^        def get_value(self):$/;"	m	class:Enum.Member
+get_value	hlakit/common/functionparameter.py	/^    def get_value(self):$/;"	m	class:FunctionParameter
+get_value	hlakit/common/setpad.py	/^    def get_value(self):$/;"	m	class:SetPad
+get_value	hlakit/common/variable.py	/^    def get_value(self):$/;"	m	class:Variable
+get_value	hlakit/common/variableinitializer.py	/^    def get_value(self):$/;"	m	class:VariableInitializer
+get_value	hlakit/cpu/mos6502/operand.py	/^    def get_value(self):$/;"	m	class:Operand
+get_version	hlakit/platform/lynx/lnx.py	/^    def get_version(self):$/;"	m	class:Lnx
+get_version	hlakit/platform/lynx/lnxsetting.py	/^    def get_version(self):$/;"	m	class:LnxSetting
+get_write_pos	hlakit/common/buffer.py	/^    def get_write_pos(self):$/;"	m	class:Buffer
+hallo_SCB	tmp/hallo_a3.asm	/^hallo_SCB$/;"	l
+hallo_data	tmp/hallo_a3.asm	/^hallo_data		ibytes "test.spr"$/;"	l
+has_member	hlakit/common/enum.py	/^    def has_member(self, name):$/;"	m	class:Enum
+has_member	hlakit/common/struct_.py	/^        def has_member(self, name):$/;"	m	class:Struct.Member
+has_member	hlakit/common/struct_.py	/^    def has_member(self, name):$/;"	m	class:Struct
+has_symbol	hlakit/common/preprocessor.py	/^    def has_symbol(self, label):$/;"	m	class:Preprocessor
+iNES	hlakit/platform/nes/ines.py	/^class iNES(object):$/;"	c
+iNESBattery	hlakit/platform/nes/ines.py	/^class iNESBattery(object):$/;"	c
+iNESChrRepeat	hlakit/platform/nes/ines.py	/^class iNESChrRepeat(object):$/;"	c
+iNESFourscreen	hlakit/platform/nes/ines.py	/^class iNESFourscreen(object):$/;"	c
+iNESMapper	hlakit/platform/nes/ines.py	/^class iNESMapper(object):$/;"	c
+iNESMirroring	hlakit/platform/nes/ines.py	/^class iNESMirroring(object):$/;"	c
+iNESOff	hlakit/platform/nes/ines.py	/^class iNESOff(object):$/;"	c
+iNESPrgRepeat	hlakit/platform/nes/ines.py	/^class iNESPrgRepeat(object):$/;"	c
+iNESTrainer	hlakit/platform/nes/ines.py	/^class iNESTrainer(object):$/;"	c
+ignore	hlakit/common/preprocessor.py	/^    def ignore(self):$/;"	m	class:Preprocessor
+ignore_stack_pop	hlakit/common/preprocessor.py	/^    def ignore_stack_pop(self):$/;"	m	class:Preprocessor
+ignore_stack_push	hlakit/common/preprocessor.py	/^    def ignore_stack_push(self, value):$/;"	m	class:Preprocessor
+ignore_stack_top	hlakit/common/preprocessor.py	/^    def ignore_stack_top(self):$/;"	m	class:Preprocessor
+inc_16	include/cpu/6502/std_math.h	/^inline inc_16(number)$/;"	f
+inc_16_limit	include/cpu/6502/std_math.h	/^inline inc_16_limit(number)$/;"	f
+inc_16_x	include/cpu/6502/std_math.h	/^inline inc_16_x(number)$/;"	f
+incbin	hlakit/common/romfile.py	/^    def incbin(self, data):$/;"	m	class:RomFile
+include	examples/6502/lynx/main.s	/^include <lynx.h>$/;"	l
+increment_ram_pos	hlakit/common/romfile.py	/^    def increment_ram_pos(self, amt = 1):$/;"	m	class:RomFile
+increment_rom_pos	hlakit/common/romfile.py	/^    def increment_rom_pos(self, amt = 1):$/;"	m	class:RomFile
+ind_assign_16_16_x	include/cpu/6502/std_assignment.h	/^inline ind_assign_16_16_x(dest,value)$/;"	f
+ind_x_assign	include/cpu/6502/std_assignment.h	/^inline ind_x_assign(dest,src)$/;"	f
+ind_y_assign	include/cpu/6502/std_assignment.h	/^inline ind_y_assign(dest,src)$/;"	f
+initialize_task	examples/6502/lynx/task_switch.h	/^inline initialize_task(sp, entry) {$/;"	f
+inline	examples/6502/lynx/secondary_loader.s	/^inline calculate_number_of_segs(size, segs, chunks_per_seg)$/;"	l
+inline	examples/6502/lynx/secondary_loader.s	/^inline load_chunk(dest)$/;"	l
+inline	examples/6502/lynx/secondary_loader.s	/^inline load_segment(seg, dest, chunks_per_seg)$/;"	l
+inline	examples/6502/lynx/secondary_loader.s	/^inline load_startup_values()$/;"	l
+inline	examples/6502/nes/main.s	/^inline custom_system_initialize()$/;"	l
+inline	examples/6502/nes/visuals.s	/^inline palette_memset_inl(col)$/;"	l
+inline	examples/6502/nes/visuals.s	/^inline vram_write_string_inl(addr, str)$/;"	l
+inline	examples/6502/nes/visuals.s	/^inline wait_for(amount)$/;"	l
+inline	include/cpu/6502/std_jumps.s	/^inline jsr_table(ptable)$/;"	l
+inline	include/cpu/6502/std_jumps.s	/^inline jsr_table_xy(ptable)$/;"	l
+inline	include/cpu/6502/std_jumps.s	/^inline jsrind(pproc)$/;"	l
+inline	include/cpu/6502/std_jumps.s	/^inline jsrind_imd(pproc)$/;"	l
+inline	include/cpu/6502/std_jumps.s	/^inline jsrind_x(pproc)$/;"	l
+inline	include/cpu/6502/std_jumps.s	/^inline jsrind_y(pproc)$/;"	l
+inline	include/platform/nes/nes_palette.s	/^inline set_palette(pal)$/;"	l
+inline	include/platform/nes/nes_palette.s	/^inline set_palette_entry(pal,entry)$/;"	l
+inline	include/platform/nes/nes_palette.s	/^inline set_palette_ptr(pal)$/;"	l
+inline	include/platform/nes/nes_palette.s	/^inline set_sprite_palette(pal)$/;"	l
+inline	include/platform/nes/nes_palette.s	/^inline write_updated_palette_fast(paladdr)$/;"	l
+inline	tests/old/test_fns.s	/^inline bar(baz, qux)$/;"	l
+interrupt	examples/6502/lynx/main.s	/^interrupt irq()$/;"	l
+interrupt	tests/old/test_fns.s	/^interrupt noreturn main()$/;"	l
+irq_vektoren	tmp/hallo_a3.asm	/^irq_vektoren    equ $E000-16$/;"	d
+is_array	hlakit/common/struct_.py	/^        def is_array(self):$/;"	m	class:Struct.Member
+is_array	hlakit/common/typedef.py	/^    def is_array(self):$/;"	m	class:Typedef
+is_array	hlakit/common/variable.py	/^    def is_array(self):$/;"	m	class:Variable
+is_block_open	hlakit/common/conditional.py	/^    def is_block_open(self):$/;"	m	class:Conditional
+is_open	hlakit/common/conditional.py	/^    def is_open(self):$/;"	m	class:ConditionalBlock
+is_relative	hlakit/cpu/mos6502/opcode.py	/^    def is_relative(self):$/;"	m	class:Opcode
+is_resolved	hlakit/common/instructionline.py	/^    def is_resolved(self):$/;"	m	class:InstructionLine
+is_resolved	hlakit/cpu/mos6502/operand.py	/^    def is_resolved(self):$/;"	m	class:Operand
+is_shared	hlakit/common/variable.py	/^    def is_shared(self):$/;"	m	class:Variable
+is_struct	hlakit/common/struct_.py	/^        def is_struct(self):$/;"	m	class:Struct.Member
+keywords	hlakit/common/session.py	/^    def keywords(self):$/;"	m	class:Session
+keywords	hlakit/common/target.py	/^    def keywords(self):$/;"	m	class:Target
+keywords	hlakit/cpu/mos6502/mos6502.py	/^    def keywords(self):$/;"	m	class:MOS6502
+last_exprs	hlakit/common/compiler.py	/^    def last_exprs(klass):$/;"	m	class:Compiler
+last_exprs	hlakit/common/preprocessor.py	/^    def last_exprs(klass):$/;"	m	class:Preprocessor
+load	hlakit/common/buffer.py	/^    def load(self, inf, size):$/;"	m	class:Buffer
+load_banks	hlakit/platform/lynx/lnx.py	/^    def load_banks(self, inf):$/;"	m	class:Lnx
+load_header	hlakit/platform/lynx/lnx.py	/^    def load_header(self, inf):$/;"	m	class:Lnx
+load_task_context	examples/6502/lynx/task_switch.h	/^inline load_task_context() {$/;"	f
+lookup_symbol	hlakit/common/symboltable.py	/^    def lookup_symbol(self, symbol, namespace=GLOBAL_NAMESPACE):$/;"	m	class:SymbolTable
+lsr2_a	include/cpu/6502/std_math.h	/^inline lsr2_a()$/;"	f
+lsr3_a	include/cpu/6502/std_math.h	/^inline lsr3_a()$/;"	f
+lsr4_a	include/cpu/6502/std_math.h	/^inline lsr4_a()$/;"	f
+lsr5_a	include/cpu/6502/std_math.h	/^inline lsr5_a()$/;"	f
+lsr6_a	include/cpu/6502/std_math.h	/^inline lsr6_a()$/;"	f
+lsr7_a	include/cpu/6502/std_math.h	/^inline lsr7_a()$/;"	f
+lsr_16	include/cpu/6502/std_math.h	/^inline lsr_16( dest, amount )$/;"	f
+lsr_16_by_2_to_8	include/cpu/6502/std_math.h	/^inline lsr_16_by_2_to_8( dest, src )$/;"	f
+lsr_16_by_3_to_8	include/cpu/6502/std_math.h	/^inline lsr_16_by_3_to_8( dest, src )$/;"	f
+lsr_16_by_4_to_8	include/cpu/6502/std_math.h	/^inline lsr_16_by_4_to_8( dest, src )$/;"	f
+lsr_16_by_5_to_8	include/cpu/6502/std_math.h	/^inline lsr_16_by_5_to_8( dest, src )$/;"	f
+lsr_16_by_6_to_8	include/cpu/6502/std_math.h	/^inline lsr_16_by_6_to_8( dest, src )$/;"	f
+lsr_16_to	include/cpu/6502/std_math.h	/^inline lsr_16_to( dest, src, amount )$/;"	f
+main	hlakit.py	/^def main():$/;"	f
+main	utils/lnx_creator.py	/^def main():$/;"	f
+memcpy_inline	include/cpu/6502/std_memory.h	/^inline memcpy_inline( dest, src, size )$/;"	f
+memset_inline	include/cpu/6502/std_memory.h	/^inline memset_inline( memdest, value, memsize)$/;"	f
+mmc5_init	include/platform/nes/nes_mappers.h	/^inline mmc5_init()$/;"	f
+mmc5_multiply	include/platform/nes/nes_mappers.h	/^inline mmc5_multiply(valueA, valueB)$/;"	f
+mmc5_restore_prg_A000	include/platform/nes/nes_mappers.h	/^inline mmc5_restore_prg_A000(number)$/;"	f
+mmc5_restore_prg_A000_pop	include/platform/nes/nes_mappers.h	/^inline mmc5_restore_prg_A000_pop()$/;"	f
+mmc5_save_prg_A000_bank_number	include/platform/nes/nes_mappers.h	/^inline mmc5_save_prg_A000_bank_number()$/;"	f
+mmc5_select_prg_8000	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_8000(number)$/;"	f
+mmc5_select_prg_8000_a	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_8000_a()$/;"	f
+mmc5_select_prg_8000i	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_8000i(number)$/;"	f
+mmc5_select_prg_A000	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_A000(number)$/;"	f
+mmc5_select_prg_A000_a	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_A000_a()$/;"	f
+mmc5_select_prg_A000_push	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_A000_push(var)$/;"	f
+mmc5_select_prg_A000_x_push	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_A000_x_push(var)$/;"	f
+mmc5_select_prg_A000i	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_A000i(number)$/;"	f
+mmc5_select_prg_A000i_push	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_A000i_push(number)$/;"	f
+mmc5_select_prg_A000i_raw	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_A000i_raw(number)$/;"	f
+mmc5_select_prg_C000	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_C000(number)$/;"	f
+mmc5_select_prg_C000_a	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_C000_a()$/;"	f
+mmc5_select_prg_C000i	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_C000i(number)$/;"	f
+mmc5_select_prg_E000	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_E000(number)$/;"	f
+mmc5_select_prg_E000_a	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_E000_a()$/;"	f
+mmc5_select_prg_E000i	include/platform/nes/nes_mappers.h	/^inline mmc5_select_prg_E000i(number)$/;"	f
+mod_16_by_240_to_8	include/cpu/6502/std_math.h	/^inline mod_16_by_240_to_8( dest, src )$/;"	f
+mod_16_to_8	include/cpu/6502/std_math.h	/^inline mod_16_to_8( dest, src, val )$/;"	f
+mov	tests/old/test_macro_expansion.s	/^mov x, BAR$/;"	l
+move_t	tests/old/test_vars.s	/^move_t move$/;"	l
+mul	include/cpu/6502/std_math.h	/^inline mul( dest, multipiler )$/;"	f
+mul_16_8	include/cpu/6502/std_math.h	/^inline mul_16_8( dest, multipiler )$/;"	f
+mul_16_8_x	include/cpu/6502/std_math.h	/^inline mul_16_8_x( dest, multipiler )$/;"	f
+mul_a	include/cpu/6502/std_math.h	/^inline mul_a( dest, multipiler )$/;"	f
+mul_x	include/cpu/6502/std_math.h	/^inline mul_x( dest, multipiler )$/;"	f
+mul_x_a	include/cpu/6502/std_math.h	/^inline mul_x_a( dest, multipiler )$/;"	f
+neg	include/cpu/6502/std_math.h	/^inline neg(number)$/;"	f
+neg_16	include/cpu/6502/std_math.h	/^inline neg_16(number)$/;"	f
+neg_a	include/cpu/6502/std_math.h	/^inline neg_a()$/;"	f
+nes_reset	include/platform/nes/nes_system.h	/^inline nes_reset()$/;"	f
+new	hlakit/common/instructionline.py	/^    def new(klass, opcode, **kwargs):$/;"	m	class:InstructionLine
+new	hlakit/common/opcode.py	/^    def new(klass, arg):$/;"	m	class:Opcode
+new	hlakit/common/operand.py	/^    def new(klass, **kwargs):$/;"	m	class:Operand
+new	hlakit/cpu/mos6502/instructionline.py	/^    def new(klass, opcode, **kwargs):$/;"	m	class:InstructionLine
+new	hlakit/cpu/mos6502/opcode.py	/^    def new(klass, arg):$/;"	m	class:Opcode
+new	hlakit/cpu/mos6502/operand.py	/^    def new(klass, **kwargs):$/;"	m	class:Operand
+new_block	hlakit/common/conditional.py	/^    def new_block(self, token):$/;"	m	class:Conditional
+new_symbol	hlakit/common/symboltable.py	/^    def new_symbol(self, symbol, namespace=None):$/;"	m	class:SymbolTable
+num_lines	hlakit/common/codeblock.py	/^    def num_lines(self):$/;"	m	class:CodeBlock
+opcodes	hlakit/common/session.py	/^    def opcodes(self):$/;"	m	class:Session
+opcodes	hlakit/common/target.py	/^    def opcodes(self):$/;"	m	class:Target
+opcodes	hlakit/cpu/mos6502/mos6502.py	/^    def opcodes(self):$/;"	m	class:MOS6502
+or	include/cpu/6502/std_bitwise.h	/^inline or(dest,mask)$/;"	f
+or_16_16	include/cpu/6502/std_bitwise.h	/^inline or_16_16(dest,mask)$/;"	f
+or_16_16_x	include/cpu/6502/std_bitwise.h	/^inline or_16_16_x(dest,mask)$/;"	f
+or_16_8	include/cpu/6502/std_bitwise.h	/^inline or_16_8(dest,mask)$/;"	f
+or_16_8_x	include/cpu/6502/std_bitwise.h	/^inline or_16_8_x(dest,mask)$/;"	f
+or_16i	include/cpu/6502/std_bitwise.h	/^inline or_16i(dest,mask)$/;"	f
+or_16i_x	include/cpu/6502/std_bitwise.h	/^inline or_16i_x(dest,mask)$/;"	f
+or_x	include/cpu/6502/std_bitwise.h	/^inline or_x(dest,mask)$/;"	f
+or_x_a	include/cpu/6502/std_bitwise.h	/^inline or_x_a(dest)$/;"	f
+or_y	include/cpu/6502/std_bitwise.h	/^inline or_y(dest,mask)$/;"	f
+or_y_a	include/cpu/6502/std_bitwise.h	/^inline or_y_a(dest)$/;"	f
+output_debug_def	hlakit/common/compiler.py	/^    def output_debug_def(self):$/;"	m	class:Compiler
+pal	tmp/hallo_a3.asm	/^pal             STANDARD_PAL$/;"	l
+pal0	include/platform/nes/nes_video.h	/^    PALENT pal0,$/;"	m	struct:PALETTE_
+pal1	include/platform/nes/nes_video.h	/^    pal1,$/;"	m	struct:PALETTE_
+pal2	include/platform/nes/nes_video.h	/^    pal2,$/;"	m	struct:PALETTE_
+parse	hlakit/common/align.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Align
+parse	hlakit/common/arrayvalue.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:ArrayValue
+parse	hlakit/common/arrayvalue.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:StringValue
+parse	hlakit/common/binaryoperator.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:BinaryOperator
+parse	hlakit/common/codeline.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:CodeLine
+parse	hlakit/common/define.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Define
+parse	hlakit/common/else_.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Else
+parse	hlakit/common/endif.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Endif
+parse	hlakit/common/enum.py	/^        def parse(klass, pstring, location, tokens):$/;"	m	class:Enum.Member
+parse	hlakit/common/enum.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Enum
+parse	hlakit/common/file.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:File
+parse	hlakit/common/functioncall.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:FunctionCall
+parse	hlakit/common/functiondecl.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:FunctionDecl
+parse	hlakit/common/functionparameter.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:FunctionParameter
+parse	hlakit/common/functionreturn.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:FunctionReturn
+parse	hlakit/common/functiontype.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:FunctionType
+parse	hlakit/common/ifdef.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Ifdef
+parse	hlakit/common/ifndef.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Ifndef
+parse	hlakit/common/immediate.py	/^    def parse(klass, pstring, location, tokens, type_):$/;"	m	class:Immediate
+parse	hlakit/common/instructionline.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:InstructionLine
+parse	hlakit/common/label.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Label
+parse	hlakit/common/message.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Message
+parse	hlakit/common/name.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Name
+parse	hlakit/common/numericvalue.py	/^    def parse(klass, pstring, location, token):$/;"	m	class:NumericValue
+parse	hlakit/common/preprocessor.py	/^        def parse(self):$/;"	m	class:Preprocessor.StateFrame
+parse	hlakit/common/preprocessor.py	/^    def parse(self, f):$/;"	m	class:Preprocessor
+parse	hlakit/common/rampp.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:RamEnd
+parse	hlakit/common/rampp.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:RamOrg
+parse	hlakit/common/rompp.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:RomBank
+parse	hlakit/common/rompp.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:RomBanksize
+parse	hlakit/common/rompp.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:RomEnd
+parse	hlakit/common/rompp.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:RomOrg
+parse	hlakit/common/scopemarkers.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:ScopeBegin
+parse	hlakit/common/scopemarkers.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:ScopeEnd
+parse	hlakit/common/setpad.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:SetPad
+parse	hlakit/common/struct_.py	/^        def parse(klass, pstring, location, tokens):$/;"	m	class:Struct.Member
+parse	hlakit/common/struct_.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Struct
+parse	hlakit/common/tell.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Tell
+parse	hlakit/common/type_.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Type
+parse	hlakit/common/typedef.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Typedef
+parse	hlakit/common/undef.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Undef
+parse	hlakit/common/value.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Value
+parse	hlakit/common/variable.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Variable
+parse	hlakit/common/variableinitializer.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:VariableInitializer
+parse	hlakit/cpu/mos6502/conditionaldecl.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:ConditionalDecl
+parse	hlakit/cpu/mos6502/interrupt.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Interrupt
+parse	hlakit/cpu/mos6502/opcode.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Opcode
+parse	hlakit/cpu/mos6502/operand.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Operand
+parse	hlakit/cpu/mos6502/register.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:Register
+parse	hlakit/platform/lynx/lnxsetting.py	/^    def parse(klass, pstring, location, tokens, type_):$/;"	m	class:LnxSetting
+parse	hlakit/platform/lynx/loader.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:LynxLoader
+parse	hlakit/platform/lynx/rompp.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:LynxRomOrg
+parse	hlakit/platform/nes/chr.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:ChrBank
+parse	hlakit/platform/nes/chr.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:ChrBanksize
+parse	hlakit/platform/nes/chr.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:ChrEnd
+parse	hlakit/platform/nes/chr.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:ChrLink
+parse	hlakit/platform/nes/ines.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:iNESBattery
+parse	hlakit/platform/nes/ines.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:iNESChrRepeat
+parse	hlakit/platform/nes/ines.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:iNESFourscreen
+parse	hlakit/platform/nes/ines.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:iNESMapper
+parse	hlakit/platform/nes/ines.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:iNESMirroring
+parse	hlakit/platform/nes/ines.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:iNESOff
+parse	hlakit/platform/nes/ines.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:iNESPrgRepeat
+parse	hlakit/platform/nes/ines.py	/^    def parse(klass, pstring, location, tokens):$/;"	m	class:iNESTrainer
+parse_args	hlakit/common/session.py	/^    def parse_args(self, args=[]):$/;"	m	class:Session
+parse_command_line	utils/lnx_creator.py	/^def parse_command_line(args=[]):$/;"	f
+parse_item	hlakit/common/arrayvalue.py	/^    def parse_item(klass, pstring, location, tokens):$/;"	m	class:ArrayValue
+parse_name	hlakit/common/struct_.py	/^    def parse_name(klass, pstring, location, tokens):$/;"	m	class:Struct
+peek	include/cpu/6502/std_stack.h	/^inline peek()$/;"	f
+peekx	include/cpu/6502/std_stack.h	/^inline peekx()$/;"	f
+peeky	include/cpu/6502/std_stack.h	/^inline peeky()$/;"	f
+player_t	tests/old/test_vars.s	/^player_t z$/;"	l
+player_tiles_walk	tests/old/test_arrays.s	/^    player_tiles_walk:$/;"	l
+pointer	examples/6502/nes/ramdata.s	/^pointer paddr$/;"	l
+pointer	examples/6502/nes/ramdata.s	/^pointer pstr$/;"	l
+pointer	include/cpu/6502/std_ram.s	/^pointer _jsrind_temp$/;"	l
+pointer	include/cpu/6502/std_ram.s	/^pointer _mem_dest$/;"	l
+pointer	include/cpu/6502/std_ram.s	/^pointer _mem_src$/;"	l
+pointer	include/cpu/6502/std_ram.s	/^pointer _p_temp$/;"	l
+pointer	include/platform/nes/nes_ram.s	/^pointer$/;"	l
+pointer	tests/old/test_vars.s	/^pointer c$/;"	l
+pop	include/cpu/6502/std_stack.h	/^inline pop(dest)$/;"	f
+pop_16	include/cpu/6502/std_stack.h	/^inline pop_16(dest)$/;"	f
+pop_16_x	include/cpu/6502/std_stack.h	/^inline pop_16_x(dest)$/;"	f
+pop_all	include/cpu/6502/std_stack.h	/^inline pop_all()$/;"	f
+pop_x	include/cpu/6502/std_stack.h	/^inline pop_x(dest)$/;"	f
+popa	include/cpu/6502/std_stack.h	/^inline popa()$/;"	f
+popp	include/cpu/6502/std_stack.h	/^inline popp()$/;"	f
+popsp	include/cpu/6502/std_stack.h	/^inline popsp()$/;"	f
+popx	include/cpu/6502/std_stack.h	/^inline popx()$/;"	f
+popy	include/cpu/6502/std_stack.h	/^inline popy()$/;"	f
+ppu_clean_latch	include/platform/nes/nes_video.h	/^inline ppu_clean_latch()$/;"	f
+ppu_ctl0_adjust	include/platform/nes/nes_video.h	/^inline ppu_ctl0_adjust( clearmask, setmask )$/;"	f
+ppu_ctl0_assign	include/platform/nes/nes_video.h	/^inline ppu_ctl0_assign(newctl)$/;"	f
+ppu_ctl0_clear	include/platform/nes/nes_video.h	/^inline ppu_ctl0_clear(mask)$/;"	f
+ppu_ctl0_set	include/platform/nes/nes_video.h	/^inline ppu_ctl0_set(mask)$/;"	f
+ppu_ctl0_test	include/platform/nes/nes_video.h	/^inline ppu_ctl0_test( mask )$/;"	f
+ppu_ctl0_xor	include/platform/nes/nes_video.h	/^inline ppu_ctl0_xor(mask)$/;"	f
+ppu_ctl1_adjust	include/platform/nes/nes_video.h	/^inline ppu_ctl1_adjust( clearmask, setmask )$/;"	f
+ppu_ctl1_assign	include/platform/nes/nes_video.h	/^inline ppu_ctl1_assign(newctl)$/;"	f
+ppu_ctl1_clear	include/platform/nes/nes_video.h	/^inline ppu_ctl1_clear(mask)$/;"	f
+ppu_ctl1_set	include/platform/nes/nes_video.h	/^inline ppu_ctl1_set(mask)$/;"	f
+ppu_ctl1_test	include/platform/nes/nes_video.h	/^inline ppu_ctl1_test( mask )$/;"	f
+ppu_disable_nmi	include/platform/nes/nes_video.h	/^inline ppu_disable_nmi()$/;"	f
+ppu_enable_nmi	include/platform/nes/nes_video.h	/^inline ppu_enable_nmi(mask)$/;"	f
+ppu_set_nametable	include/platform/nes/nes_video.h	/^inline ppu_set_nametable(nametable)$/;"	f
+ppu_set_palette_intensity	include/platform/nes/nes_video.h	/^inline ppu_set_palette_intensity(newbits)$/;"	f
+ppu_turn_off	include/platform/nes/nes_video.h	/^inline ppu_turn_off()$/;"	f
+ppu_turn_off_draw	include/platform/nes/nes_video.h	/^inline ppu_turn_off_draw()$/;"	f
+ppu_turn_on_draw	include/platform/nes/nes_video.h	/^inline ppu_turn_on_draw()$/;"	f
+ppu_xor_nametable	include/platform/nes/nes_video.h	/^inline ppu_xor_nametable()$/;"	f
+preprocessor	hlakit/common/session.py	/^    def preprocessor(self):$/;"	m	class:Session
+preprocessor	hlakit/common/target.py	/^    def preprocessor(self):$/;"	m	class:Target
+preprocessor	hlakit/cpu/mos6502/mos6502.py	/^    def preprocessor(self):$/;"	m	class:MOS6502
+preprocessor	hlakit/platform/lynx/lynx.py	/^    def preprocessor(self):$/;"	m	class:Lynx
+preprocessor	hlakit/platform/nes/nes.py	/^    def preprocessor(self):$/;"	m	class:NES
+push	include/cpu/6502/std_stack.h	/^inline push(value)$/;"	f
+push_16	include/cpu/6502/std_stack.h	/^inline push_16(src)$/;"	f
+push_16_x	include/cpu/6502/std_stack.h	/^inline push_16_x(src)$/;"	f
+push_all	include/cpu/6502/std_stack.h	/^inline push_all()$/;"	f
+push_x	include/cpu/6502/std_stack.h	/^inline push_x(src)$/;"	f
+pusha	include/cpu/6502/std_stack.h	/^inline pusha()$/;"	f
+pushp	include/cpu/6502/std_stack.h	/^inline pushp()$/;"	f
+pushsp	include/cpu/6502/std_stack.h	/^inline pushsp()$/;"	f
+pushx	include/cpu/6502/std_stack.h	/^inline pushx()$/;"	f
+pushy	include/cpu/6502/std_stack.h	/^inline pushy()$/;"	f
+read_joystick0	include/platform/nes/nes_io.h	/^inline read_joystick0()$/;"	f
+read_joystick1	include/platform/nes/nes_io.h	/^inline read_joystick1()$/;"	f
+replace_block_decl	hlakit/common/conditional.py	/^    def replace_block_decl(self, decl):$/;"	m	class:Conditional
+reserve	hlakit/common/buffer.py	/^    def reserve(self, size):$/;"	m	class:Buffer
+reset_joystick	include/platform/nes/nes_io.h	/^inline reset_joystick()$/;"	f
+reset_stack	include/platform/nes/nes_system.h	/^inline reset_stack()$/;"	f
+reset_state	hlakit/common/compiler.py	/^    def reset_state(self):$/;"	m	class:Compiler
+reset_state	hlakit/common/generator.py	/^    def reset_state(self):$/;"	m	class:Generator
+reset_state	hlakit/common/label.py	/^    def reset_state():$/;"	m	class:Label
+reset_state	hlakit/common/preprocessor.py	/^    def reset_state(self):$/;"	m	class:Preprocessor
+reset_state	hlakit/common/symboltable.py	/^    def reset_state(self):$/;"	m	class:SymbolTable
+reset_state	hlakit/common/typeregistry.py	/^    def reset_state(self):$/;"	m	class:TypeRegistry
+resolve	hlakit/common/immediate.py	/^    def resolve(self):$/;"	m	class:Immediate
+resolve	hlakit/common/instructionline.py	/^    def resolve(self):$/;"	m	class:InstructionLine
+resolve	hlakit/common/numericvalue.py	/^    def resolve(self):$/;"	m	class:NumericValue
+resolve	hlakit/cpu/mos6502/operand.py	/^    def resolve(self):$/;"	m	class:Operand
+romfile	hlakit/common/generator.py	/^    def romfile(self):$/;"	m	class:Generator
+romfile	hlakit/common/session.py	/^    def romfile(self):$/;"	m	class:Session
+save	hlakit/common/buffer.py	/^    def save(self, outf):$/;"	m	class:Buffer
+save	hlakit/common/romfile.py	/^    def save(self, outf):$/;"	m	class:RomFile
+save	hlakit/platform/lynx/lnx.py	/^    def save(self, outf):$/;"	m	class:Lnx
+save_banks	hlakit/platform/lynx/lnx.py	/^    def save_banks(self, outf):$/;"	m	class:Lnx
+save_header	hlakit/platform/lynx/lnx.py	/^    def save_header(self, outf):$/;"	m	class:Lnx
+save_task_context	examples/6502/lynx/task_switch.h	/^inline save_task_context() {$/;"	f
+scope_global	hlakit/common/symboltable.py	/^    def scope_global(self):$/;"	m	class:SymbolTable
+scope_pop	hlakit/common/symboltable.py	/^    def scope_pop(self):$/;"	m	class:SymbolTable
+scope_push	hlakit/common/symboltable.py	/^    def scope_push(self, namespace=ANON_NAMESPACE):$/;"	m	class:SymbolTable
+scope_top	hlakit/common/symboltable.py	/^    def scope_top(self):$/;"	m	class:SymbolTable
+screen0	tmp/hallo_a3.asm	/^screen0		equ $E000$/;"	d
+seek	hlakit/common/buffer.py	/^    def seek(self, pos):$/;"	m	class:Buffer
+setUp	tests/testcommon.py	/^    def setUp(self):$/;"	m	class:BufferTester
+setUp	tests/testcommon.py	/^    def setUp(self):$/;"	m	class:CommandLineOptionsTester
+setUp	tests/testcompiler.py	/^    def setUp(self):$/;"	m	class:CompilerTester
+setUp	tests/testlynx.py	/^    def setUp(self):$/;"	m	class:LynxTester
+setUp	tests/testmos6502.py	/^    def setUp(self):$/;"	m	class:MOS6502Tester
+setUp	tests/testnes.py	/^    def setUp(self):$/;"	m	class:NESTester
+setUp	tests/testpreprocessor.py	/^    def setUp(self):$/;"	m	class:PreprocessorTester
+set_addr	hlakit/common/instructionline.py	/^    def set_addr(self, addr):$/;"	m	class:InstructionLine
+set_address	hlakit/common/symbol.py	/^    def set_address(self, addr):$/;"	m	class:Symbol
+set_align	hlakit/common/romfile.py	/^    def set_align(self, align):$/;"	m	class:RomFile
+set_carry_flag	include/platform/nes/nes_system.h	/^inline set_carry_flag()$/;"	f
+set_cart_name	hlakit/platform/lynx/lnx.py	/^    def set_cart_name(self, name):$/;"	m	class:Lnx
+set_cart_segment_adress	include/platform/lynx/lynx.h	/^inline set_cart_segment_adress(addr)$/;"	f
+set_chr_count	hlakit/platform/nes/ines.py	/^    def set_chr_count(self, chr):$/;"	m	class:iNES
+set_current_bank	hlakit/common/romfile.py	/^    def set_current_bank(self, bank):$/;"	m	class:RomFile
+set_current_label	hlakit/platform/lynx/lnx.py	/^    def set_current_label(self, lbl):$/;"	m	class:Lnx
+set_exprs	hlakit/common/compiler.py	/^    def set_exprs(self, value):$/;"	m	class:Compiler
+set_exprs	hlakit/common/preprocessor.py	/^    def set_exprs(self, value):$/;"	m	class:Preprocessor
+set_fn	hlakit/common/conditional.py	/^    def set_fn(self, fn=None):$/;"	m	class:Conditional
+set_fn	hlakit/common/functioncall.py	/^    def set_fn(self, fn=None):$/;"	m	class:FunctionCall
+set_fn	hlakit/common/functionreturn.py	/^    def set_fn(self, fn=None):$/;"	m	class:FunctionReturn
+set_fn	hlakit/common/instructionline.py	/^    def set_fn(self, fn=None):$/;"	m	class:InstructionLine
+set_fn	hlakit/common/label.py	/^    def set_fn(self, fn=None):$/;"	m	class:Label
+set_fn	hlakit/common/scopemarkers.py	/^    def set_fn(self, fn=None):$/;"	m	class:ScopeBegin
+set_fn	hlakit/common/scopemarkers.py	/^    def set_fn(self, fn=None):$/;"	m	class:ScopeEnd
+set_fn	hlakit/common/variable.py	/^    def set_fn(self, fn=None):$/;"	m	class:Variable
+set_four_screen	hlakit/platform/nes/ines.py	/^    def set_four_screen(self, four_screen):$/;"	m	class:iNES
+set_irq_interrupt	hlakit/cpu/mos6502/romfile.py	/^    def set_irq_interrupt(self, irq):$/;"	m	class:MOS6502RomFile
+set_loader	hlakit/platform/lynx/lnx.py	/^    def set_loader(self, loader):$/;"	m	class:Lnx
+set_manufacturer_name	hlakit/platform/lynx/lnx.py	/^    def set_manufacturer_name(self, name):$/;"	m	class:Lnx
+set_mapper	hlakit/platform/nes/ines.py	/^    def set_mapper(self, mapper):$/;"	m	class:iNES
+set_mirroring	hlakit/platform/nes/ines.py	/^    def set_mirroring(self, mirroring):$/;"	m	class:iNES
+set_nmi_interrupt	hlakit/cpu/mos6502/romfile.py	/^    def set_nmi_interrupt(self, nmi):$/;"	m	class:MOS6502RomFile
+set_no_header	hlakit/platform/lynx/lnx.py	/^    def set_no_header(self):$/;"	m	class:Lnx
+set_option	hlakit/platform/nes/ines.py	/^    def set_option(self, option):$/;"	m	class:iNES
+set_padding	hlakit/common/romfile.py	/^    def set_padding(self, padding):$/;"	m	class:RomFile
+set_padding_value	hlakit/common/buffer.py	/^    def set_padding_value(self, value):$/;"	m	class:Buffer
+set_page_size_bank0	hlakit/platform/lynx/lnx.py	/^    def set_page_size_bank0(self, size):$/;"	m	class:Lnx
+set_page_size_bank1	hlakit/platform/lynx/lnx.py	/^    def set_page_size_bank1(self, size):$/;"	m	class:Lnx
+set_prg_count	hlakit/platform/nes/ines.py	/^    def set_prg_count(self, prg):$/;"	m	class:iNES
+set_ram_end	hlakit/common/romfile.py	/^    def set_ram_end(self):$/;"	m	class:RomFile
+set_ram_org	hlakit/common/romfile.py	/^    def set_ram_org(self, addr, maxsize=None):$/;"	m	class:RomFile
+set_ram_org	hlakit/platform/lynx/lnx.py	/^    def set_ram_org(self, addr, maxsize=None):$/;"	m	class:Lnx
+set_reset_interrupt	hlakit/cpu/mos6502/romfile.py	/^    def set_reset_interrupt(self, reset):$/;"	m	class:MOS6502RomFile
+set_resolved	hlakit/cpu/mos6502/operand.py	/^    def set_resolved(self, resolved):$/;"	m	class:Operand
+set_rom_bank	hlakit/common/romfile.py	/^    def set_rom_bank(self, bank, maxsize=None):$/;"	m	class:RomFile
+set_rom_bank	hlakit/platform/lynx/lnx.py	/^    def set_rom_bank(self, bank, banksize=None):$/;"	m	class:Lnx
+set_rom_banksize	hlakit/common/romfile.py	/^    def set_rom_banksize(self, banksize):$/;"	m	class:RomFile
+set_rom_banksize	hlakit/platform/lynx/lnx.py	/^    def set_rom_banksize(self, banksize):$/;"	m	class:Lnx
+set_rom_end	hlakit/common/romfile.py	/^    def set_rom_end(self):$/;"	m	class:RomFile
+set_rom_end	hlakit/platform/lynx/lnx.py	/^    def set_rom_end(self):$/;"	m	class:Lnx
+set_rom_org	hlakit/common/romfile.py	/^    def set_rom_org(self, addr, maxsize=None):$/;"	m	class:RomFile
+set_rom_org	hlakit/platform/lynx/lnx.py	/^    def set_rom_org(self, segment, counter=None, maxsize=None):$/;"	m	class:Lnx
+set_rom_padding	hlakit/platform/lynx/lnx.py	/^    def set_rom_padding(self, padding):$/;"	m	class:Lnx
+set_rom_type	hlakit/platform/nes/ines.py	/^    def set_rom_type(self, rom_type):$/;"	m	class:iNES
+set_rotation	hlakit/platform/lynx/lnx.py	/^    def set_rotation(self, rotation):$/;"	m	class:Lnx
+set_save_game_size	hlakit/platform/lynx/lnx.py	/^    def set_save_game_size(self, save_size):$/;"	m	class:Lnx
+set_scope	hlakit/common/compiler.py	/^    def set_scope(self, scope):$/;"	m	class:BasicScope
+set_scope	hlakit/common/conditional.py	/^    def set_scope(self, name):$/;"	m	class:Conditional
+set_scope	hlakit/common/conditional.py	/^    def set_scope(self, name):$/;"	m	class:ConditionalBlock
+set_scope	hlakit/common/function.py	/^    def set_scope(self, name):$/;"	m	class:Function
+set_scope	hlakit/common/functioncall.py	/^    def set_scope(self, name):$/;"	m	class:FunctionCall
+set_scope	hlakit/common/immediate.py	/^    def set_scope(self, scope):$/;"	m	class:Immediate
+set_scope	hlakit/common/instructionline.py	/^    def set_scope(self, scope):$/;"	m	class:InstructionLine
+set_scope	hlakit/common/variable.py	/^    def set_scope(self, name):$/;"	m	class:Variable
+set_scope	hlakit/cpu/mos6502/operand.py	/^    def set_scope(self, scope):$/;"	m	class:Operand
+set_sram	hlakit/platform/nes/ines.py	/^    def set_sram(self, sram):$/;"	m	class:iNES
+set_start_label	hlakit/common/function.py	/^    def set_start_label(self, label):$/;"	m	class:Function
+set_symbol	hlakit/common/preprocessor.py	/^    def set_symbol(self, label, value = None):$/;"	m	class:Preprocessor
+set_trainer	hlakit/platform/nes/ines.py	/^    def set_trainer(self, trainer):$/;"	m	class:iNES
+set_type	hlakit/common/conditional.py	/^    def set_type(self, type_):$/;"	m	class:Conditional
+set_type	hlakit/common/functionreturn.py	/^    def set_type(self, type_):$/;"	m	class:FunctionReturn
+set_type	hlakit/common/symbol.py	/^    def set_type(self, type_):$/;"	m	class:Symbol
+set_use_cart_strobe	hlakit/platform/lynx/lnx.py	/^    def set_use_cart_strobe(self, use_strobe):$/;"	m	class:Lnx
+set_value	hlakit/common/variable.py	/^    def set_value(self, value):$/;"	m	class:Variable
+set_version	hlakit/platform/lynx/lnx.py	/^    def set_version(self, version):$/;"	m	class:Lnx
+shared	include/platform/nes/nes_ram.s	/^shared byte$/;"	l
+shared	tests/old/test_vars.s	/^shared byte d$/;"	l
+shared	tests/old/test_vars.s	/^shared byte h: $FFD3$/;"	l
+shared	tests/old/test_vars.s	/^shared byte i = 0$/;"	l
+shared	tests/old/test_vars.s	/^shared byte i2 = %01110110$/;"	l
+shared	tests/old/test_vars.s	/^shared byte j[2]$/;"	l
+shared	tests/old/test_vars.s	/^shared byte k: $FFD4 = 2$/;"	l
+shared	tests/old/test_vars.s	/^shared byte l[2] : $FFD5 = { 1, 2 }$/;"	l
+shared	tests/old/test_vars.s	/^shared byte m[] : 0x0100 = "Foo"$/;"	l
+shared	tests/old/test_vars.s	/^shared byte r : 0xFFFD = 0, s : 0xFFFE = 1K, t$/;"	l
+shared	tests/old/test_vars.s	/^shared byte u[2] = { 8, 9 }, v[] = "Baz", w[]: 0x0500 = { 10, 11, 12 }$/;"	l
+spr00	tests/old/test_arrays.s	/^    spr00: $01,$02, $03,$04, $05,$06,$/;"	l
+spr01	tests/old/test_arrays.s	/^    spr01: $07,$08, $43,$44, $41,$42,$/;"	l
+spr02	tests/old/test_arrays.s	/^    spr02: $11,$32, $54,$11, $42,$32$/;"	l
+start_all_tasks	examples/6502/lynx/task_switch.h	/^inline start_all_tasks(first_task) {$/;"	f
+state_stack_pop	hlakit/common/preprocessor.py	/^    def state_stack_pop(self):$/;"	m	class:Preprocessor
+state_stack_push	hlakit/common/preprocessor.py	/^    def state_stack_push(self, frame):$/;"	m	class:Preprocessor
+state_stack_top	hlakit/common/preprocessor.py	/^    def state_stack_top(self):$/;"	m	class:Preprocessor
+sub	include/cpu/6502/std_math.h	/^inline sub(dest,value)$/;"	f
+sub16_16_x	include/cpu/6502/std_math.h	/^inline sub16_16_x(dest,value)$/;"	f
+sub_16_16	include/cpu/6502/std_math.h	/^inline sub_16_16(dest,value)$/;"	f
+sub_16_16_to	include/cpu/6502/std_math.h	/^inline sub_16_16_to(valuea,valueb,dest)$/;"	f
+sub_16_8	include/cpu/6502/std_math.h	/^inline sub_16_8(dest,value)$/;"	f
+sub_16_8_a	include/cpu/6502/std_math.h	/^inline sub_16_8_a(dest)$/;"	f
+sub_16_8_a_to	include/cpu/6502/std_math.h	/^inline sub_16_8_a_to(value,dest)$/;"	f
+sub_16_8_a_x	include/cpu/6502/std_math.h	/^inline sub_16_8_a_x(dest)$/;"	f
+sub_16_8_to	include/cpu/6502/std_math.h	/^inline sub_16_8_to(src,value,dest)$/;"	f
+sub_16_8_x	include/cpu/6502/std_math.h	/^inline sub_16_8_x(dest,value)$/;"	f
+sub_16i	include/cpu/6502/std_math.h	/^inline sub_16i(dest,value)$/;"	f
+sub_16i_x	include/cpu/6502/std_math.h	/^inline sub_16i_x(dest,value)$/;"	f
+sub_x	include/cpu/6502/std_math.h	/^inline sub_x(dest,value)$/;"	f
+switch_tasks	examples/6502/lynx/task_switch.h	/^inline switch_tasks(cur_task) {$/;"	f
+system_initialize	include/platform/nes/nes_system.h	/^inline system_initialize()$/;"	f
+tearDown	tests/testcommon.py	/^    def tearDown(self):$/;"	m	class:BufferTester
+tearDown	tests/testcommon.py	/^    def tearDown(self):$/;"	m	class:CommandLineOptionsTester
+tearDown	tests/testcompiler.py	/^    def tearDown(self):$/;"	m	class:CompilerTester
+tearDown	tests/testlynx.py	/^    def tearDown(self):$/;"	m	class:LynxTester
+tearDown	tests/testmos6502.py	/^    def tearDown(self):$/;"	m	class:MOS6502Tester
+tearDown	tests/testnes.py	/^    def tearDown(self):$/;"	m	class:NESTester
+tearDown	tests/testpreprocessor.py	/^    def tearDown(self):$/;"	m	class:PreprocessorTester
+test	include/cpu/6502/std_bitwise.h	/^inline test(dest,mask)$/;"	f
+test6502Compiler	tests/testmos6502.py	/^    def test6502Compiler(self):$/;"	m	class:MOS6502Tester
+test6502Generator	tests/testmos6502.py	/^    def test6502Generator(self):$/;"	m	class:MOS6502Tester
+test6502Preprocessor	tests/testmos6502.py	/^    def test6502Preprocessor(self):$/;"	m	class:MOS6502Tester
+testAccumulatorRegAddress	tests/testmos6502.py	/^    def testAccumulatorRegAddress(self):$/;"	m	class:MOS6502CompilerTester
+testAlign	tests/testpreprocessor.py	/^    def testAlign(self):$/;"	m	class:PreprocessorTester
+testAlignLabel	tests/testpreprocessor.py	/^    def testAlignLabel(self):$/;"	m	class:PreprocessorTester
+testArrayVarExplicitSize	tests/testcompiler.py	/^    def testArrayVarExplicitSize(self):$/;"	m	class:CompilerTester
+testArrayVarImplicitSize	tests/testcompiler.py	/^    def testArrayVarImplicitSize(self):$/;"	m	class:CompilerTester
+testBadAlign	tests/testpreprocessor.py	/^    def testBadAlign(self):$/;"	m	class:PreprocessorTester
+testBadChrBanksize	tests/testnes.py	/^    def testBadChrBanksize(self):$/;"	m	class:NESPreprocessorTester
+testBadImpliedIncbin	tests/testpreprocessor.py	/^    def testBadImpliedIncbin(self):$/;"	m	class:PreprocessorTester
+testBadImpliedInclude	tests/testpreprocessor.py	/^    def testBadImpliedInclude(self):$/;"	m	class:PreprocessorTester
+testBadInterruptNMI	tests/testmos6502.py	/^    def testBadInterruptNMI(self):$/;"	m	class:MOS6502PreprocessorTester
+testBadInterruptStart	tests/testmos6502.py	/^    def testBadInterruptStart(self):$/;"	m	class:MOS6502PreprocessorTester
+testBadLiteralIncbin	tests/testpreprocessor.py	/^    def testBadLiteralIncbin(self):$/;"	m	class:PreprocessorTester
+testBadLiteralInclude	tests/testpreprocessor.py	/^    def testBadLiteralInclude(self):$/;"	m	class:PreprocessorTester
+testBadLnxCartName	tests/testlynx.py	/^    def testBadLnxCartName(self):$/;"	m	class:LynxPreprocessorTester
+testBadLnxManuName	tests/testlynx.py	/^    def testBadLnxManuName(self):$/;"	m	class:LynxPreprocessorTester
+testBadLnxPSB0	tests/testlynx.py	/^    def testBadLnxPSB0(self):$/;"	m	class:LynxPreprocessorTester
+testBadLnxPSB1	tests/testlynx.py	/^    def testBadLnxPSB1(self):$/;"	m	class:LynxPreprocessorTester
+testBadLnxRotation	tests/testlynx.py	/^    def testBadLnxRotation(self):$/;"	m	class:LynxPreprocessorTester
+testBadLnxVersion	tests/testlynx.py	/^    def testBadLnxVersion(self):$/;"	m	class:LynxPreprocessorTester
+testBadLynxLoader	tests/testlynx.py	/^    def testBadLynxLoader(self):$/;"	m	class:LynxPreprocessorTester
+testBadRamOrg	tests/testpreprocessor.py	/^    def testBadRamOrg(self):$/;"	m	class:PreprocessorTester
+testBadRomBank	tests/testpreprocessor.py	/^    def testBadRomBank(self):$/;"	m	class:PreprocessorTester
+testBadRomBanksize	tests/testpreprocessor.py	/^    def testBadRomBanksize(self):$/;"	m	class:PreprocessorTester
+testBadRomOrg	tests/testlynx.py	/^    def testBadRomOrg(self):$/;"	m	class:LynxPreprocessorTester
+testBadRomOrg	tests/testpreprocessor.py	/^    def testBadRomOrg(self):$/;"	m	class:PreprocessorTester
+testBadSetPad	tests/testpreprocessor.py	/^    def testBadSetPad(self):$/;"	m	class:PreprocessorTester
+testBadStructType	tests/testcompiler.py	/^    def testBadStructType(self):$/;"	m	class:CompilerTester
+testBadUndef	tests/testpreprocessor.py	/^    def testBadUndef(self):$/;"	m	class:PreprocessorTester
+testBadiNESBattery	tests/testnes.py	/^    def testBadiNESBattery(self):$/;"	m	class:NESPreprocessorTester
+testBadiNESChrRepeat	tests/testnes.py	/^    def testBadiNESChrRepeat(self):$/;"	m	class:NESPreprocessorTester
+testBadiNESFourscreen	tests/testnes.py	/^    def testBadiNESFourscreen(self):$/;"	m	class:NESPreprocessorTester
+testBadiNESMapper	tests/testnes.py	/^    def testBadiNESMapper(self):$/;"	m	class:NESPreprocessorTester
+testBadiNESMirroring	tests/testnes.py	/^    def testBadiNESMirroring(self):$/;"	m	class:NESPreprocessorTester
+testBadiNESPrgRepeat	tests/testnes.py	/^    def testBadiNESPrgRepeat(self):$/;"	m	class:NESPreprocessorTester
+testBadiNESTrainer	tests/testnes.py	/^    def testBadiNESTrainer(self):$/;"	m	class:NESPreprocessorTester
+testBasicLnxHeader	tests/testlynx.py	/^    def testBasicLnxHeader(self):$/;"	m	class:LynxLnxTester
+testBasicTypedef	tests/testcompiler.py	/^    def testBasicTypedef(self):$/;"	m	class:CompilerTester
+testBasicTypedefArrayExplicitSize	tests/testcompiler.py	/^    def testBasicTypedefArrayExplicitSize(self):$/;"	m	class:CompilerTester
+testBasicTypedefArrayImplicitSize	tests/testcompiler.py	/^    def testBasicTypedefArrayImplicitSize(self):$/;"	m	class:CompilerTester
+testBasicVar	tests/testcompiler.py	/^    def testBasicVar(self):$/;"	m	class:CompilerTester
+testBlockOfCode	tests/testmos6502.py	/^    def testBlockOfCode(self):$/;"	m	class:MOS6502CompilerTester
+testBogusCPU	tests/testcommon.py	/^    def testBogusCPU(self):$/;"	m	class:CommandLineOptionsTester
+testBogusPlatform	tests/testcommon.py	/^    def testBogusPlatform(self):$/;"	m	class:CommandLineOptionsTester
+testBufferPaddingByte	tests/testcommon.py	/^    def testBufferPaddingByte(self):$/;"	m	class:BufferTester
+testBufferPaddingDWord	tests/testcommon.py	/^    def testBufferPaddingDWord(self):$/;"	m	class:BufferTester
+testBufferPaddingWord	tests/testcommon.py	/^    def testBufferPaddingWord(self):$/;"	m	class:BufferTester
+testBufferReserve	tests/testcommon.py	/^    def testBufferReserve(self):$/;"	m	class:BufferTester
+testCPU	tests/testcommon.py	/^    def testCPU(self):$/;"	m	class:CommandLineOptionsTester
+testChrBanksize	tests/testnes.py	/^    def testChrBanksize(self):$/;"	m	class:NESPreprocessorTester
+testChrBanksizeLabel	tests/testnes.py	/^    def testChrBanksizeLabel(self):$/;"	m	class:NESPreprocessorTester
+testChrEnd	tests/testnes.py	/^    def testChrEnd(self):$/;"	m	class:NESPreprocessorTester
+testCodeOutput	tests/testpreprocessor.py	/^    def testCodeOutput(self):$/;"	m	class:PreprocessorTester
+testCompiler	tests/testcompiler.py	/^    def testCompiler(self):$/;"	m	class:CompilerTester
+testComplexEnum	tests/testmos6502.py	/^    def testComplexEnum(self):$/;"	m	class:MOS6502CompilerTester
+testComplexVariableDecl	tests/testmos6502.py	/^    def testComplexVariableDecl(self):$/;"	m	class:MOS6502CompilerTester
+testComplexVariableDecls	tests/testmos6502.py	/^    def testComplexVariableDecls(self):$/;"	m	class:MOS6502CompilerTester
+testDefine	tests/testpreprocessor.py	/^    def testDefine(self):$/;"	m	class:PreprocessorTester
+testDefineString	tests/testpreprocessor.py	/^    def testDefineString(self):$/;"	m	class:PreprocessorTester
+testDefineValue	tests/testpreprocessor.py	/^    def testDefineValue(self):$/;"	m	class:PreprocessorTester
+testDirResolution	tests/testcommon.py	/^    def testDirResolution(self):$/;"	m	class:CommandLineOptionsTester
+testDoWhileBlockConditional	tests/testmos6502.py	/^    def testDoWhileBlockConditional(self):$/;"	m	class:MOS6502CompilerTester
+testElse	tests/testpreprocessor.py	/^    def testElse(self):$/;"	m	class:PreprocessorTester
+testEnumEmpty	tests/testcompiler.py	/^    def testEnumEmpty(self):$/;"	m	class:CompilerTester
+testEnumMemberNoValue	tests/testcompiler.py	/^    def testEnumMemberNoValue(self):$/;"	m	class:CompilerTester
+testEnumMemberValue	tests/testcompiler.py	/^    def testEnumMemberValue(self):$/;"	m	class:CompilerTester
+testEnumMembersNoValue	tests/testcompiler.py	/^    def testEnumMembersNoValue(self):$/;"	m	class:CompilerTester
+testEnumMembersValue	tests/testcompiler.py	/^    def testEnumMembersValue(self):$/;"	m	class:CompilerTester
+testEnumRecursive	tests/testcompiler.py	/^    def testEnumRecursive(self):$/;"	m	class:CompilerTester
+testError	tests/testpreprocessor.py	/^    def testError(self):$/;"	m	class:PreprocessorTester
+testExampleGame	tests/testnes.py	/^    def testExampleGame(self):$/;"	m	class:NESCompilerTester
+testForeverConditional	tests/testmos6502.py	/^    def testForeverConditional(self):$/;"	m	class:MOS6502CompilerTester
+testFullPathLiteralIncbin	tests/testpreprocessor.py	/^    def testFullPathLiteralIncbin(self):$/;"	m	class:PreprocessorTester
+testFullPathLiteralInclude	tests/testpreprocessor.py	/^    def testFullPathLiteralInclude(self):$/;"	m	class:PreprocessorTester
+testFunctionBadFunctionDecl	tests/testcompiler.py	/^    def testFunctionBadFunctionDecl(self):$/;"	m	class:CompilerTester
+testFunctionBadFunctionDecl2	tests/testcompiler.py	/^    def testFunctionBadFunctionDecl2(self):$/;"	m	class:CompilerTester
+testFunctionBadInlineDecl	tests/testcompiler.py	/^    def testFunctionBadInlineDecl(self):$/;"	m	class:CompilerTester
+testFunctionBadInlineDecl2	tests/testcompiler.py	/^    def testFunctionBadInlineDecl2(self):$/;"	m	class:CompilerTester
+testFunctionBadNoReturnInlineDecl	tests/testcompiler.py	/^    def testFunctionBadNoReturnInlineDecl(self):$/;"	m	class:CompilerTester
+testFunctionCall	tests/testcompiler.py	/^    def testFunctionCall(self):$/;"	m	class:CompilerTester
+testFunctionFunctionDecl	tests/testcompiler.py	/^    def testFunctionFunctionDecl(self):$/;"	m	class:CompilerTester
+testFunctionInlineDecl	tests/testcompiler.py	/^    def testFunctionInlineDecl(self):$/;"	m	class:CompilerTester
+testFunctionInlineWithMultipleMixedParamDecl	tests/testcompiler.py	/^    def testFunctionInlineWithMultipleMixedParamDecl(self):$/;"	m	class:CompilerTester
+testFunctionInlineWithMultipleParamDecl	tests/testcompiler.py	/^    def testFunctionInlineWithMultipleParamDecl(self):$/;"	m	class:CompilerTester
+testFunctionInlineWithMultipleStructRefParamDecl	tests/testcompiler.py	/^    def testFunctionInlineWithMultipleStructRefParamDecl(self):$/;"	m	class:CompilerTester
+testFunctionInlineWithMultipleValueDecl	tests/testcompiler.py	/^    def testFunctionInlineWithMultipleValueDecl(self):$/;"	m	class:CompilerTester
+testFunctionInlineWithOneParamDecl	tests/testcompiler.py	/^    def testFunctionInlineWithOneParamDecl(self):$/;"	m	class:CompilerTester
+testFunctionInlineWithOneValueDecl	tests/testcompiler.py	/^    def testFunctionInlineWithOneValueDecl(self):$/;"	m	class:CompilerTester
+testFunctionInlineWithStructRefParamDecl	tests/testcompiler.py	/^    def testFunctionInlineWithStructRefParamDecl(self):$/;"	m	class:CompilerTester
+testFunctionInterruptDecl	tests/testcompiler.py	/^    def testFunctionInterruptDecl(self):$/;"	m	class:CompilerTester
+testFunctionInterruptWithNameDecl	tests/testcompiler.py	/^    def testFunctionInterruptWithNameDecl(self):$/;"	m	class:CompilerTester
+testFunctionNoReturnFunctionDecl	tests/testcompiler.py	/^    def testFunctionNoReturnFunctionDecl(self):$/;"	m	class:CompilerTester
+testFunctionNoReturnInterruptDecl	tests/testcompiler.py	/^    def testFunctionNoReturnInterruptDecl(self):$/;"	m	class:CompilerTester
+testFunctionRunloopDecl	tests/testmos6502.py	/^    def testFunctionRunloopDecl(self):$/;"	m	class:MOS6502CompilerTester
+testFunctionWithLabel	tests/testmos6502.py	/^    def testFunctionWithLabel(self):$/;"	m	class:MOS6502CompilerTester
+testFunctionWithReturn	tests/testmos6502.py	/^    def testFunctionWithReturn(self):$/;"	m	class:MOS6502CompilerTester
+testGenerator	tests/testcompiler.py	/^    def testGenerator(self):$/;"	m	class:CompilerTester
+testI	tests/testcommon.py	/^    def testI(self):$/;"	m	class:CommandLineOptionsTester
+testIfConditional	tests/testmos6502.py	/^    def testIfConditional(self):$/;"	m	class:MOS6502CompilerTester
+testIfElseConditional	tests/testmos6502.py	/^    def testIfElseConditional(self):$/;"	m	class:MOS6502CompilerTester
+testIfFarConditional	tests/testmos6502.py	/^    def testIfFarConditional(self):$/;"	m	class:MOS6502CompilerTester
+testIfFarNegatedConditional	tests/testmos6502.py	/^    def testIfFarNegatedConditional(self):$/;"	m	class:MOS6502CompilerTester
+testIfNegatedConditional	tests/testmos6502.py	/^    def testIfNegatedConditional(self):$/;"	m	class:MOS6502CompilerTester
+testIfOneLinersConditional	tests/testmos6502.py	/^    def testIfOneLinersConditional(self):$/;"	m	class:MOS6502CompilerTester
+testIfdef	tests/testpreprocessor.py	/^    def testIfdef(self):$/;"	m	class:PreprocessorTester
+testIfndef	tests/testpreprocessor.py	/^    def testIfndef(self):$/;"	m	class:PreprocessorTester
+testImmHiMath	tests/testmos6502.py	/^    def testImmHiMath(self):$/;"	m	class:MOS6502CompilerTester
+testImmHiNumber	tests/testmos6502.py	/^    def testImmHiNumber(self):$/;"	m	class:MOS6502CompilerTester
+testImmHiVariable	tests/testmos6502.py	/^    def testImmHiVariable(self):$/;"	m	class:MOS6502CompilerTester
+testImmLoMath	tests/testmos6502.py	/^    def testImmLoMath(self):$/;"	m	class:MOS6502CompilerTester
+testImmLoNumber	tests/testmos6502.py	/^    def testImmLoNumber(self):$/;"	m	class:MOS6502CompilerTester
+testImmLoVariable	tests/testmos6502.py	/^    def testImmLoVariable(self):$/;"	m	class:MOS6502CompilerTester
+testImmMath	tests/testmos6502.py	/^    def testImmMath(self):$/;"	m	class:MOS6502CompilerTester
+testImmNumber	tests/testmos6502.py	/^    def testImmNumber(self):$/;"	m	class:MOS6502CompilerTester
+testImmSignMath	tests/testmos6502.py	/^    def testImmSignMath(self):$/;"	m	class:MOS6502CompilerTester
+testImmSignNumber	tests/testmos6502.py	/^    def testImmSignNumber(self):$/;"	m	class:MOS6502CompilerTester
+testImmSignVariable	tests/testmos6502.py	/^    def testImmSignVariable(self):$/;"	m	class:MOS6502CompilerTester
+testImmSizeofMath	tests/testmos6502.py	/^    def testImmSizeofMath(self):$/;"	m	class:MOS6502CompilerTester
+testImmSizeofNumber	tests/testmos6502.py	/^    def testImmSizeofNumber(self):$/;"	m	class:MOS6502CompilerTester
+testImmSizeofVariable	tests/testmos6502.py	/^    def testImmSizeofVariable(self):$/;"	m	class:MOS6502CompilerTester
+testImmVariable	tests/testmos6502.py	/^    def testImmVariable(self):$/;"	m	class:MOS6502CompilerTester
+testImpliedAddress	tests/testmos6502.py	/^    def testImpliedAddress(self):$/;"	m	class:MOS6502CompilerTester
+testImpliedDirIncbin	tests/testpreprocessor.py	/^    def testImpliedDirIncbin(self):$/;"	m	class:PreprocessorTester
+testImpliedDirInclude	tests/testpreprocessor.py	/^    def testImpliedDirInclude(self):$/;"	m	class:PreprocessorTester
+testImpliedIncbin	tests/testpreprocessor.py	/^    def testImpliedIncbin(self):$/;"	m	class:PreprocessorTester
+testImpliedInclude	tests/testpreprocessor.py	/^    def testImpliedInclude(self):$/;"	m	class:PreprocessorTester
+testImpliedUsepath	tests/testpreprocessor.py	/^    def testImpliedUsepath(self):$/;"	m	class:PreprocessorTester
+testInclude	tests/testcommon.py	/^    def testInclude(self):$/;"	m	class:CommandLineOptionsTester
+testInitialTypes	tests/testmos6502.py	/^    def testInitialTypes(self):$/;"	m	class:MOS6502PreprocessorTester
+testInitializedArrayBeforeFunction	tests/testmos6502.py	/^    def testInitializedArrayBeforeFunction(self):$/;"	m	class:MOS6502CompilerTester
+testInstructionLineResolveVariableWithAssignedAddr	tests/testmos6502.py	/^    def testInstructionLineResolveVariableWithAssignedAddr(self):$/;"	m	class:MOS6502CompilerTester
+testInterruptIRQ	tests/testmos6502.py	/^    def testInterruptIRQ(self):$/;"	m	class:MOS6502PreprocessorTester
+testInterruptNMI	tests/testmos6502.py	/^    def testInterruptNMI(self):$/;"	m	class:MOS6502PreprocessorTester
+testInterruptStart	tests/testmos6502.py	/^    def testInterruptStart(self):$/;"	m	class:MOS6502PreprocessorTester
+testLineAddr	tests/testmos6502.py	/^    def testLineAddr(self):$/;"	m	class:MOS6502CompilerTester
+testLineImm	tests/testmos6502.py	/^    def testLineImm(self):$/;"	m	class:MOS6502CompilerTester
+testLineIndexed	tests/testmos6502.py	/^    def testLineIndexed(self):$/;"	m	class:MOS6502CompilerTester
+testLineIndexedIndirect	tests/testmos6502.py	/^    def testLineIndexedIndirect(self):$/;"	m	class:MOS6502CompilerTester
+testLineNoOperand	tests/testmos6502.py	/^    def testLineNoOperand(self):$/;"	m	class:MOS6502CompilerTester
+testLineZPIndexedIndirect	tests/testmos6502.py	/^    def testLineZPIndexedIndirect(self):$/;"	m	class:MOS6502CompilerTester
+testLiteralIncbin	tests/testpreprocessor.py	/^    def testLiteralIncbin(self):$/;"	m	class:PreprocessorTester
+testLiteralInclude	tests/testpreprocessor.py	/^    def testLiteralInclude(self):$/;"	m	class:PreprocessorTester
+testLiteralUsepath	tests/testpreprocessor.py	/^    def testLiteralUsepath(self):$/;"	m	class:PreprocessorTester
+testLnxCartName	tests/testlynx.py	/^    def testLnxCartName(self):$/;"	m	class:LynxPreprocessorTester
+testLnxCartNameLabel	tests/testlynx.py	/^    def testLnxCartNameLabel(self):$/;"	m	class:LynxPreprocessorTester
+testLnxManuName	tests/testlynx.py	/^    def testLnxManuName(self):$/;"	m	class:LynxPreprocessorTester
+testLnxManuNameLabel	tests/testlynx.py	/^    def testLnxManuNameLabel(self):$/;"	m	class:LynxPreprocessorTester
+testLnxOff	tests/testlynx.py	/^    def testLnxOff(self):$/;"	m	class:LynxPreprocessorTester
+testLnxPSB0	tests/testlynx.py	/^    def testLnxPSB0(self):$/;"	m	class:LynxPreprocessorTester
+testLnxPSB0Label	tests/testlynx.py	/^    def testLnxPSB0Label(self):$/;"	m	class:LynxPreprocessorTester
+testLnxPSB1	tests/testlynx.py	/^    def testLnxPSB1(self):$/;"	m	class:LynxPreprocessorTester
+testLnxPSB1Label	tests/testlynx.py	/^    def testLnxPSB1Label(self):$/;"	m	class:LynxPreprocessorTester
+testLnxRotation	tests/testlynx.py	/^    def testLnxRotation(self):$/;"	m	class:LynxPreprocessorTester
+testLnxRotationLabel	tests/testlynx.py	/^    def testLnxRotationLabel(self):$/;"	m	class:LynxPreprocessorTester
+testLnxVersion	tests/testlynx.py	/^    def testLnxVersion(self):$/;"	m	class:LynxPreprocessorTester
+testLnxVersionLabel	tests/testlynx.py	/^    def testLnxVersionLabel(self):$/;"	m	class:LynxPreprocessorTester
+testLynxCompiler	tests/testlynx.py	/^    def testLynxCompiler(self):$/;"	m	class:LynxTester
+testLynxGenerator	tests/testlynx.py	/^    def testLynxGenerator(self):$/;"	m	class:LynxTester
+testLynxLoader	tests/testlynx.py	/^    def testLynxLoader(self):$/;"	m	class:LynxPreprocessorTester
+testLynxPreprocessor	tests/testlynx.py	/^    def testLynxPreprocessor(self):$/;"	m	class:LynxTester
+testMacroExpansion	tests/testpreprocessor.py	/^    def testMacroExpansion(self):$/;"	m	class:PreprocessorTester
+testMultipleFiles	tests/testcommon.py	/^    def testMultipleFiles(self):$/;"	m	class:CommandLineOptionsTester
+testNESCompiler	tests/testnes.py	/^    def testNESCompiler(self):$/;"	m	class:NESTester
+testNESGenerator	tests/testnes.py	/^    def testNESGenerator(self):$/;"	m	class:NESTester
+testNESPreprocessor	tests/testnes.py	/^    def testNESPreprocessor(self):$/;"	m	class:NESTester
+testNestedStructType	tests/testcompiler.py	/^    def testNestedStructType(self):$/;"	m	class:CompilerTester
+testNoParameters	tests/testcommon.py	/^    def testNoParameters(self):$/;"	m	class:CommandLineOptionsTester
+testPathResolution	tests/testcommon.py	/^    def testPathResolution(self):$/;"	m	class:CommandLineOptionsTester
+testPreprocessor	tests/testcompiler.py	/^    def testPreprocessor(self):$/;"	m	class:CompilerTester
+testPreprocessor	tests/testpreprocessor.py	/^    def testPreprocessor(self):$/;"	m	class:PreprocessorTester
+testRamEnd	tests/testpreprocessor.py	/^    def testRamEnd(self):$/;"	m	class:PreprocessorTester
+testRamOrg	tests/testpreprocessor.py	/^    def testRamOrg(self):$/;"	m	class:PreprocessorTester
+testRamOrgLabel	tests/testpreprocessor.py	/^    def testRamOrgLabel(self):$/;"	m	class:PreprocessorTester
+testRamOrgMaxsize	tests/testpreprocessor.py	/^    def testRamOrgMaxsize(self):$/;"	m	class:PreprocessorTester
+testRamOrgMaxsizeLabel	tests/testpreprocessor.py	/^    def testRamOrgMaxsizeLabel(self):$/;"	m	class:PreprocessorTester
+testRamOrgMaxsizeWithComment	tests/testpreprocessor.py	/^    def testRamOrgMaxsizeWithComment(self):$/;"	m	class:PreprocessorTester
+testRomBank	tests/testpreprocessor.py	/^    def testRomBank(self):$/;"	m	class:PreprocessorTester
+testRomBankLabel	tests/testpreprocessor.py	/^    def testRomBankLabel(self):$/;"	m	class:PreprocessorTester
+testRomBankMaxsize	tests/testpreprocessor.py	/^    def testRomBankMaxsize(self):$/;"	m	class:PreprocessorTester
+testRomBanksize	tests/testpreprocessor.py	/^    def testRomBanksize(self):$/;"	m	class:PreprocessorTester
+testRomBanksizeLabel	tests/testpreprocessor.py	/^    def testRomBanksizeLabel(self):$/;"	m	class:PreprocessorTester
+testRomEnd	tests/testpreprocessor.py	/^    def testRomEnd(self):$/;"	m	class:PreprocessorTester
+testRomOrg	tests/testlynx.py	/^    def testRomOrg(self):$/;"	m	class:LynxPreprocessorTester
+testRomOrg	tests/testpreprocessor.py	/^    def testRomOrg(self):$/;"	m	class:PreprocessorTester
+testRomOrgCounter	tests/testlynx.py	/^    def testRomOrgCounter(self):$/;"	m	class:LynxPreprocessorTester
+testRomOrgCounterMaxsize	tests/testlynx.py	/^    def testRomOrgCounterMaxsize(self):$/;"	m	class:LynxPreprocessorTester
+testRomOrgCounterMaxsizeLabel	tests/testlynx.py	/^    def testRomOrgCounterMaxsizeLabel(self):$/;"	m	class:LynxPreprocessorTester
+testRomOrgCounterWithComment	tests/testlynx.py	/^    def testRomOrgCounterWithComment(self):$/;"	m	class:LynxPreprocessorTester
+testRomOrgLabel	tests/testlynx.py	/^    def testRomOrgLabel(self):$/;"	m	class:LynxPreprocessorTester
+testRomOrgLabel	tests/testpreprocessor.py	/^    def testRomOrgLabel(self):$/;"	m	class:PreprocessorTester
+testRomOrgMaxsize	tests/testpreprocessor.py	/^    def testRomOrgMaxsize(self):$/;"	m	class:PreprocessorTester
+testRomOrgMaxsizeLabel	tests/testlynx.py	/^    def testRomOrgMaxsizeLabel(self):$/;"	m	class:LynxPreprocessorTester
+testRomOrgMaxsizeLabel	tests/testpreprocessor.py	/^    def testRomOrgMaxsizeLabel(self):$/;"	m	class:PreprocessorTester
+testRomOrgMaxsizeWithComment	tests/testpreprocessor.py	/^    def testRomOrgMaxsizeWithComment(self):$/;"	m	class:PreprocessorTester
+testRoundTrip	tests/testlynx.py	/^    def testRoundTrip(self):$/;"	m	class:LynxLnxTester
+testSetPadNum	tests/testpreprocessor.py	/^    def testSetPadNum(self):$/;"	m	class:PreprocessorTester
+testSetPadString	tests/testpreprocessor.py	/^    def testSetPadString(self):$/;"	m	class:PreprocessorTester
+testSharedStructArrayAddressVar	tests/testcompiler.py	/^    def testSharedStructArrayAddressVar(self):$/;"	m	class:CompilerTester
+testSharedVar	tests/testcompiler.py	/^    def testSharedVar(self):$/;"	m	class:CompilerTester
+testSimpleCompleteFunctionDecl	tests/testmos6502.py	/^    def testSimpleCompleteFunctionDecl(self):$/;"	m	class:MOS6502CompilerTester
+testSimpleCompleteMacroDecl	tests/testmos6502.py	/^    def testSimpleCompleteMacroDecl(self):$/;"	m	class:MOS6502CompilerTester
+testSingleFile	tests/testcommon.py	/^    def testSingleFile(self):$/;"	m	class:CommandLineOptionsTester
+testStructArrayMember	tests/testcompiler.py	/^    def testStructArrayMember(self):$/;"	m	class:CompilerTester
+testStructBadArrayMember	tests/testcompiler.py	/^    def testStructBadArrayMember(self):$/;"	m	class:CompilerTester
+testStructMemberListWithArrays	tests/testcompiler.py	/^    def testStructMemberListWithArrays(self):$/;"	m	class:CompilerTester
+testStructRef	tests/testcompiler.py	/^    def testStructRef(self):$/;"	m	class:CompilerTester
+testStructReferenceVar	tests/testcompiler.py	/^    def testStructReferenceVar(self):$/;"	m	class:CompilerTester
+testStructType	tests/testcompiler.py	/^    def testStructType(self):$/;"	m	class:CompilerTester
+testStructVar	tests/testcompiler.py	/^    def testStructVar(self):$/;"	m	class:CompilerTester
+testSwitchCapitalConditional	tests/testmos6502.py	/^    def testSwitchCapitalConditional(self):$/;"	m	class:MOS6502CompilerTester
+testSwitchCaseDefaultConditional	tests/testmos6502.py	/^    def testSwitchCaseDefaultConditional(self):$/;"	m	class:MOS6502CompilerTester
+testSwitchConditional	tests/testmos6502.py	/^    def testSwitchConditional(self):$/;"	m	class:MOS6502CompilerTester
+testSwitchRegDotCapitalConditional	tests/testmos6502.py	/^    def testSwitchRegDotCapitalConditional(self):$/;"	m	class:MOS6502CompilerTester
+testSwitchRegDotConditional	tests/testmos6502.py	/^    def testSwitchRegDotConditional(self):$/;"	m	class:MOS6502CompilerTester
+testTellBank	tests/testpreprocessor.py	/^    def testTellBank(self):$/;"	m	class:PreprocessorTester
+testTellBankFree	tests/testpreprocessor.py	/^    def testTellBankFree(self):$/;"	m	class:PreprocessorTester
+testTellBankOffset	tests/testpreprocessor.py	/^    def testTellBankOffset(self):$/;"	m	class:PreprocessorTester
+testTellBankSize	tests/testpreprocessor.py	/^    def testTellBankSize(self):$/;"	m	class:PreprocessorTester
+testTellBankType	tests/testpreprocessor.py	/^    def testTellBankType(self):$/;"	m	class:PreprocessorTester
+testTodo	tests/testpreprocessor.py	/^    def testTodo(self):$/;"	m	class:PreprocessorTester
+testTwoLinesNoOperand	tests/testmos6502.py	/^    def testTwoLinesNoOperand(self):$/;"	m	class:MOS6502CompilerTester
+testTypedefStructArrayMember	tests/testcompiler.py	/^    def testTypedefStructArrayMember(self):$/;"	m	class:CompilerTester
+testUndef	tests/testpreprocessor.py	/^    def testUndef(self):$/;"	m	class:PreprocessorTester
+testUnencryptedLoaderRom	tests/testlynx.py	/^    def testUnencryptedLoaderRom(self):$/;"	m	class:LynxLnxTester
+testVarWithAddress	tests/testcompiler.py	/^    def testVarWithAddress(self):$/;"	m	class:CompilerTester
+testVarWithAssignment	tests/testcompiler.py	/^    def testVarWithAssignment(self):$/;"	m	class:CompilerTester
+testWarning	tests/testpreprocessor.py	/^    def testWarning(self):$/;"	m	class:PreprocessorTester
+testWhileBlockConditional	tests/testmos6502.py	/^    def testWhileBlockConditional(self):$/;"	m	class:MOS6502CompilerTester
+testWhileConditional	tests/testmos6502.py	/^    def testWhileConditional(self):$/;"	m	class:MOS6502CompilerTester
+testWhileFarConditional	tests/testmos6502.py	/^    def testWhileFarConditional(self):$/;"	m	class:MOS6502CompilerTester
+testWhileFarNegatedConditional	tests/testmos6502.py	/^    def testWhileFarNegatedConditional(self):$/;"	m	class:MOS6502CompilerTester
+testWhileNegatedConditional	tests/testmos6502.py	/^    def testWhileNegatedConditional(self):$/;"	m	class:MOS6502CompilerTester
+test_16_16	include/cpu/6502/std_bitwise.h	/^inline test_16_16(dest,mask)$/;"	f
+test_16_8	include/cpu/6502/std_bitwise.h	/^inline test_16_8(dest,mask)$/;"	f
+test_16i	include/cpu/6502/std_bitwise.h	/^inline test_16i(dest,mask)$/;"	f
+test_button_press	include/platform/nes/nes_io.h	/^inline test_button_press(buttonmask)$/;"	f
+test_button_release	include/platform/nes/nes_io.h	/^inline test_button_release(buttonmask)$/;"	f
+test_joystick1	include/platform/nes/nes_io.h	/^inline test_joystick1(buttonmask)$/;"	f
+test_joystick1_prev	include/platform/nes/nes_io.h	/^inline test_joystick1_prev(buttonmask)$/;"	f
+test_scanline	include/platform/nes/nes_video.h	/^inline test_scanline()$/;"	f
+test_x	include/cpu/6502/std_bitwise.h	/^inline test_x(dest,mask)$/;"	f
+testiNESBatterYes	tests/testnes.py	/^    def testiNESBatterYes(self):$/;"	m	class:NESPreprocessorTester
+testiNESBatteryNo	tests/testnes.py	/^    def testiNESBatteryNo(self):$/;"	m	class:NESPreprocessorTester
+testiNESChrRepeat	tests/testnes.py	/^    def testiNESChrRepeat(self):$/;"	m	class:NESPreprocessorTester
+testiNESFourscreenNo	tests/testnes.py	/^    def testiNESFourscreenNo(self):$/;"	m	class:NESPreprocessorTester
+testiNESFourscreenYes	tests/testnes.py	/^    def testiNESFourscreenYes(self):$/;"	m	class:NESPreprocessorTester
+testiNESMapperName	tests/testnes.py	/^    def testiNESMapperName(self):$/;"	m	class:NESPreprocessorTester
+testiNESMapperNumber	tests/testnes.py	/^    def testiNESMapperNumber(self):$/;"	m	class:NESPreprocessorTester
+testiNESMirroringHorizontal	tests/testnes.py	/^    def testiNESMirroringHorizontal(self):$/;"	m	class:NESPreprocessorTester
+testiNESMirroringVertical	tests/testnes.py	/^    def testiNESMirroringVertical(self):$/;"	m	class:NESPreprocessorTester
+testiNESOff	tests/testnes.py	/^    def testiNESOff(self):$/;"	m	class:NESPreprocessorTester
+testiNESPrgRepeat	tests/testnes.py	/^    def testiNESPrgRepeat(self):$/;"	m	class:NESPreprocessorTester
+testiNESTrainerNo	tests/testnes.py	/^    def testiNESTrainerNo(self):$/;"	m	class:NESPreprocessorTester
+testiNESTrainerYes	tests/testnes.py	/^    def testiNESTrainerYes(self):$/;"	m	class:NESPreprocessorTester
+tile	include/platform/nes/nes_video.h	/^    tile,$/;"	m	struct:OAM_ENTRY_
+time_t	tests/old/test_vars.s	/^time_t the_time = { ticks: 1, second: 2, minute: 3, hours: 4 }$/;"	l
+toss16	include/cpu/6502/std_stack.h	/^inline toss16()$/;"	f
+txy	include/cpu/6502/std_assignment.h	/^inline txy()$/;"	f
+typedef	tests/old/test_vars.s	/^typedef byte INT[5] : $C000$/;"	l
+typedef	tests/old/test_vars.s	/^typedef struct move_t$/;"	t
+typedef	tests/old/test_vars.s	/^typedef struct player player_t$/;"	t
+typedef	tests/old/test_vars.s	/^typedef struct time time_t$/;"	t
+tyx	include/cpu/6502/std_assignment.h	/^inline tyx()$/;"	f
+unvblank_wait	include/platform/nes/nes_video.h	/^inline unvblank_wait()$/;"	f
+vblank_wait	include/platform/nes/nes_video.h	/^inline vblank_wait()$/;"	f
+vblank_wait_for	include/platform/nes/nes_video.h	/^inline vblank_wait_for(amount)$/;"	f
+vblank_wait_full	include/platform/nes/nes_video.h	/^inline vblank_wait_full()$/;"	f
+vram_clear_address	include/platform/nes/nes_video.h	/^inline vram_clear_address()$/;"	f
+vram_ind_read	include/platform/nes/nes_video.h	/^inline vram_ind_read(dest)$/;"	f
+vram_ind_y_read	include/platform/nes/nes_video.h	/^inline vram_ind_y_read(dest)$/;"	f
+vram_maskcpy_inline	include/platform/nes/nes_memory.h	/^inline vram_maskcpy_inline( src, size )$/;"	f
+vram_memcpy_inline	include/platform/nes/nes_memory.h	/^inline vram_memcpy_inline( src, size )$/;"	f
+vram_memcpy_rev_inline	include/platform/nes/nes_memory.h	/^inline vram_memcpy_rev_inline( src, size )$/;"	f
+vram_read	include/platform/nes/nes_video.h	/^inline vram_read(dest)$/;"	f
+vram_read_16	include/platform/nes/nes_video.h	/^inline vram_read_16(dest)$/;"	f
+vram_read_a	include/platform/nes/nes_video.h	/^inline vram_read_a()$/;"	f
+vram_set_address	include/platform/nes/nes_video.h	/^inline vram_set_address(newaddress)$/;"	f
+vram_set_address_i	include/platform/nes/nes_video.h	/^inline vram_set_address_i(newaddress)$/;"	f
+vram_set_scroll	include/platform/nes/nes_video.h	/^inline vram_set_scroll( x, y )$/;"	f
+vram_set_sprite_address	include/platform/nes/nes_video.h	/^inline vram_set_sprite_address(newaddress)$/;"	f
+vram_set_sprite_address_i	include/platform/nes/nes_video.h	/^inline vram_set_sprite_address_i(newaddress)$/;"	f
+vram_set_sprite_data	include/platform/nes/nes_video.h	/^inline vram_set_sprite_data( x, y, tile, attributes )$/;"	f
+vram_sprite_dma_copy	include/platform/nes/nes_video.h	/^inline vram_sprite_dma_copy(oamptr)$/;"	f
+vram_write	include/platform/nes/nes_video.h	/^inline vram_write(value)$/;"	f
+vram_write_16	include/platform/nes/nes_video.h	/^inline vram_write_16(value)$/;"	f
+vram_write_16_i	include/platform/nes/nes_video.h	/^inline vram_write_16_i(value)$/;"	f
+vram_write_a	include/platform/nes/nes_video.h	/^inline vram_write_a()$/;"	f
+vram_write_ind	include/platform/nes/nes_video.h	/^inline vram_write_ind(value)$/;"	f
+vram_write_ind_y	include/platform/nes/nes_video.h	/^inline vram_write_ind_y(value)$/;"	f
+vram_write_regx	include/platform/nes/nes_video.h	/^inline vram_write_regx()$/;"	f
+vram_write_x	include/platform/nes/nes_video.h	/^inline vram_write_x(value)$/;"	f
+word	examples/6502/lynx/game.s	/^word    GAME_EXE_LOC_LO         = hi($0200)$/;"	l
+word	examples/6502/lynx/game.s	/^word    GAME_EXE_LOC_LO         = lo($0200)$/;"	l
+word	include/cpu/6502/std_ram.s	/^word _w_temp$/;"	l
+word	tests/old/test_vars.s	/^word b$/;"	l
+write_byte	hlakit/common/buffer.py	/^    def write_byte(self, value):$/;"	m	class:Buffer
+write_bytes	hlakit/common/romfile.py	/^    def write_bytes(self, bytes=[]):$/;"	m	class:RomFile
+x_add_16_8_to	include/cpu/6502/std_math.h	/^inline x_add_16_8_to(dest,value,src)$/;"	f
+x_assign	include/cpu/6502/std_assignment.h	/^inline x_assign(dest,src)$/;"	f
+x_assign_16_16	include/cpu/6502/std_assignment.h	/^inline x_assign_16_16(dest,value)$/;"	f
+x_assign_16_16_x	include/cpu/6502/std_assignment.h	/^inline x_assign_16_16_x(dest,value)$/;"	f
+x_assign_x	include/cpu/6502/std_assignment.h	/^inline x_assign_x(dest,src)$/;"	f
+x_assign_y	include/cpu/6502/std_assignment.h	/^inline x_assign_y(dest,src)$/;"	f
+x_compare_x	include/cpu/6502/std_boolean.h	/^inline x_compare_x(src, value)$/;"	f
+x_sub_16_8_a_to	include/cpu/6502/std_math.h	/^inline x_sub_16_8_a_to(value, dest)$/;"	f
+x_sub_16_8_to	include/cpu/6502/std_math.h	/^inline x_sub_16_8_to(dest,value,src)$/;"	f
+xor	include/cpu/6502/std_bitwise.h	/^inline xor(dest,mask)$/;"	f
+xor_16_16	include/cpu/6502/std_bitwise.h	/^inline xor_16_16(dest,mask)$/;"	f
+xor_16_16_x	include/cpu/6502/std_bitwise.h	/^inline xor_16_16_x(dest,mask)$/;"	f
+xor_16_8	include/cpu/6502/std_bitwise.h	/^inline xor_16_8(dest,mask)$/;"	f
+xor_16_8_x	include/cpu/6502/std_bitwise.h	/^inline xor_16_8_x(dest,mask)$/;"	f
+xor_16i	include/cpu/6502/std_bitwise.h	/^inline xor_16i(dest,mask)$/;"	f
+xor_16i_x	include/cpu/6502/std_bitwise.h	/^inline xor_16i_x(dest,mask)$/;"	f
+xor_x	include/cpu/6502/std_bitwise.h	/^inline xor_x(dest,mask)$/;"	f
+y	include/platform/nes/nes_video.h	/^    byte y,$/;"	m	struct:OAM_ENTRY_
+y_add	include/cpu/6502/std_math.h	/^inline y_add(dest,value)$/;"	f
+y_assign	include/cpu/6502/std_assignment.h	/^inline y_assign(dest,src)$/;"	f
+y_assign_16_16	include/cpu/6502/std_assignment.h	/^inline y_assign_16_16(dest,value)$/;"	f
+y_assign_16_16_x	include/cpu/6502/std_assignment.h	/^inline y_assign_16_16_x(dest,value)$/;"	f
+y_ind_assign_16_16	include/cpu/6502/std_assignment.h	/^inline y_ind_assign_16_16(dest,value)$/;"	f
+y_sub_16_8_a_to	include/cpu/6502/std_math.h	/^inline y_sub_16_8_a_to(value, dest)$/;"	f
+zero_16	include/cpu/6502/std_assignment.h	/^inline zero_16(dest)$/;"	f
+zero_16_x	include/cpu/6502/std_assignment.h	/^inline zero_16_x(dest)$/;"	f
+zero_16_y	include/cpu/6502/std_assignment.h	/^inline zero_16_y(dest)$/;"	f
+zero_32	include/cpu/6502/std_assignment.h	/^inline zero_32(dest)$/;"	f
+zoom	tmp/hallo_a3.asm	/^zoom          dc.w 20         ; Y   "$/;"	d
