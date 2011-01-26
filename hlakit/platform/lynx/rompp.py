@@ -43,7 +43,7 @@ class LynxRomOrg(object):
 
         if pp.ignore():
             return []
-        
+
         if 'segment' not in tokens.keys():
             raise ParseFatalException('#lynx.rom.org without a segment address')
 
@@ -119,9 +119,9 @@ class LynxRomOrg(object):
 
     def __str__(self):
         s = "LynxRomOrg <0x%x>" % self._segment
-        if self._counter:
+        if self._counter != None:
             s += ',<0x%x>' % self._counter
-        if self._maxsize:
+        if self._maxsize != None:
             s += ',<0x%x>' % self._maxsize
         return s
 

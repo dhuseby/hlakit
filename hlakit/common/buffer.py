@@ -44,17 +44,15 @@ class Buffer(object):
         self._org = org
         self._maxsize = maxsize
         self._current_write = 0
-        self._current_read = 0
         self._padding_value = padding
         self._alignment = None
-        self._buffer = []
 
         if (maxsize != None) and (maxsize > 0):
             self.reserve(maxsize)
 
     def _pad_with_value(self, start, length, value):
         if (not isinstance(value, list)) and (not isinstance(value, str)):
-            raise TypeError('_pad_with_list given incorrect padding value type')
+            raise TypeError('_pad_with_value given incorrect padding value type')
 
         # figure out where in the padding value the start index lands
         j = start % len(value)
@@ -113,9 +111,6 @@ class Buffer(object):
     def get_org(self):
         return self._org
 
-    def get_write_pos(self):
-        return self._current_write
-
     def save(self, outf):
         for b in self._buffer:
             outf.write(b)
@@ -134,20 +129,12 @@ class Buffer(object):
         if len(data) != size:
             print 'WARNING: expected buffer size does not match the amount of data read'
 
+        # extend the buffer if needed
+        if len(self._buffer) < size:
+            self.reserve(size)
+
         # store the data in the buffer
-        for b in data:
-            self._buffer.append(b)
-
-    def seek(self, pos):
-        pos = int(pos)
-        if (pos < 0) or ((self._maxsize != None) and (pos >= self._maxsize)):
-            raise IndexError('seeking past buffer maxsize')
-
-        # store the new write position
-        self._current_write = pos
-
-        # now make sure the buffer is large enough
-        self._check_buffer_size()
+        self._buffer[0:size] = data
 
     def set_padding_value(self, value):
         if isinstance(value, str) or isinstance(value, int):
@@ -172,23 +159,6 @@ class Buffer(object):
 
         # fill with padding value
         self._pad_buffer(pad_start, ext)
-
-    def write_byte(self, value):
-        # make sure the buffer is large enough
-        self._check_buffer_size()
-
-        # pack the value into the buffer array
-        if isinstance(value, str):
-            if len(value) > 1:
-                raise ParseFatalException('trying to pack binary str that is more than 1 byte')
-            self._buffer[self._current_write] = value
-        elif isinstance(value, int):
-            self._buffer[self._current_write] = pack('B', value)
-        else:
-            raise ParseFatalException('unknown type of data being stored in buffer')
-
-        # move the write location to the next byte
-        self._current_write += 1
 
     def __str__(self):
         s = 'Buffer:\n    Org:      0x%0.4x' % self._org

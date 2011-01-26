@@ -38,7 +38,11 @@ from opcode import Opcode
 
 class MOS6502(Target):
 
-    BASIC_TYPES = [ 'byte', 'char', 'bool', 'word', 'pointer' ]
+    BASIC_TYPES = [ Type('byte', 1), 
+                    Type('char', 1),
+                    Type('bool', 1),
+                    Type('word', 2),
+                    Type('pointer', 2) ]
 
     def __init__(self):
 
@@ -51,12 +55,11 @@ class MOS6502(Target):
     def keywords(self):
         return super(MOS6502, self).keywords()
 
-    def basic_types(klass):
-        # these are the basic type identifiers
-        return [ Type(t) for t in MOS6502.BASIC_TYPES ]
+    def basic_types(self):
+        return self.BASIC_TYPES
 
-    def basic_types_names(self):
-        return MatchFirst([CaselessKeyword(t) for t in MOS6502.BASIC_TYPES])
+    def default_int_type(self):
+        return Type('byte', 1)
 
     def conditions(self):
         return MatchFirst([CaselessKeyword(c) for c in ConditionalDecl.CONDITIONS])

@@ -106,6 +106,60 @@ class NumericValue(object):
             return 1
         return int(ceil(ceil(log(v) / log(2)) / 8))
 
+    def __eq__(self, rhs):
+        v = rhs
+        if isinstance(rhs, NumericValue):
+            v = rhs._value
+
+        return (self._value == v)
+
+    def __ne__(self, rhs):
+        v = rhs
+        if isinstance(rhs, NumericValue):
+            v = rhs._value
+
+        return (self._value != v)
+
+    def __gt__(self, rhs):
+        v = rhs
+        if isinstance(rhs, NumericValue):
+            v = rhs._value
+
+        return (self._value > v)
+
+    def __ge__(self, rhs):
+        v = rhs
+        if isinstance(rhs, NumericValue):
+            v = rhs._value
+
+        return (self._value >= v)
+
+    def __lt__(self, rhs):
+        v = rhs
+        if isinstance(rhs, NumericValue):
+            v = rhs._value
+
+        return (self._value < v)
+
+    def __le__(self, rhs):
+        v = rhs
+        if isinstance(rhs, NumericValue):
+            v = rhs._value
+
+        return (self._value <= v)
+
+    def __cmp__(self, rhs):
+        v = rhs
+        if isinstance(rhs, NumericValue):
+            v = rhs._value
+
+        if self._value < v:
+            return -1
+        elif self._value == v:
+            return 0
+        else:
+            return 1
+
     def __int__(self):
         return int(self._value)
 

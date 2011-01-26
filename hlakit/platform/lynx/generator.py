@@ -28,6 +28,7 @@ or implied, of David Huseby.
 """
 
 from hlakit.common.rompp import RomOrg
+from hlakit.common.label import Label
 from hlakit.cpu.mos6502.generator import Generator as MOS6502Generator
 from loader import LynxLoader
 from lnx import Lnx
@@ -44,6 +45,7 @@ class Generator(MOS6502Generator):
         # handle Lynx specific token
         if isinstance(token, LynxLoader):
             romfile.set_loader(token.get_fn())
+            return (None, 0)
         
         elif isinstance(token, LnxSetting):
             type_ = token.get_type()
@@ -52,10 +54,10 @@ class Generator(MOS6502Generator):
                 romfile.set_no_header()
             
             elif type_ == LnxSetting.PSB0:
-                romfile.set_page_size_bank0(token.get_size())
+                romfile.set_segment_size_bank0(token.get_size())
             
             elif type_ == LnxSetting.PSB1:
-                romfile.set_page_size_bank1(token.get_size())
+                romfile.set_segment_size_bank1(token.get_size())
             
             elif type_ == LnxSetting.VERSION:
                 romfile.set_version(token.get_version())
@@ -68,19 +70,26 @@ class Generator(MOS6502Generator):
             
             elif type_ == LnxSetting.ROTATION:
                 romfile.set_rotation(token.get_rotation())
+
+            return (None, 0)
         
         elif isinstance(token, LynxRomOrg):
             # intercept LynxRomOrg tokens and set the rom addr
             romfile.set_rom_org(token.get_segment(), 
                                 token.get_counter(), 
                                 token.get_maxsize())
+            return (None, 0)
         
         elif isinstance(token, RomOrg):
             raise ParseFatalException('there should not be any RomOrg tokens in a Lynx compile')
+
+        elif isinstance(token, Label):
+            token.set_address(romfile.get_cur_ram_addr())
+            return (None, 0)
         
         else:
             # pass the token along to the CPU generator
-            super(Generator, self)._process_token(token)
+            return super(Generator, self)._process_token(token)
 
     def _initialize_rom(self):
         """ This function returns the RomFile to be used for this session """

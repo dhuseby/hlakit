@@ -82,6 +82,7 @@ class Compiler(object):
     @classmethod
     def first_exprs(klass):
         e = []
+        e.append(('functioncall', FunctionCall.exprs()))
         e.append(('return', FunctionReturn.exprs()))
         e.append(('enum', Enum.exprs()))
         e.append(('label', Label.exprs()))
@@ -89,7 +90,6 @@ class Compiler(object):
         e.append(('variable', Variable.exprs()))
         e.append(('struct', Struct.exprs()))
         e.append(('functiondecl', FunctionDecl.exprs()))
-        e.append(('functioncall', FunctionCall.exprs()))
         e.append(('scopebegin', ScopeBegin.exprs()))
         e.append(('scopeend', ScopeEnd.exprs()))
         e.append(('initializer', VariableInitializer.exprs()))

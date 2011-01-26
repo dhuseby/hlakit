@@ -79,8 +79,13 @@ class RamOrg(object):
         return expr
 
     def __init__(self, address, maxsize=None):
-        self._address = address
-        self._maxsize = maxsize
+        self._address = int(address)
+        if maxsize != None:
+            if int(maxsize) < 0:
+                raise ParseFatalException('invalid RAM maxsize')
+            self._maxsize = int(maxsize)
+        else:
+            self._maxsize = None
 
     def get_address(self):
         return self._address
@@ -90,7 +95,7 @@ class RamOrg(object):
 
     def __str__(self):
         s = "RamOrg <0x%x>" % self._address
-        if self._maxsize:
+        if self._maxsize != None:
             s += ',<0x%x>' % self._maxsize
         return s
 

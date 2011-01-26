@@ -100,9 +100,9 @@ byte    GAME_EXE_SIZE_HI        = hi(sizeof(main) + sizeof(irq))
 
 // the location where the game executable should be loaded
 byte    GAME_EXE_LOC_LO_ADDR    = $82
-word    GAME_EXE_LOC_LO         = lo($0200)
-byte    GAME_EXE_LOC_LO_ADDR    = $83
-word    GAME_EXE_LOC_LO         = hi($0200)
+byte    GAME_EXE_LOC_LO         = lo($0200)
+byte    GAME_EXE_LOC_HI_ADDR    = $83
+byte    GAME_EXE_LOC_HI         = hi($0200)
 
 // the cart segment address of the game executable
 byte    GAME_EXE_SEGMENT_ADDR   = $84

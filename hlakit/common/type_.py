@@ -30,6 +30,35 @@ or implied, of David Huseby.
 from pyparsing import *
 from session import Session
 
+class TypeRegistry(object):
+
+    _shared_state = {}
+
+    def __new__(cls, *a, **k):
+        obj = object.__new__(cls, *a, **k)
+        obj.__dict__ = cls._shared_state
+        return obj
+
+    def __init__(self):
+        if not hasattr(self, '_types'):
+            self.reset_state()
+
+    def reset_state(self):
+        self._types = {}
+        types = Session().basic_types()
+        if types:
+            for t in types:
+                self._types[str(t)] = t
+
+    def __getitem__(self, t):
+        if str(t) in self._types:
+            return self._types[str(t)]
+        return None
+
+    def __setitem__(self, name, t):
+        self._types[name] = t
+
+
 class Type(object):
     """
     The type of a variable
@@ -43,48 +72,74 @@ class Type(object):
             return []
 
         if 'type_' in tokens.keys():
-            return klass(tokens.type_)
+            t = TypeRegistry()[str(tokens.type_)]
+            if t is None:
+                # create the new type
+                return klass(str(tokens.type_))
+            else:
+                # otherwise return the one we found
+                return t
         
         raise ParseFatalException('no type specified')
 
     @classmethod
     def exprs(klass):
-        '''
         ops = Session().opcodes()
-        kws = Session().keywords()
+        kwds = Session().keywords()
         conds = Session().conditions()
-        '''
-        # types can be anything but opcodes, keywords, or coditionals
-        expr = None
-        '''
-        if ops:
-            if expr:
-                expr += ~ops
-            else:
-                expr = ~ops
-        if kws:
-            if expr:
-                expr += ~kws
-            else:
-                expr = ~kws
-        if conds:
-            if expr:
-               expr += ~conds
-            else:
-               expr = ~conds
-        '''
-        if expr:
-            expr += Word(alphas, alphanums + '_').setResultsName('type_')
-        else:
-            expr = Word(alphas, alphanums + '_').setResultsName('type_')
-        expr.setParseAction(klass.parse)
-        return expr
 
-    def __init__(self, name):
+        # build the proper expression for detecting types
+        type_expr = None
+        if ops:
+            type_expr = ~ops
+        if kwds:
+            if type_expr:
+                type_expr += ~kwds
+            else:
+                type_expr = ~kwds
+        if conds:
+            if type_expr:
+                type_expr += ~conds
+            else:
+                type_expr = ~conds
+        if type_expr:
+            type_expr += Word(alphas, alphanums + '_').setResultsName('type_')
+        else:
+            type_expr = Word(alphas, alphanums + '_').setResultsName('type_')
+
+        type_expr.setParseAction(klass.parse)
+        return type_expr
+
+    def __init__(self, name, size=None):
         self._name = name
+        self._size = size
+
+        tr = TypeRegistry()
+        t = tr[name]
+        if t is None:
+            # the type is not registered...
+            if size is None:
+                #import pdb; pdb.set_trace()
+                raise ParseFatalException('defining new type without size: %s' % name)
+            # add the type to the TypeRegistry
+            #print 'registering type: %s (size: %d)' % (name, size)
+            tr[name] = self
+        else:
+            # the type is already registered, so get its size if needed
+            if size is None:
+                self._size = t.get_size()
+            else:
+                if size != t.get_size():
+                    raise ParseFatalException('specifying a size for an already defined type: %s' % name)
+
+    def is_alias(self):
+        return False
 
     def get_name(self):
         return self._name
+
+    def get_size(self):
+        return self._size
 
     def __str__(self):
         return self._name

@@ -55,12 +55,15 @@ class Generator(CommonGenerator):
         # handle 6502 specific token
         if isinstance(token, InterruptStart):
             romfile.set_reset_interrupt(token.get_fn())
+            return (None, 0)
         
         elif isinstance(token, InterruptNMI):
             romfile.set_nmi_interrupt(token.get_fn())
+            return (None, 0)
         
         elif isinstance(token, InterruptIRQ):
             romfile.set_irq_interrupt(token.get_fn())
+            return (None, 0)
         
         elif isinstance(token, InstructionLine):
             return token.generate()
@@ -70,7 +73,7 @@ class Generator(CommonGenerator):
         
         else:
             # pass the token along to the generic generator
-            super(Generator, self)._process_token(token)
+            return super(Generator, self)._process_token(token)
 
     def _initialize_rom(self):
         return super(Generator, self)._initialize_rom()

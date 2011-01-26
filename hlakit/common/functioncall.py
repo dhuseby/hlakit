@@ -59,7 +59,7 @@ class FunctionCall(object):
         expr = Forward()
         func = Name.exprs() + \
                Suppress('(') + \
-               Optional(delimitedList(expr).setResultsName('params')) + \
+               Optional(delimitedList(expr, delim=',').setResultsName('params')) + \
                Suppress(')') 
         expr << (func | FunctionParameter.exprs())
         func.setParseAction(klass.parse)

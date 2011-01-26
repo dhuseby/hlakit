@@ -78,10 +78,15 @@ class Typedef(Type):
         return expr
 
     def __init__(self, name, aliased_type, array_=False, size=None):
-        super(Typedef, self).__init__(name)
+        # typedef's have a zero size...
+        super(Typedef, self).__init__(str(name), 0)
+
         self._aliased_type = aliased_type
         self._array = array_
         self._size = size
+
+    def is_alias(self):
+        return True
 
     def get_aliased_type(self):
         return self._aliased_type
@@ -99,5 +104,4 @@ class Typedef(Type):
         return s
 
     __repr__ = __str__
-
 

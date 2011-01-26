@@ -52,9 +52,9 @@ class Enum(Symbol):
 
             value = None
             if 'mvalue' in tokens.keys():
-                value = tokens.mvalue[0]
+                value = int(tokens.mvalue[0])
 
-            return klass(tokens.mname[0], Type('enum member'), value)
+            return klass(tokens.mname[0], Session().default_int_type(), value)
 
         def __init__(self, name, type_, value):
             super(Enum.Member, self).__init__(name, type_)
@@ -62,6 +62,9 @@ class Enum(Symbol):
 
         def get_value(self):
             return self._value
+
+        def set_value(self, value):
+            self._value = value
 
         def __str__(self):
             s = str(self.get_name())
@@ -86,7 +89,7 @@ class Enum(Symbol):
             raise ParseFatalException('enum declared without name')
 
         # initialize the Enum type
-        t = klass(tokens.ename[0], Type('enum %s' % tokens.ename[0]))
+        t = klass(tokens.ename[0], Type('enum %s' % tokens.ename[0], 0))
         for m in tokens.member_list:
             t.append_member(m)
 
@@ -96,7 +99,6 @@ class Enum(Symbol):
     def exprs(klass):
         lbrace = Suppress('{')
         rbrace = Suppress('}')
-        enum = Forward()
 
         # an enum emmber can have an optional initialization clause
         member = Group(Name.exprs()).setResultsName('mname') + \
@@ -104,10 +106,10 @@ class Enum(Symbol):
         member.setParseAction(klass.Member.parse)
 
         # the member list is a delimited list of members and other enums 
-        member_list = delimitedList(Or([member, enum]), delim=',')
+        member_list = delimitedList(member, delim=',')
         
         # an enum is the keyword enum name { member list }
-        enum << Keyword('enum').setResultsName('enum') + \
+        enum = Keyword('enum').setResultsName('enum') + \
                 Group(Name.exprs()).setResultsName('ename') + \
                 lbrace + \
                 Optional(member_list).setResultsName('member_list') + \
@@ -120,11 +122,18 @@ class Enum(Symbol):
         super(Enum, self).__init__(name, type_)
         self._members = []
         self._member_vars = {}
+        self._value = 0
 
     def append_member(self, member):
-        if not isinstance(member, Enum.Member) and \
-           not isinstance(member, Enum):
+        if not isinstance(member, Enum.Member):
             raise ParseFatalException('attempting to add non Member as member of enum')
+
+        # assign numerical value if the member doesn't have one
+        if member.get_value() is None:
+            member.set_value(self._value)
+            self._value += 1
+        else:
+            self._value = int(member.get_value()) + 1
 
         self._members.append(member.get_name())
         self._member_vars[member.get_name()] = member

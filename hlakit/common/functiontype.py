@@ -32,7 +32,7 @@ from session import Session
 from name import Name
 from type_ import Type
 
-class FunctionType(Type):
+class FunctionType(object):
     """
     The type of a function.  Functions can be one of the following types:
         function  -- standard subroutine, cannot have parameters
@@ -87,13 +87,16 @@ class FunctionType(Type):
         return expr
 
     def __init__(self, type_, sub_type=None, noreturn=False):
-        super(FunctionType, self).__init__(type_)
+        self._name = type_
         self._type = self.fn_types[type_]
         self._sub_type = sub_type
         self._noreturn = noreturn
 
     def get_type(self):
         return self._type
+
+    def get_name(self):
+        return self._name
 
     def get_sub_type(self):
         return self._sub_type

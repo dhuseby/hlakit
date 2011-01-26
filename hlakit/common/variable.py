@@ -30,7 +30,7 @@ or implied, of David Huseby.
 from pyparsing import *
 from session import Session
 from symbol import Symbol
-from type_ import Type
+from type_ import Type, TypeRegistry
 from struct_ import Struct
 from name import Name
 from numericvalue import NumericValue
@@ -79,36 +79,14 @@ class Variable(Symbol):
 
     @classmethod
     def exprs(klass):
-        ops = Session().opcodes()
-        kwds = Session().keywords()
-        conds = Session().conditions()
         lbracket = Suppress('[')
         rbracket = Suppress(']')
         colon = Suppress(':')
         size = NumericValue.exprs()
         address = NumericValue.exprs()
 
-        # build the proper expression for detecting types
-        type_expr = None
-        if ops:
-            type_expr = ~ops
-        if kwds:
-            if type_expr:
-                type_expr += ~kwds
-            else:
-                type_expr = ~kwds
-        if conds:
-            if type_expr:
-                type_expr += ~conds
-            else:
-                type_expr = ~conds
-        if type_expr:
-            type_expr += Type.exprs()
-        else:
-            type_expr = Type.exprs()
-
         expr = Optional(Keyword('shared').setResultsName('shared')) + \
-               Or([Struct.exprs(), type_expr]).setResultsName('type_') + \
+               Or([Struct.exprs(), Type.exprs()]).setResultsName('type_') + \
                ~LineEnd() + \
                delimitedList(Group(Name.exprs().setResultsName('name') + \
                                    Optional(lbracket + \
@@ -136,9 +114,15 @@ class Variable(Symbol):
         return self._array
 
     def get_array_size(self):
-        if self._size != None:
+        if self.is_array() and (self._size != None):
             return int(self._size)
         return None
+
+    def get_size(self):
+        if self.is_array():
+            return self.get_array_size() * self.get_type().get_size()
+        else:
+            return self.get_type().get_size()
 
     def set_scope(self, name):
         self._scope_name = name

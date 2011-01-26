@@ -13,6 +13,7 @@ from preprocessor import Preprocessor
 from compiler import Compiler
 from generator import Generator
 from symboltable import SymbolTable
+from type_ import Type
 
 class Target(object):
 
@@ -20,6 +21,10 @@ class Target(object):
                  'noreturn', 'return', 'near', 'far', 'is', 'has', 'no',
                  'not', 'if', 'else', 'while', 'do', 'forever', 'switch',
                  'case', 'default', 'shared' ]
+
+    BASIC_TYPES = [ Type('byte', 1),
+                    Type('word', 2),
+                    Type('pointer', 2) ]
     
     def __init__(self):
         # get a handle to the global symbol table
@@ -35,10 +40,10 @@ class Target(object):
         return MatchFirst([CaselessKeyword(kw) for kw in Target.KEYWORDS])
 
     def basic_types(self):
-        return None
+        return self.BASIC_TYPES
 
-    def basic_types_names(self):
-        return None
+    def default_int_type(self):
+        return Type('byte', 1)
 
     def conditions(self):
         return None

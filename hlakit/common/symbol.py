@@ -29,7 +29,7 @@ or implied, of David Huseby.
 
 import os
 from pyparsing import *
-from type_ import Type
+from type_ import Type, TypeRegistry
 
 class Symbol(object):
     """
@@ -47,12 +47,9 @@ class Symbol(object):
         return self._type
 
     def set_type(self, type_):
-        if isinstance(type_, Type):
-            self._type = type_.get_name()
-        elif isinstance(type_, str):
-            self._type = type_
-
-        raise ParseFatalException('setting invalid type on symbol')
+        if isinstance(type_, str):
+            type_ = TypeRegistry()[type_]
+        self._type = type_
 
     def get_address(self):
         return self._addr

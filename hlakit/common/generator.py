@@ -57,7 +57,10 @@ class Generator(object):
         self._romfile = self._initialize_rom()
 
     def _process_variable(self, var):
-        pass
+        # locate the variable if needed
+        if var.get_address() is None:
+            romfile.get_address_for_var(var)
+        return (None, 0)
 
     def _process_token(self, token):
 
@@ -65,53 +68,68 @@ class Generator(object):
 
         # handle generic token
         if isinstance(token, Variable):
-            self._process_variable(token)
+            return self._process_variable(token)
         
         elif isinstance(token, Label):
             # locate the label at the current addr
             token.set_address(romfile.get_current_pos())
+            return (None, 0)
 
         elif isinstance(token, TellBank):
             print 'MESSAGE: Current bank is %d' % romfile.get_current_bank()
+            return (None, 0)
         
         elif isinstance(token, TellBankOffset):
             print 'MESSAGE: Current offset is 0x%0.4x' % romfile.get_current_offset()
+            return (None, 0)
         
         elif isinstance(token, TellBankSize):
             print 'MESSAGE: Current bank size is 0x%0.4x' % romfile.get_current_banksize()
+            return (None, 0)
         
         elif isinstance(token, TellBankFree):
             print 'MESSAGE: Current bank free is 0x%0.4x' % romfile.get_current_bankfree()
+            return (None, 0)
         
         elif isinstance(token, TellBankType):
             print 'MESSAGE: Current bank type is %s' % romfile.get_current_banktype()
+            return (None, 0)
         
         elif isinstance(token, Incbin):
             romfile.incbin(token.get_data())
+            return (None, 0)
         
         elif isinstance(token, RomOrg):
             romfile.set_rom_org(token.get_address(), token.get_maxsize())
+            return (None, 0)
         
         elif isinstance(token, RomEnd):
             romfile.set_rom_end()
+            return (None, 0)
         
         elif isinstance(token, RomBanksize):
             romfile.set_rom_banksize(token.get_size())
+            return (None, 0)
         
         elif isinstance(token, RomBank):
             romfile.set_rom_bank(token.get_number(), token.get_maxsize())
+            return (None, 0)
         
         elif isinstance(token, RamOrg):
             romfile.set_ram_org(token.get_address(), token.get_maxsize())
+            return (None, 0)
         
         elif isinstance(token, RamEnd):
             romfile.set_ram_end()
+            return (None, 0)
         
         elif isinstance(token, SetPad):
             romfile.set_padding(token.get_value())
+            return (None, 0)
         
         elif isinstance(token, Align):
             romfile.set_align(token.get_value())
+            return (None, 0)
         
         else:
             raise ParseFatalException('Unknown token type: %s' % type(token))
@@ -131,21 +149,25 @@ class Generator(object):
         rom file.  this process will resolve labels into addresses and
         calculate relative branch addresses. """
 
+        #import pdb; pdb.set_trace()
         out_tokens = tokens
         while True:
             left_to_generate = 0
             round_tokens = []
             for t in out_tokens:
+                print "processing: %s" % type(t)
+                # import pdb; pdb.set_trace()
                 (token, ungenerated) = self._process_token(t)
 
                 # count how many are left to generate
                 left_to_generate += ungenerated
 
                 # process what we get back
-                if isinstance(token, list):
-                    round_tokens.extend(token)
-                else:
-                    round_tokens.append(token)
+                if token != None:
+                    if isinstance(token, list):
+                        round_tokens.extend(token)
+                    else:
+                        round_tokens.append(token)
 
             # check to see if we're not making any more progress
             if (left_to_generate > 0) and \
@@ -158,8 +180,6 @@ class Generator(object):
             # if nothing left to generate, then we're done
             if left_to_generate == 0:
                 break
-
-        #TODO: build the rom file here
 
         # finalize the rom output pass
         self._finalize_rom()

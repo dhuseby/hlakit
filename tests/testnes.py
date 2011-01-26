@@ -36,7 +36,7 @@ from hlakit.common.enum import Enum
 from hlakit.common.name import Name
 from hlakit.common.session import Session
 from hlakit.common.symboltable import SymbolTable
-from hlakit.common.typeregistry import TypeRegistry
+from hlakit.common.type_ import Type, TypeRegistry
 from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.numericvalue import NumericValue
@@ -301,7 +301,7 @@ class NESCompilerTester(NESTester):
         self.assertEquals(len(cc.get_scanner_output()), len(scanner))
         for i in range(0,len(scanner)):
             self.assertTrue(isinstance(cc.get_scanner_output()[i], scanner[i][0]), '%d' % i)
-            self.assertEquals(str(cc.get_scanner_output()[i]), scanner[i][1], '%d' % i)
+            self.assertEquals(str(cc.get_scanner_output()[i]), scanner[i][1], '%d: (%s) %s != (%s) %s' % (i, type(cc.get_scanner_output()[i]), str(cc.get_scanner_output()[i]), type(scanner[i][1]), scanner[i][1]))
 
         # check the parser output
         self.assertEquals(len(cc.get_parser_output()), len(parser))

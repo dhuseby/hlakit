@@ -36,7 +36,7 @@ from hlakit.common.enum import Enum
 from hlakit.common.name import Name
 from hlakit.common.session import Session
 from hlakit.common.symboltable import SymbolTable
-from hlakit.common.typeregistry import TypeRegistry
+from hlakit.common.type_ import Type, TypeRegistry
 from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.numericvalue import NumericValue

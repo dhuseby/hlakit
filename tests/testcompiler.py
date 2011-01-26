@@ -37,14 +37,13 @@ from hlakit.common.compiler import Compiler
 from hlakit.common.generator import Generator
 from hlakit.common.session import Session, CommandLineError
 from hlakit.common.symboltable import SymbolTable
-from hlakit.common.typeregistry import TypeRegistry
 from hlakit.common.codeblock import CodeBlock
 from hlakit.common.codeline import CodeLine
 from hlakit.common.functiontype import FunctionType
 from hlakit.common.functionparameter import FunctionParameter
 from hlakit.common.functiondecl import FunctionDecl
 from hlakit.common.functioncall import FunctionCall
-from hlakit.common.type_ import Type
+from hlakit.common.type_ import Type, TypeRegistry
 from hlakit.common.name import Name
 from hlakit.common.struct_ import Struct
 from hlakit.common.typedef import Typedef
@@ -86,22 +85,28 @@ class CompilerTester(unittest.TestCase):
         cc.compile([CodeBlock([CodeLine(self.cc_struct)])])
         self.assertTrue(isinstance(cc.get_output()[0], Struct))
         self.assertEquals(cc.get_output()[0].get_name(), 'struct foo')
+        self.assertEquals(cc.get_output()[0].get_size(), 4)
         self.assertTrue(isinstance(cc.get_output()[0].get_member('x'), Struct.Member))
         self.assertEquals(cc.get_output()[0].get_member('x').get_name(), 'x')
         self.assertEquals(cc.get_output()[0].get_member('x').get_type(), 'byte')
+        self.assertEquals(cc.get_output()[0].get_member('x').get_size(), 1)
         self.assertTrue(isinstance(cc.get_output()[0].get_member('y'), Struct.Member))
         self.assertEquals(cc.get_output()[0].get_member('y').get_name(), 'y')
         self.assertEquals(cc.get_output()[0].get_member('y').get_type(), 'byte')
+        self.assertEquals(cc.get_output()[0].get_member('y').get_size(), 1)
         self.assertTrue(isinstance(cc.get_output()[0].get_member('i'), Struct.Member))
         self.assertEquals(cc.get_output()[0].get_member('i').get_name(), 'i')
         self.assertEquals(cc.get_output()[0].get_member('i').get_type(), 'word')
+        self.assertEquals(cc.get_output()[0].get_member('i').get_size(), 2)
 
     def testStructRef(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('struct foo')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Struct))
-        self.assertEquals(cc.get_output()[0].get_name(), 'struct foo')
+        cc.compile([CodeBlock([CodeLine(self.cc_struct), CodeLine('struct foo v')])])
+        self.assertTrue(isinstance(cc.get_output()[1], Variable))
+        self.assertEquals(cc.get_output()[1].get_name(), 'v')
+        self.assertTrue(isinstance(cc.get_output()[1].get_type(), Struct))
+        self.assertEquals(cc.get_output()[1].get_size(), 4)
    
     def testBadStructType(self):
         cc = Session().compiler()
@@ -287,14 +292,14 @@ class CompilerTester(unittest.TestCase):
     def testStructReferenceVar(self):
         cc = Session().compiler()
 
-        cc.compile([CodeBlock([CodeLine('struct baz d')])])
-        self.assertTrue(isinstance(cc.get_output()[0], Variable))
-        self.assertEquals(cc.get_output()[0].get_type(), 'struct baz')
-        self.assertEquals(cc.get_output()[0].get_name(), 'd')
-        self.assertFalse(cc.get_output()[0].is_array())
-        self.assertFalse(cc.get_output()[0].is_shared())
-        self.assertTrue(isinstance(cc.get_output()[0].get_type(), Type))
-        self.assertEquals(cc.get_output()[0].get_type().get_name(), 'struct baz')
+        cc.compile([CodeBlock([CodeLine('struct baz { byte i }'), CodeLine('struct baz d')])])
+        self.assertTrue(isinstance(cc.get_output()[1], Variable))
+        self.assertEquals(cc.get_output()[1].get_type(), 'struct baz')
+        self.assertEquals(cc.get_output()[1].get_name(), 'd')
+        self.assertFalse(cc.get_output()[1].is_array())
+        self.assertFalse(cc.get_output()[1].is_shared())
+        self.assertTrue(isinstance(cc.get_output()[1].get_type(), Type))
+        self.assertEquals(cc.get_output()[1].get_type().get_name(), 'struct baz')
 
     def testEnumEmpty(self):
         code = """
@@ -308,22 +313,6 @@ class CompilerTester(unittest.TestCase):
         cc.compile([build_code_block(code)])
         self.assertTrue(isinstance(cc.get_output()[0], Enum))
         self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
-
-    def testEnumRecursive(self):
-        code = """
-        enum FOO 
-        {
-            enum BAR { }
-        }
-        """
-
-        cc = Session().compiler()
-
-        cc.compile([build_code_block(code)])
-        self.assertTrue(isinstance(cc.get_output()[0], Enum))
-        self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
-        self.assertTrue(cc.get_output()[0].has_member('BAR'))
-        self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum))
 
     def testEnumMemberNoValue(self):
         code = """
@@ -340,6 +329,7 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
         self.assertTrue(cc.get_output()[0].has_member('BAR'))
         self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum.Member))
+        self.assertEquals(cc.get_output()[0].get_member('BAR').get_value(), 0)
 
     def testEnumMembersNoValue(self):
         code = """
@@ -362,12 +352,17 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum.Member))
         self.assertTrue(isinstance(cc.get_output()[0].get_member('BAZ'), Enum.Member))
         self.assertTrue(isinstance(cc.get_output()[0].get_member('QUX'), Enum.Member))
+        self.assertEquals(cc.get_output()[0].get_member('BAR').get_value(), 0)
+        self.assertEquals(cc.get_output()[0].get_member('BAZ').get_value(), 1)
+        self.assertEquals(cc.get_output()[0].get_member('QUX').get_value(), 2)
 
     def testEnumMemberValue(self):
         code = """
         enum FOO 
         {
-            BAR = 1
+            BAR = 10,
+            BAZ,
+            QUX
         }
         """
 
@@ -377,8 +372,14 @@ class CompilerTester(unittest.TestCase):
         self.assertTrue(isinstance(cc.get_output()[0], Enum))
         self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
         self.assertTrue(cc.get_output()[0].has_member('BAR'))
+        self.assertTrue(cc.get_output()[0].has_member('BAZ'))
+        self.assertTrue(cc.get_output()[0].has_member('QUX'))
         self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum.Member))
-        self.assertEquals(int(cc.get_output()[0].get_member('BAR').get_value()), 1)
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('BAZ'), Enum.Member))
+        self.assertTrue(isinstance(cc.get_output()[0].get_member('QUX'), Enum.Member))
+        self.assertEquals(cc.get_output()[0].get_member('BAR').get_value(), 10)
+        self.assertEquals(cc.get_output()[0].get_member('BAZ').get_value(), 11)
+        self.assertEquals(cc.get_output()[0].get_member('QUX').get_value(), 12)
 
     def testEnumMembersValue(self):
         code = """
@@ -396,9 +397,9 @@ class CompilerTester(unittest.TestCase):
         self.assertEquals(cc.get_output()[0].get_name(), 'FOO')
         self.assertTrue(cc.get_output()[0].has_member('BAR'))
         self.assertTrue(isinstance(cc.get_output()[0].get_member('BAR'), Enum.Member))
-        self.assertEquals(int(cc.get_output()[0].get_member('BAR').get_value()), 1)
-        self.assertEquals(int(cc.get_output()[0].get_member('BAZ').get_value()), 1024)
-        self.assertEquals(int(cc.get_output()[0].get_member('QUX').get_value()), 8192)
+        self.assertEquals(cc.get_output()[0].get_member('BAR').get_value(), 1)
+        self.assertEquals(cc.get_output()[0].get_member('BAZ').get_value(), 1024)
+        self.assertEquals(cc.get_output()[0].get_member('QUX').get_value(), 8192)
 
     def testFunctionCall(self):
         cc = Session().compiler()

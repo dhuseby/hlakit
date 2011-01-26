@@ -276,10 +276,10 @@ class Session(object):
             return target.basic_types()
         return None
 
-    def basic_types_names(self):
+    def default_int_type(self):
         target = getattr(self, '_target', None)
         if target:
-            return target.basic_types_names()
+            return target.default_int_type()
         return None
 
     def conditions(self):

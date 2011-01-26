@@ -27,44 +27,64 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from hlakit.common.romfilebank import RomFileBank
+
 class RomFile(object):
 
     def __init__(self):
-        self._cur_bank = 0
-        self._ram_pos = 0
+        self._ram_pos = None
         self._ram_maxsize = None
-        self._rom_pos = 0
-        self._rom_maxsize = None
+        self._banks = {}
+        self._cur_bank = None
+        self._padding = 0
+        self._banksize = 0
 
     def save(self, outf):
-        pass
+        raise ParseFatalException("no CPU/Platform specific romfile save function defined")
 
-    def get_current_bank(self):
+    def load(self, inf):
+        raise ParseFatalException("no CPU/Platform specific romfile load function defined")
+
+    def get_current_bank_number(self):
         return self._cur_bank
 
-    def set_current_bank(self, bank):
+    def set_current_bank_number(self, bank):
         self._cur_bank = int(bank)
 
-    def get_current_offset(self):
-        # TODO: get the current write position in the current buffer
-        return 0
+    def _check_bank(self):
+        if self._cur_bank is None:
+            raise ParseFatalException("no current bank defined")
+        if not self._banks.has(self._cur_bank):
+            raise ParseFatalException("invalid current bank number: %d" % self._cur_bank)
 
-    def get_current_banksize(self):
-        # TODO: get current bank size from cumulation of buffer sizes
-        return 0
-
-    def get_current_bankfree(self):
-        # TODO: get current bank free
-        return 0
-
-    def get_current_banktype(self):
-        # TODO: track the current bank type
-        return 'ROM'
+    def get_current_bank(self):
+        self._check_bank()
+        return self._banks[self._cur_bank]
 
     def incbin(self, data):
-        # TODO: create a new buffer to contain the binary data
-        pass
+        self.get_current_bank().get_current_block().write_bytes(data)
 
+    def set_rom_banksize(self, banksize):
+        for v in self._banks.itervalues():
+            v.set_maxsize(banksize)
+
+    def _get_new_rom_bank(self, bank, maxsize, type, padding):
+        return RomFileBank(bank, maxsize, type, padding)
+
+    def set_rom_bank(self, bank, maxsize=None, type_=None):
+        bank = int(bank)
+        if maxsize is None:
+            maxsize = self._banksize
+
+        # if the bank doesn't exist, create it
+        if bank not in self._banks.keys():
+            self._banks[bank] = self._get_new_rom_bank(bank, int(maxsize), type_, self._padding)
+
+        # set the current bank index
+        self._cur_bank = bank
+
+
+    """
     def set_rom_org(self, addr, maxsize=None):
         self._rom_pos = int(addr)
         self._rom_maxsize = maxsize
@@ -72,12 +92,6 @@ class RomFile(object):
     def set_rom_end(self):
         self._rom_pos = 0
         self._rom_maxsize = None
-
-    def set_rom_banksize(self, banksize):
-        pass
-
-    def set_rom_bank(self, bank, maxsize=None):
-        pass
 
     def get_rom_pos(self):
         return self._rom_pos
@@ -87,6 +101,8 @@ class RomFile(object):
         if self._rom_maxsize and (self._rom_pos >= self._rom_maxsize):
             return False
         return True
+    """
+
 
     def get_ram_pos(self):
         return self._ram_pos
@@ -102,14 +118,13 @@ class RomFile(object):
     def increment_ram_pos(self, amt = 1):
         self._ram_pos += amt
         if self._ram_maxsize and (self._ram_pos >= self._ram_maxsize):
-            return False
-        return True
-
-    def get_current_pos(self):
-        pass
+            raise ParseFatalException("writing past ram maxsize")
 
     def set_padding(self, padding):
-        pass
+        self._padding = padding
+
+    def get_padding(self):
+        return self._padding
 
     def set_align(self, align):
         pass
