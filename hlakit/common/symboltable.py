@@ -87,9 +87,9 @@ class SymbolTable(object):
         # add the symbol to the scope
         self._scopes[namespace][str(symbol.get_name())] = symbol
 
-    def lookup_symbol(self, symbol, namespace=GLOBAL_NAMESPACE):
+    def lookup_symbol(self, symbol, namespace=None):
         if namespace is None:
-            namespace = self.GLOBAL_NAMESPACE
+            namespace = self.current_namespace()
         ns = namespace.split('.')  
 
         while len(ns):

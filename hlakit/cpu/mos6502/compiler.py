@@ -75,7 +75,7 @@ class Compiler(CommonCompiler):
 
         # create label L1 as the branch target after the if block
         L1 = Label(fn=cond.get_fn())
-        st.new_symbol(L1, st.GLOBAL_NAMESPACE)
+        st.new_symbol(L1, cond.get_scope())
         
         # look up the opcode string
         opcode = ConditionalDecl.OPCODES[distance][modifier][test]
@@ -92,7 +92,7 @@ class Compiler(CommonCompiler):
 
             # create a label for the start of the if body
             L2 = Label(fn=cond.get_fn())
-            st.new_symbol(L2, st.GLOBAL_NAMESPACE)
+            st.new_symbol(L2, cond.get_scope())
 
             # if the test passes, it will branch over the jmp to the start of the if body
             tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
@@ -131,7 +131,7 @@ class Compiler(CommonCompiler):
        
         # L1 is the branch target at the start of the else block
         L1 = Label(fn=cond.get_fn())
-        st.new_symbol(L1, st.GLOBAL_NAMESPACE)
+        st.new_symbol(L1, cond.get_scope())
  
         # look up the opcode string
         opcode = ConditionalDecl.OPCODES[distance][modifier][test]
@@ -148,7 +148,7 @@ class Compiler(CommonCompiler):
 
             # create a label for the start of the if body
             L2 = Label(fn=cond.get_fn())
-            st.new_symbol(L2, st.GLOBAL_NAMESPACE)
+            st.new_symbol(L2, cond.get_scope())
 
             # if the test passes, it will branch over the jmp to the start of the if body
             tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
@@ -167,7 +167,7 @@ class Compiler(CommonCompiler):
 
         # create the label for after the else body
         L3 = Label(fn=cond.get_fn())
-        st.new_symbol(L3, st.GLOBAL_NAMESPACE)
+        st.new_symbol(L3, cond.get_scope())
 
         # add in the branch/jmp over the else body
         tokens.append(InstructionLine.new('jmp', fn=cond.get_fn(), 
@@ -202,14 +202,14 @@ class Compiler(CommonCompiler):
 
         # create label for the start of the while loop
         L1 = Label(fn=cond.get_fn())
-        st.new_symbol(L1, st.GLOBAL_NAMESPACE)
+        st.new_symbol(L1, cond.get_scope())
 
         # append the label for the start of the while loop
         tokens.append(L1)
 
         # create label for the end of while loop
         L2 = Label(fn=cond.get_fn())
-        st.new_symbol(L2, st.GLOBAL_NAMESPACE)
+        st.new_symbol(L2, cond.get_scope())
         
         # look up the opcode string
         opcode = ConditionalDecl.OPCODES[distance][modifier][test]
@@ -226,7 +226,7 @@ class Compiler(CommonCompiler):
 
             # create a label for the start of the while body
             L3 = Label(fn=cond.get_fn())
-            st.new_symbol(L3)
+            st.new_symbol(L3, cond.get_scope())
 
             # if the test passes, it will branch over the jmp to the start of the while body
             tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
@@ -265,7 +265,7 @@ class Compiler(CommonCompiler):
 
         # create label for the start of the do..while loop
         L1 = Label(fn=cond.get_fn())
-        st.new_symbol(L1, st.GLOBAL_NAMESPACE)
+        st.new_symbol(L1, cond.get_scope())
 
         # append the label for the start of the do..while loop
         tokens.append(L1)
@@ -288,7 +288,7 @@ class Compiler(CommonCompiler):
 
             # create a label for the start of the while body
             L2 = Label(fn=cond.get_fn())
-            st.new_symbol(L2)
+            st.new_symbol(L2, cond.get_scope())
 
             # if the test passes, it will branch over the jmp to the start of the while body
             tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
@@ -310,7 +310,7 @@ class Compiler(CommonCompiler):
 
         # start the loop with a label
         L1 = Label(fn=cond.get_fn())
-        st.new_symbol(L1, st.GLOBAL_NAMESPACE)
+        st.new_symbol(L1, cond.get_scope())
         tokens.append(L1)
 
         # get the conditional blocks
@@ -352,7 +352,7 @@ class Compiler(CommonCompiler):
 
         # get a label to just after the last case/default block
         L1 = Label(fn=cond.get_fn())
-        st.new_symbol(L1, st.GLOBAL_NAMESPACE)
+        st.new_symbol(L1, cond.get_scope())
 
         # add in the case blocks
         for i in range(1, len(blocks)):
@@ -374,7 +374,7 @@ class Compiler(CommonCompiler):
 
                 # create a label for the beginning of the next case
                 L2 = Label(fn=cond.get_fn())
-                st.new_symbol(L2, st.GLOBAL_NAMESPACE)
+                st.new_symbol(L2, cond.get_scope())
 
                 # add in the branch instruction.  if the Z flag is set, the case
                 # body will get executed, otherwise it will branch to the beginning

@@ -767,7 +767,7 @@ class Compiler(object):
 
         elif isinstance(token, Label):
             # add the label to the global scope
-            st.new_symbol(token, st.GLOBAL_NAMESPACE)
+            st.new_symbol(token)
 
         self._append_token_to_scope(token)
 
@@ -782,9 +782,9 @@ class Compiler(object):
         # create a basic scope
         bs = BasicScope()
         self._push_scope(bs)
-        # push anonymous scope
+        
         st = SymbolTable()
-        st.scope_push()
+        #st.scope_push()
         bs.set_scope(st.current_namespace())
 
         while len(self._in_tokens):
@@ -864,7 +864,7 @@ class Compiler(object):
 
             # start all functions with a label
             L1 = Label(name=fn.get_name(), fn=fn.get_name())
-            st.new_symbol(L1, st.GLOBAL_NAMESPACE)
+            st.new_symbol(L1, fn.get_scope())
             tokens.append(L1)
 
             # tell the function which label starts the function

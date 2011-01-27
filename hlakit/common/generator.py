@@ -130,7 +130,7 @@ class Generator(object):
         elif isinstance(token, Align):
             romfile.set_align(token.get_value())
             return (None, 0)
-        
+
         else:
             raise ParseFatalException('Unknown token type: %s' % type(token))
 

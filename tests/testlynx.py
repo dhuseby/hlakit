@@ -693,7 +693,7 @@ jmp $FB00
                  ('MIKEY_SERIAL_CONTROL', 0xFD8C),
                  ('MIKEY_MEMORY_MAP_CONTROL', 0xFFF9) ]
         for n,a in vars:
-            v = st.lookup_symbol(n, '__global__.__anonymous__.DummyFile')
+            v = st.lookup_symbol(n, '__global__.DummyFile')
             self.assertTrue(isinstance(v, Variable))
             self.assertEquals(v.get_address(), a)
 
