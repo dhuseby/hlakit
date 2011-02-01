@@ -158,7 +158,7 @@ class MOS6502CompilerTester(MOS6502Tester):
         self.assertEquals(len(cc.get_scanner_output()), len(scanner))
         for i in range(0,len(scanner)):
             self.assertTrue(isinstance(cc.get_scanner_output()[i], scanner[i][0]), '%d' % i)
-            self.assertEquals(str(cc.get_scanner_output()[i]), scanner[i][1], '%d' % i)
+            self.assertEquals(str(cc.get_scanner_output()[i]), scanner[i][1], '%d: %s != %s' % (i, str(cc.get_scanner_output()[1]), scanner[i][1]))
 
         # check the parser output
         self.assertEquals(len(cc.get_parser_output()), len(parser))
@@ -170,7 +170,7 @@ class MOS6502CompilerTester(MOS6502Tester):
         self.assertEquals(len(cc.get_resolver_output()), len(resolver))
         for i in range(0,len(resolver)):
             self.assertTrue(isinstance(cc.get_resolver_output()[i], resolver[i][0]), '%d' % i)
-            self.assertEquals(str(cc.get_resolver_output()[i]), resolver[i][1], '%d' % i)
+            self.assertEquals(str(cc.get_resolver_output()[i]), resolver[i][1], '%d: %s != %s' % (i, str(cc.get_resolver_output()[i]), resolver[i][1]))
 
     def testLineNoOperand(self):
         cc = Session().compiler()
@@ -627,7 +627,7 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Function, "function foo()"),
         ]
         resolver = [
-            (Label, "HLA_foo:"),
+            (Label, "FOO"),
             (InstructionLine, "lda 0x0200,x"),
             (InstructionLine, "inx"),
             (InstructionLine, "ora 0x0200,x"),
@@ -664,7 +664,7 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Function, "inline foo( addr )"),
         ]
         resolver = [
-            (Label, "HLA_foo:"),
+            (Label, "FOO"),
             (InstructionLine, "lda"),
             (InstructionLine, "inx"),
             (InstructionLine, "ora"),
@@ -717,9 +717,9 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, "sbc dest"),
             (ScopeEnd, "}"),
             (InstructionLine, "jmp div_done"),
-            (Label, "HLA_div_done_remainder:"),
+            (Label, "DIV_DONE_REMAINDER"),
             (InstructionLine, "dex"),
-            (Label, "HLA_div_done:"),
+            (Label, "DIV_DONE"),
             (InstructionLine, "stx dest"),
             (ScopeEnd, "}"),
         ]
@@ -727,21 +727,21 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Function, "inline div( dest, amount )"),
         ]
         resolver = [
-            (Label, "HLA_div:"),
+            (Label, "DIV"),
             (InstructionLine, "sec"),
             (InstructionLine, "ldx #0"),
             (InstructionLine, "lda amount"),
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
             (InstructionLine, "bne HLA1"),
             (InstructionLine, "bmi div_done_remainder"),
             (InstructionLine, "inx"),
             (InstructionLine, "sec"),
             (InstructionLine, "sbc dest"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
             (InstructionLine, "jmp div_done"),
-            (Label, "HLA_div_done_remainder:"),
+            (Label, "DIV_DONE_REMAINDER"),
             (InstructionLine, "dex"),
-            (Label, "HLA_div_done:"),
+            (Label, "DIV_DONE"),
             (InstructionLine, "stx dest"),
         ]
         cc = Session().compiler()
@@ -784,13 +784,13 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Function, "function vram_write_string()"),
         ]
         resolver = [
-            (Label, "HLA_vram_write_string:"),
+            (Label, "VRAM_WRITE_STRIN"),
             (InstructionLine, "ldy #0"),
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
             (InstructionLine, "lda (pstr), y"),
             (InstructionLine, "beq HLA1"),
             (InstructionLine, "rts"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
             (InstructionLine, "iny"),
             (InstructionLine, "jmp HLA0"),
             (InstructionLine, "rts"),
@@ -822,7 +822,7 @@ class MOS6502CompilerTester(MOS6502Tester):
         ]
         resolver = [
             (Variable, "byte setamt[]"),
-            (Label, "HLA_dummy_fn:"),
+            (Label, "DUMMY_FN"),
             (InstructionLine, "ldy #0"),
             (InstructionLine, "rts"),
         ]
@@ -846,7 +846,7 @@ class MOS6502CompilerTester(MOS6502Tester):
         resolver = [
             (InstructionLine, "bne HLA0"),
             (InstructionLine, "inx"),
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -868,7 +868,7 @@ class MOS6502CompilerTester(MOS6502Tester):
         resolver = [
             (InstructionLine, "beq HLA0"),
             (InstructionLine, "inx"),
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -890,9 +890,9 @@ class MOS6502CompilerTester(MOS6502Tester):
         resolver = [
             (InstructionLine, "bcc HLA1"),
             (InstructionLine, "jmp HLA0"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
             (InstructionLine, "inx"),
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -914,9 +914,9 @@ class MOS6502CompilerTester(MOS6502Tester):
         resolver = [
             (InstructionLine, "bvc HLA1"),
             (InstructionLine, "jmp HLA0"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
             (InstructionLine, "inx"),
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -942,8 +942,8 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, 'bne HLA0'),
             (InstructionLine, 'beq HLA1'),
             (InstructionLine, 'inx'),
-            (Label, 'HLA1:'),
-            (Label, 'HLA0:'),
+            (Label, 'HLA1'),
+            (Label, 'HLA0'),
         ]
 
         cc = Session().compiler()
@@ -980,9 +980,9 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, 'bne HLA0'),
             (InstructionLine, 'dex'),
             (InstructionLine, 'jmp HLA1'),
-            (Label, 'HLA0:'),
+            (Label, 'HLA0'),
             (InstructionLine, 'inx'),
-            (Label, 'HLA1:'),
+            (Label, 'HLA1'),
         ]
 
         cc = Session().compiler()
@@ -1003,10 +1003,10 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Conditional, "WHILE"),
         ]
         resolver = [
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
             (InstructionLine, "bne HLA1"),
             (InstructionLine, "inx"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1026,10 +1026,10 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Conditional, "WHILE"),
         ]
         resolver = [
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
             (InstructionLine, "bne HLA1"),
             (InstructionLine, "inx"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1049,12 +1049,12 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Conditional, "WHILE"),
         ]
         resolver = [
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
             (InstructionLine, "beq HLA2"),
             (InstructionLine, "jmp HLA1"),
-            (Label, "HLA2:"),
+            (Label, "HLA2"),
             (InstructionLine, "inx"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1074,12 +1074,12 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Conditional, "WHILE"),
         ]
         resolver = [
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
             (InstructionLine, "bne HLA2"),
             (InstructionLine, "jmp HLA1"),
-            (Label, "HLA2:"),
+            (Label, "HLA2"),
             (InstructionLine, "inx"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1105,11 +1105,11 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Conditional, "WHILE"),
         ]
         resolver = [
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
             (InstructionLine, "bpl HLA1"),
             (InstructionLine, "inx"),
             (InstructionLine, "dex"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1137,7 +1137,7 @@ class MOS6502CompilerTester(MOS6502Tester):
             ( Conditional, 'DO_WHILE')
         ]
         resolver = [
-            ( Label, 'HLA0:'),
+            ( Label, 'HLA0'),
             ( InstructionLine, 'inx'),
             ( InstructionLine, 'dex'),
             ( InstructionLine, 'bpl HLA0')
@@ -1165,7 +1165,7 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Conditional, "FOREVER"),
         ]
         resolver = [
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
             (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
         ]
@@ -1197,8 +1197,8 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, "bne HLA1"),
             (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
-            (Label, "HLA1:"),
-            (Label, "HLA0:"),
+            (Label, "HLA1"),
+            (Label, "HLA0"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1228,8 +1228,8 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, "bne HLA1"),
             (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
-            (Label, "HLA1:"),
-            (Label, "HLA0:"),
+            (Label, "HLA1"),
+            (Label, "HLA0"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1259,8 +1259,8 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, "bne HLA1"),
             (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
-            (Label, "HLA1:"),
-            (Label, "HLA0:"),
+            (Label, "HLA1"),
+            (Label, "HLA0"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1290,8 +1290,8 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, "bne HLA1"),
             (InstructionLine, "inx"),
             (InstructionLine, "jmp HLA0"),
-            (Label, "HLA1:"),
-            (Label, "HLA0:"),
+            (Label, "HLA1"),
+            (Label, "HLA0"),
         ]
         cc = Session().compiler()
         cb = build_code_block(code)
@@ -1337,14 +1337,14 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, 'bne HLA1'),
             (InstructionLine, 'inx'),
             (InstructionLine, 'jmp HLA0'),
-            (Label, 'HLA1:'),
+            (Label, 'HLA1'),
             (InstructionLine, 'cpx #0x0200'),
             (InstructionLine, 'bne HLA2'),
             (InstructionLine, 'dex'),
             (InstructionLine, 'jmp HLA0'),
-            (Label, 'HLA2:'),
+            (Label, 'HLA2'),
             (InstructionLine, 'lda $0300'),
-            (Label, 'HLA0:'),
+            (Label, 'HLA0'),
         ]
 
         cc = Session().compiler()
@@ -1421,8 +1421,8 @@ class MOS6502CompilerTester(MOS6502Tester):
             (Function, "interrupt noreturn main()"),
         ]
         resolver = [
-            (Label, "HLA_main:"),
-            (Label, "HLA0:"),
+            (Label, "MAIN"),
+            (Label, "HLA0"),
             (InstructionLine, "cpx #$44"),
             (InstructionLine, "bne HLA1"),
             (InstructionLine, "cpy #1K"),
@@ -1430,18 +1430,18 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, "cpy #1024"),
             (InstructionLine, "beq HLA5"),
             (InstructionLine, "dec $4400,x"),
-            (Label, "HLA5:"),
+            (Label, "HLA5"),
             (InstructionLine, "jmp HLA3"),
-            (Label, "HLA4:"),
+            (Label, "HLA4"),
             (InstructionLine, "dec 0x4400"),
-            (Label, "HLA3:"),
+            (Label, "HLA3"),
             (InstructionLine, "jmp HLA2"),
-            (Label, "HLA1:"),
+            (Label, "HLA1"),
             (InstructionLine, "lda 0x0200,x"),
             (InstructionLine, "inx"),
             (InstructionLine, "ora 0x0200,x"),
             (InstructionLine, "inx"),
-            (Label, "HLA2:"),
+            (Label, "HLA2"),
             (InstructionLine, "jmp HLA0"),
         ]
         cc = Session().compiler()
