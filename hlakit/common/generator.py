@@ -155,7 +155,7 @@ class Generator(object):
             left_to_generate = 0
             round_tokens = []
             for t in out_tokens:
-                print "processing: %s" % type(t)
+                #print "processing: %s" % type(t)
                 # import pdb; pdb.set_trace()
                 (token, ungenerated) = self._process_token(t)
 
@@ -183,5 +183,7 @@ class Generator(object):
 
         # finalize the rom output pass
         self._finalize_rom()
+
+        return self.romfile()
 
 

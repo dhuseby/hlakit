@@ -282,7 +282,7 @@ class Compiler(CommonCompiler):
 
             # if the test passes, it will branch to the beginning of the while loop
             tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
-                                              mode=Operand.REL, value=L1.get_name()))
+                                              mode=Operand.REL, value=L1))
         else:
             # use a hard jmp instructions
 
@@ -292,11 +292,11 @@ class Compiler(CommonCompiler):
 
             # if the test passes, it will branch over the jmp to the start of the while body
             tokens.append(InstructionLine.new(opcode, fn=cond.get_fn(), 
-                                              mode=Operand.REL, value=L2.get_name()))
+                                              mode=Operand.REL, value=L2))
 
             # if the test fails, it will execute this jmp to jump over the while body
             tokens.append(InstructionLine.new('jmp', fn=cond.get_fn(), 
-                                              mode=Operand.ABS, addr=L1.get_name()))
+                                              mode=Operand.ABS, addr=L1))
 
             # add in the label for the start of the if body
             tokens.append(L2)

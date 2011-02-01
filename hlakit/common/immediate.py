@@ -31,6 +31,7 @@ from math import *
 from pyparsing import *
 from session import Session
 from name import Name
+from symbol import Symbol
 from numericvalue import NumericValue
 from arrayvalue import ArrayValue
 from symboltable import SymbolTable
@@ -475,15 +476,17 @@ class Immediate(object):
             return arg.resolve()
         else:
             # it must be the name of a symbol so look it up
-            st = SymbolTable()
-            symbol_name = arg
-            if isinstance(symbol_name, Name):
-                symbol_name = str(symbol_name)
-            if not isinstance(symbol_name, str):
-                raise ParseFatalException('invalid symbol name type')
+            if not isinstance(arg, Symbol):
+                st = SymbolTable()
+                symbol_name = str(arg)
+                if not isinstance(symbol_name, str):
+                    raise ParseFatalException('invalid symbol name type')
 
-            # look up and return the address of the symbol as a numeric value
-            sym = st.lookup_symbol(symbol_name, self.get_scope())
+                # look up and return the address of the symbol as a numeric value
+                sym = st.lookup_symbol(symbol_name, self.get_scope())
+            else:
+                sym = arg
+
             if sym != None:
                 # we have a symbol, now see if it has been located in memory
                 # and has an address...

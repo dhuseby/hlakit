@@ -44,7 +44,7 @@ class Buffer(object):
         self._org = org
         self._maxsize = maxsize
         self._current_write = 0
-        self._padding_value = padding
+        self._padding_value = padding # must store padding before calling reserve()
         self._alignment = None
 
         if (maxsize != None) and (maxsize > 0):
@@ -102,12 +102,6 @@ class Buffer(object):
             padding_list = self._get_int_padding(self._padding_value)
         self._pad_with_value(start, len, padding_list)
 
-    def _check_buffer_size(self):
-        if self._current_write < len(self._buffer):
-            return
-
-        self.reserve(self._current_write)
-
     def get_org(self):
         return self._org
 
@@ -159,6 +153,36 @@ class Buffer(object):
 
         # fill with padding value
         self._pad_buffer(pad_start, ext)
+
+    def write_bytes(self, bytes):
+
+        start = self._current_write
+
+        # check for a max size
+        if self._maxsize is None:
+
+            # make room for the data
+            self.reserve(len(bytes))
+
+            # calculate the end
+            end = self._current_write + len(bytes)
+
+        else:
+            # if there is a maxsize, then the buffer is
+            # already at that size
+
+            # calculate the end index
+            if (start + len(bytes)) >= self._maxsize:
+                end = self._maxsize
+            else:
+                end = self._current_write + len(bytes)
+
+        # copy the data into place
+        self._buffer[start:end] = bytes[0:(end - start)]
+
+        # return how many bytes where copied
+        return (end - start)
+
 
     def __str__(self):
         s = 'Buffer:\n    Org:      0x%0.4x' % self._org

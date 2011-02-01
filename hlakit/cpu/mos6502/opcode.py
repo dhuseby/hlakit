@@ -173,7 +173,8 @@ class Opcode(CommonOpcode):
         return self._op
 
     def emit(self, mode):
-        return pack('<B', self.BCODES[self._op][mode])
+        # return the opcode
+        return self.BCODES[self._op][mode]
 
     def is_relative(self):
         return self._op in self.RELATIVE

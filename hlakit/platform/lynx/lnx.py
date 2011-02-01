@@ -37,6 +37,60 @@ from hlakit.cpu.mos6502.romfile import MOS6502RomFile
 from hlakit.platform.lynx.romfilebank import RomFileBank as LnxRomFileBank
 from hlakit.platform.lynx.cursors import RamCursor
 
+class ListingLine(object):
+
+    def __init__(self, bank, segment, counter, addr):
+        self._bank = bank
+        self._segment = segment
+        self._counter = counter
+        self._addr = addr
+        self._label = None
+        self._code = None
+        self._bytes = []
+
+    def set_org(self, addr):
+        self._code = '.org $' + hex(addr)[2:].zfill(4).upper()
+
+    def set_end(self):
+        self._code = '.end'
+
+    def set_code(self, code):
+        self._code = str(code)
+
+    def set_bytes(self, bytes):
+        self._bytes = bytes
+
+    def set_label(self, label):
+        self._label = label
+
+    def __str__(self):
+        s = hex(self._bank)[2:].zfill(2).upper() + ' '
+        s += hex(self._segment)[2:].zfill(2).upper() + ' '
+        s += hex(self._counter)[2:].zfill(3).upper() + ' '
+        s += hex(self._addr)[2:].zfill(4).upper() + '    '
+        if self._label != None:
+            s += (' ' * (16 - len(str(self._label)))) + str(self._label) + ':    '
+        else:
+            s += ' ' * 21
+
+        if len(self._bytes) == 0:
+            s += ' ' * 12
+        elif len(self._bytes) == 1:
+            s += hex(self._bytes[0])[2:].zfill(2).upper() + (' ' * 10)
+        elif len(self._bytes) == 2:
+            s += hex(self._bytes[0])[2:].zfill(2).upper() + ' '
+            s += hex(self._bytes[1])[2:].zfill(2).upper() + (' ' * 7)
+        elif len(self._bytes) == 3:
+            s += hex(self._bytes[0])[2:].zfill(2).upper() + ' '
+            s += hex(self._bytes[1])[2:].zfill(2).upper() + ' '
+            s += hex(self._bytes[2])[2:].zfill(2).upper() + '    '
+
+        s += self._code
+        return s
+
+    __repr__ = __str__
+
+
 class Lnx(MOS6502RomFile):
     """
     This class encapsulates the .lnx header that will be written with
@@ -104,9 +158,13 @@ class Lnx(MOS6502RomFile):
 
         # label locations used for resolving relative jumps
         self._labels = {}
+        self._cur_label = None
 
         # RAM cursor for tracking RAM location for locating
         self._cursor = None
+
+        # listing lines
+        self._listing = []
 
         # variable location pointer
         self._next_variable_slot = 0
@@ -141,22 +199,22 @@ class Lnx(MOS6502RomFile):
             elif bank == 1:
                 return self._segment_size_bank1;
             else:
-                raise ParseFatalException("invalide bank number: %d for version 1 Lnx rom")
+                raise ValueError("invalide bank number: %d for version 1 Lnx rom")
         elif self._version == 2:
             return VERSION_2_SEGMENT_SIZE
 
-        raise ParseFatalException("invalid Lnx rom version")
+        raise RuntimeError("invalid Lnx rom version")
          
     def _get_new_rom_bank(self, bank, maxsize, type, padding):
         return LnxRomFileBank(bank, maxsize, type, padding, self._get_segment_size(bank))
 
     def _check_bank(self):
         if self._cur_bank is None:
-            raise ParseFatalException("no current bank defined")
+            raise RuntimeError("no current bank defined")
 
     def set_rom_org(self, segment, counter=None, maxsize=None):
         if self._cur_bank is None:
-            raise ParseFatalException("#rom.org before a #rom.bank declaration")
+            raise RuntimeError("#rom.org before a #rom.bank declaration")
 
         if counter is None:
             counter = 0
@@ -167,11 +225,10 @@ class Lnx(MOS6502RomFile):
 
     def set_rom_end(self):
         if self._cur_bank is None:
-            raise ParseFatalException("#rom.end before a #rom.org declaration")
+            raise RuntimeError("#rom.end before a #rom.org declaration")
         
         self.get_current_bank().set_rom_end()
        
-
     def _get_page_from_address(self, address):
         return (((address & 0xFF00) >> 8) & 0xFF)
 
@@ -180,33 +237,54 @@ class Lnx(MOS6502RomFile):
 
     def set_ram_org(self, address, maxsize=0):
         if self._cursor != None:
-            raise ParseFatalException("#ram.org inside of unclosed #ram.org block")
+            raise RuntimeError("#ram.org inside of unclosed #ram.org block")
 
         self._cursor = RamCursor(self._get_page_from_address(address),
                                  self._get_offset_from_address(address),
                                  maxsize)
 
+        # create a listing line, addr is zero because we're setting up
+        # a new ram ord and by definition it is 0
+        lline = ListingLine(self.get_current_bank_number(), 
+                            self.get_current_bank().get_segment(),
+                            self.get_current_bank().get_counter(),
+                            0)
+        lline.set_org(self._cursor.get_cur_address())
+
+        # add it to the listing
+        self._listing.append(lline)
+
     def set_ram_end(self):
         if self._cursor is None:
-            raise ParseFatalException("#ram.end without a matching #ram.org")
+            raise RuntimeError("#ram.end without a matching #ram.org")
 
+        lline = ListingLine(self.get_current_bank_number(),
+                            self.get_current_bank().get_segment(),
+                            self.get_current_bank().get_counter(),
+                            self._cursor.get_cur_address())
+        lline.set_end()
+
+        # add it to the listing
+        self._listing.append(lline)
+
+        # remove the cursor
         self._cursor = None
 
     def get_cur_ram_page(self):
         if self._cursor is None:
-            raise ParseFatalException("No #ram.org currently defined")
+            raise RuntimeError("No #ram.org currently defined")
 
         return self._cursor.get_page()
 
     def get_cur_ram_offset(self):
         if self._cursor is None:
-            raise ParseFatalException("No #ram.org currently defined")
+            raise RuntimeError("No #ram.org currently defined")
 
         return self._cursor.get_offset()
 
     def get_cur_ram_addr(self):
         if self._cursor is None:
-            raise ParseFatalException("No #ram.org currently defined")
+            raise RuntimeError("No #ram.org currently defined")
 
         return self._cursor.get_cur_address()
 
@@ -239,10 +317,39 @@ class Lnx(MOS6502RomFile):
     def set_current_label(self, lbl):
         self._cur_label = str(lbl)
 
-    def get_relative_jmp(self, label):
-        if label in self._labels:
-            return self._labels[label] - (self.get_cur_ram_addr() + 2)
-        return None
+    def write_bytes(self, bytes, line):
+        if not isinstance(bytes, list):
+            raise ValueError("bytes parameter must be an array of bytes")
+
+        if self._cursor is None:
+            raise RuntimeError("No #ram.org currently defined")
+
+        # add the debug listing line
+        lline = ListingLine(self.get_current_bank_number(),
+                            self.get_current_bank().get_segment(),
+                            self.get_current_bank().get_counter(),
+                            self._cursor.get_cur_address())
+
+        # add the label if there is one
+        if self._cur_label != None:
+            lline.set_label(self._cur_label)
+            self._cur_label = None
+
+        # add the bytes
+        if len(bytes) <= 3:
+            lline.set_bytes(bytes)
+
+        # add the line
+        lline.set_code(line)
+
+        # add it to the listing
+        self._listing.append(lline)
+
+        # write the bytes to the ROM
+        self.get_current_bank().write_bytes(bytes)
+
+        # move the RAM cursor
+        self._cursor += len(bytes)
 
     # Lynx specific romfile settings
 
@@ -514,139 +621,10 @@ class Lnx(MOS6502RomFile):
         return s
 
 
-
-    """
-
-    def set_rom_end(self):
-        self._cur_maxsize = None
-        self._in_rom_def = False
-        self._rom_dirty = False
-        # save off the current buffer
-        self._buffers.append(self._cur_buffer)
-        self._cur_buffer = None
-        # TODO: if aligned in any way, move to the next alignment
-        # TODO: if padded, make sure that the current ROM gets padded out to either next
-        #       alignment or maxsize.
-
-    def set_rom_bank(self, bank, banksize=None):
-        bank = int(bank) 
-        if self.get_version() == 1:
-            if (bank < 0) or (bank > 1):
-                raise ParseFatalException('invalid bank number for a version 1 .lnx rom')
-        elif self.get_version() == 2:
-            if (bank < 0) or (bank > 255):
-                raise ParseFatalException('invalid bank number for a version 2 .lnx rom')
-
-        # store the new bank index so that page sizes are correct
-        self._cur_bank = int(bank)
-
-        if self._cur_buffer != None:
-            # if we're switching banks in a dirty rom, we'll force a rom end
-            # and reset the rom state
-            print 'WARNING: switching banks in the middle of building a ROM, resetting ROM state'
-            self._set_rom_end()
-            self._set_rom_org(0, 0)
-
-        # if they specified a banksize, then set it
-        if banksize != None:
-            self.set_rom_banksize(banksize)
-     
-    def set_rom_padding(self, padding):
-        self._cur_padding = padding
-        if self._cur_buffer != None:
-            self._cur_buffer.set_padding_value(padding)
-
-    def set_rom_banksize(self, banksize):
-        bs = int(banksize)
-        if self.get_version() == 1:
-            if bs not in (131072, 262144, 524288):
-                raise ParseFatalException('invalid lynx bank size, must be 128K, 256K, or 512K')
-            if self._cur_bank == 0:
-                if self._segment_size_bank0 == None:
-                    self._segment_size_bank0 = int(bs / 256)
-                else:
-                    if self._segment_size_bank0 != int(bs / 256):
-                        raise ParseFatalException('banksize mismatch on bank 0')
-            else:
-                if self._segment_size_bank1 == None:
-                    self._segment_size_bank1 = int(bs / 256)
-                else:
-                    if self._segment_size_bank1 != int(bs / 256):
-                        raise ParseFatalException('banksize mismatch on bank 1')
-        else:
-            if bs != 524288:
-                raise ParseFatalException('invalid lynx bank size for a version 2 rom')
-
-    def get_buffers(self):
-        return self._buffers
-
-    def emit(self, bytes=[], msg=None):
-        # add a line to the debug listing
-        self._rom_lines.append((self._cur_bank, self._cur_segment, 
-                                self.get_rom_pos(), self.get_ram_pos(), 
-                                self._cur_label, bytes, msg)) 
-
-        if self._cur_label != None:
-            # store the byte that the label refers to
-            self._labels[self._cur_label] = self._cur_buffer.get_write_pos()
-
-            # reset the label if there was one
-            self._cur_label = None
-
-        # write the bytes to the current buffer and increment the positions
-        for b in bytes:
-            self._cur_buffer.write_byte(b)
-            self.increment_rom_pos()
-            self.increment_ram_pos()
-
     def get_debug_listing(self):
-        ll = 0
-        for l in self._rom_lines:
-            if l[4] != None and len(l[4]) > ll:
-                ll = len(l[4])
-
-        s = 'B SG CNT ADDR    LBL%s    00 00 00    CODE\n' % (' ' * (ll - 3))
-        for l in self._rom_lines:
-            if l[0] is None:
-                b = ' '
-            else:
-                b = '%d' % l[0]
-            if l[1] is None:
-                sg = '  '
-            else:
-                sg = '%02.0x' % l[1]
-            if l[2] is None:
-                cnt = '   '
-            else:
-                cnt = '%03.0x' % l[2]
-            if l[3] is None:
-                addr = '    '
-            else:
-                addr = '%04.0x' % l[3]
-            if l[4] is None:
-                lbl = '%s' % (' ' * ll)
-            else:
-                lbl = '%s%s' % (' ' * (ll - len(l[4])), l[4][:ll])
-            if len(l[5]) > 0:
-                b0 = '%02.0x' % ord(l[5][0])
-            else:
-                b0 = '  '
-            if len(l[5]) > 1:
-                b1 = '%02.0x' % ord(l[5][1])
-            else:
-                b1 = '  '
-            if len(l[5]) > 2:
-                b2 = '%02.0x' % ord(l[5][2])
-            else:
-                b2 = '  '
-            if l[6] is None:
-                code = ''
-            else:
-                code = l[6]
-            s += '%s %s %s %s    %s    %s %s %s    %s\n' % (b[:1], sg[:2], cnt[:3],
-                                                   addr[:4], lbl[:ll], b0[:2],
-                                                   b1[:2], b2[:2], code)
+        s = '\nBA SG CNT ADDR               LABELS    00 00 00    CODE\n'
+        for l in self._listing:
+            s += str(l) + '\n'
         return s
 
-    """
 

@@ -85,6 +85,7 @@ class Generator(MOS6502Generator):
 
         elif isinstance(token, Label):
             token.set_address(romfile.get_cur_ram_addr())
+            romfile.set_current_label(token)
             return (None, 0)
         
         else:

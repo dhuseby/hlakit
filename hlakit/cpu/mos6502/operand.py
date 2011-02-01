@@ -30,6 +30,7 @@ or implied, of David Huseby.
 from pyparsing import *
 from struct import pack, unpack
 from hlakit.common.session import Session
+from hlakit.common.symboltable import SymbolTable
 from hlakit.common.name import Name
 from hlakit.common.functioncall import FunctionCall
 from hlakit.common.numericvalue import NumericValue
@@ -194,33 +195,41 @@ class Operand(CommonOperand):
     def get_scope(self):
         return self._scope
 
-    def emit(self, romfile):
+    def emit(self, addr=None):
         if self._mode in (Operand.ACC, Operand.IMP):
             return []
 
         elif self.get_mode() == Operand.IMM:
-            b = pack('<B', int(self._value))
-            return [ b ]
+            return [ int(self._value) ]
 
         elif self.get_mode() == Operand.REL:
             if not self.is_resolved():
-                self._value = romfile.get_relative_jmp(str(self._value) + ':')
-            if (int(self._value) < -128) or (int(self._value) > 127):
-                raise ParseFatalException('invalid relative jump amount')
+
+                # get the address of the target
+                lbl_addr = None
+                if isinstance(self._value, Immediate):
+                    lbl = self._value.get_args()[0]
+                    if lbl.get_address() != None:
+                        lbl_addr = lbl.get_address()
+                else:
+                    lbl_addr = int(self._value)
+
+                # calculate the jump offset
+                self._value = -((addr - lbl.get_address()) + 2)
+
             b = pack('<b', int(self._value))
-            return [ b ]
+            return [ ord(a) for a in b ]
 
         elif self.get_mode() == Operand.ABS:
             b = pack('<H', int(self._addr))
-            return [ a for a in b ]
+            return [ ord(a) for a in b ]
 
         elif self.get_mode() in (Operand.ZP, Operand.ZP_X, Operand.ZP_Y, Operand.IDX_IND, Operand.IND_IDX):
-            b = pack('<B', int(self._addr))
-            return [ b ]
+            return [ int(self._addr) ]
 
         elif self.get_mode() in (Operand.IND, Operand.ABS_X, Operand.ABS_Y):
             b = pack('<H', int(self._addr))
-            return [ a for a in b ]
+            return [ ord(a) for a in b ]
 
         raise ParseFatalException('cannot emit operand')
 
@@ -249,8 +258,8 @@ class Operand(CommonOperand):
                 # the relative offset to jump to
                 self._value = self._value.resolve()
                 self._resolved = True
-                if (int(self._value) < -128) or (int(self._value) > 127):
-                    raise ParseFatalException('invalid relative jump amount')
+                if (int(self._value) < -126) or (int(self._value) > 129):
+                    raise RuntimeError('invalid relative jump amount')
             except:
                 pass
 
@@ -326,7 +335,10 @@ class Operand(CommonOperand):
         elif self._mode is Operand.ZP:
             return str(self._addr)
         elif self._mode is Operand.REL:
-            return str(self._value)
+            if isinstance(self._value, int):
+                return '*' + str(self._value)
+            else:
+                return str(self._value)
         elif self._mode is Operand.IND:
             return '(%s)' % self._addr
         elif self._mode is Operand.ABS_X:

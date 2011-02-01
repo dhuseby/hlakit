@@ -27,7 +27,6 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from pyparsing import *
 from hlakit.common.buffer import Buffer
 from hlakit.platform.lynx.cursors import RomCursor
 
@@ -44,7 +43,7 @@ class RomFileBank(object):
         self._segment_size = segment_size
 
         if segment_size == 0:
-            raise ParseFatalException("initializing Lnx bank without segment size")
+            raise ValueError("initializing Lnx bank without segment size")
 
         # pre-allocate the blocks for the segments
         for i in range(0,256):
@@ -61,7 +60,7 @@ class RomFileBank(object):
 
     def _check_segment(self):
         if self._cursor is None:
-            raise ParseFatalException("no current #rom.org defined in rom bank")
+            raise RuntimeError("no current #rom.org defined in rom bank")
 
     def get_current_block(self):
         self._check_segment()
@@ -85,6 +84,14 @@ class RomFileBank(object):
     def get_current_maxsize(self):
         self._check_segment()
         return self._cursor.get_maxsize()
+
+    def get_segment(self):
+        self._check_segment()
+        return self._cursor.get_segment()
+
+    def get_counter(self):
+        self._check_segment()
+        return self._cursor.get_counter()
  
     def get_free(self):
         return (256 * self._segment_size) - self.get_size()
@@ -94,20 +101,43 @@ class RomFileBank(object):
 
     def set_rom_org(self, segment, counter, maxsize):
         if counter > self._segment_size:
-            raise ParseFatalException("counter offset in segment is greater than segment size")
+            raise ValueError("counter offset in segment is greater than segment size")
 
         if (segment < 0) or (segment > 255):
-            raise ParseFatalException("invalid segment number")
+            raise ValueError("invalid segment number")
 
         if self._cursor is None:
             self._cursor = RomCursor(segment, counter, maxsize, self._segment_size)
         else:
-            raise ParseFatalException("#rom.org before #rom.end of previous #rom.org")
+            raise RuntimeError("#rom.org before #rom.end of previous #rom.org")
 
     def set_rom_end(self):
         if self._cursor is None:
-            raise ParseFatalException("#rom.end before #rom.org")
+            raise RuntimeError("#rom.end before #rom.org")
 
         # clean up the cursor
         self._cursor = None
+
+    def write_bytes(self, bytes):
+        if not isinstance(bytes, list):
+            raise ValueError("bytes parameter must be an array of bytes")
+
+        if self._cursor is None:
+            raise RuntimeError("No #rom.org currently defined")
+
+        # write the bytes over multiple segments if needed
+        start = 0
+        while True:
+            # write the bytes
+            written = self.get_current_block().write_bytes(bytes[start:])
+
+            # move the rom cursor
+            self._cursor += written
+
+            # move start index
+            start += written
+
+            if start == len(bytes):
+                break;
+
 

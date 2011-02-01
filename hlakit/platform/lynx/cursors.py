@@ -30,12 +30,12 @@ or implied, of David Huseby.
 class RomCursor(object):
 
     def __init__(self, segment, counter, maxsize, segment_size):
-        self._base_segment = segment
-        self._base_counter = counter
-        self._segment_size = segment_size
-        self._max_size = maxsize
-        self._cur_segment = segment
-        self._cur_counter = counter
+        self._base_segment = int(segment)
+        self._base_counter = int(counter)
+        self._segment_size = int(segment_size)
+        self._max_size = int(maxsize)
+        self._cur_segment = int(segment)
+        self._cur_counter = int(counter)
 
     def get_segment(self):
         return self._cur_segment
@@ -66,18 +66,22 @@ class RomCursor(object):
 
     def _check_bounds(self, segment, counter):
         if segment > 255:
-            ParseFatalException("invalid Lnx banke segment: %d" % segment)
+            raise ValueError("invalid Lnx banke segment: %d" % segment)
 
         if counter >= self._segment_size:
-            ParseFatalException("invalid Lnx segment counter: %d" % counter)
+            raise ValueError("invalid Lnx segment counter: %d" % counter)
 
         base_address = self._calculate_address(self._base_segment, self._base_counter)
         check_address = self._calculate_address(segment, counter)
 
         if (check_address - base_address) >= self._max_size:
-            return ParseFatalException("overrunning bounds of current #rom.org (maxsize: %d)" % self._max_size)
+            raise RuntimeError("overrunning bounds of current #rom.org (maxsize: %d)" % self._max_size)
 
-    def inc_ptr(self, num_bytes):
+    def __add__(self, num_bytes):
+        self._inc_ptr(num_bytes)
+        return self
+
+    def _inc_ptr(self, num_bytes):
         new_segment = self._cur_segment
         new_counter = self._cur_counter
         
@@ -103,11 +107,14 @@ class RamCursor(object):
     PAGE_SIZE = 256
 
     def __init__(self, page, offset, maxsize):
-        self._base_page = page
-        self._base_offset = offset
-        self._max_size = maxsize
-        self._cur_page = page
-        self._cur_offset = offset
+        self._base_page = int(page)
+        self._base_offset = int(offset)
+        if maxsize is None:
+            self._max_size = maxsize
+        else:
+            self._max_size = int(maxsize)
+        self._cur_page = int(page)
+        self._cur_offset = int(offset)
 
     def get_page(self):
         return self._cur_page
@@ -122,7 +129,9 @@ class RamCursor(object):
         return ((self._cur_page - self._base_page) * self.PAGE_SIZE) + self._cur_offset
 
     def get_free(self):
-        return self._max_size - self.get_size()
+        if self._max_size != None:
+            return self._max_size - self.get_size()
+        return None
 
     def _calculate_address(self, page, offset):
         return (page * self.PAGE_SIZE) + offset
@@ -138,18 +147,23 @@ class RamCursor(object):
 
     def _check_bounds(self, page, offset):
         if page > 255:
-            ParseFatalException("invalid Lynx page: %d" % page)
+            raise ValueError("invalid Lynx page: %d" % page)
 
         if offset >= self.PAGE_SIZE:
-            ParseFatalException("invalid Lynx offset: %d" % offset)
+            raise ValueError("invalid Lynx offset: %d" % offset)
 
-        base_address = self._calculate_address(self._base_page, self._base_offset)
-        check_address = self._calculate_address(page, offset)
+        if self._max_size != None:
+            base_address = self._calculate_address(self._base_page, self._base_offset)
+            check_address = self._calculate_address(page, offset)
 
-        if (check_address - base_address) >= self._max_size:
-            return ParseFatalException("overrunning bounds of current #ram.org (maxsize: %d)" % self._max_size)
+            if (check_address - base_address) >= self._max_size:
+                raise RuntimeError("overrunning bounds of current #ram.org (maxsize: %d)" % self._max_size)
 
-    def inc_ptr(self, num_bytes):
+    def __add__(self, num_bytes):
+        self._inc_ptr(num_bytes)
+        return self
+
+    def _inc_ptr(self, num_bytes):
         new_page = self._cur_page
         new_offset = self._cur_offset
         

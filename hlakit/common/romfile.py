@@ -62,7 +62,7 @@ class RomFile(object):
         return self._banks[self._cur_bank]
 
     def incbin(self, data):
-        self.get_current_bank().get_current_block().write_bytes(data)
+        self.write_bytes(data)
 
     def set_rom_banksize(self, banksize):
         for v in self._banks.itervalues():

@@ -37,6 +37,7 @@ class Label(Symbol):
     """
    
     NUM = 0
+    MAX_LABEL_LENGTH = 16
 
     @staticmethod
     def reset_state():
@@ -48,7 +49,7 @@ class Label(Symbol):
             Label.NUM += 1
             name = 'HLA%d' % n
         else:
-            name = 'HLA_%s' % name
+            name = str(name)[:self.MAX_LABEL_LENGTH].upper()
         self._fn = fn
         super(Label, self).__init__(name)
 
@@ -59,7 +60,7 @@ class Label(Symbol):
         return self._fn
 
     def __str__(self):
-        return '%s:' % self.get_name()
+        return '%s' % self.get_name()
 
     __repr__ = __str__
 

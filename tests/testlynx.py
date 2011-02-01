@@ -384,7 +384,8 @@ class LynxLnxTester(LynxTester):
         self.assertEquals(len(cc.get_resolver_output()), len(resolver))
         for i in range(0,len(resolver)):
             self.assertTrue(isinstance(cc.get_resolver_output()[i], resolver[i][0]), '%d' % i)
-            self.assertEquals(str(cc.get_resolver_output()[i]), resolver[i][1], '%d' % i)
+            self.assertEquals(str(cc.get_resolver_output()[i]), resolver[i][1], 
+                                  '%d: %s != %s' % (i, str(cc.get_resolver_output()[i]), resolver[i][1]))
 
     def testBasicLnxHeader(self):
         lnx = Lnx()
@@ -525,7 +526,9 @@ jmp $FB00
         self.assertEquals(len(pp_tokens), len(expected_pp_tokens))
         for i in range(0, len(expected_pp_tokens)):
             self.assertTrue(isinstance(pp_tokens[i], expected_pp_tokens[i][0]))
-            self.assertEqual(str(pp_tokens[i]), expected_pp_tokens[i][1], 'token %d' % i)
+            self.assertEqual(str(pp_tokens[i]), expected_pp_tokens[i][1], 
+                                 'token %d: %s != %s' % (i, str(pp_tokens[1]), 
+                                 expected_pp_tokens[i][1]))
 
         # COMPILER PASS
         scanner = [
@@ -608,7 +611,7 @@ jmp $FB00
             (Variable, "byte MIKEY_GPIO :$FD8B"),
             (Variable, "byte MIKEY_SERIAL_CONTROL :$FD8C"),
             (Variable, "byte MIKEY_MEMORY_MAP_CONTROL :$FFF9"),
-            (Label, "HLA_micro_loader:"),
+            (Label, "MICRO_LOADER"),
             (InstructionLine, "lda #0"),
             (InstructionLine, "sta $FFF9"),
             (InstructionLine, "lda #%00010011"),
@@ -618,7 +621,7 @@ jmp $FB00
             (InstructionLine, "lda #%00001000"),
             (InstructionLine, "sta $FD8B"),
             (InstructionLine, "ldx #0"),
-            (Label, "HLA0:"),
+            (Label, "HLA0"),
             (InstructionLine, "lda $FCB2"),
             (InstructionLine, "sta $FB00,x"),
             (InstructionLine, "inx"),
@@ -634,27 +637,30 @@ jmp $FB00
 
         # GENERATOR PASS
         expected_listing = \
-"""B SG CNT ADDR    LBL                  00 00 00    CODE
-0 00 000 0000                                     .org $0200
-0 00 000 0200    HLA_micro_loader:    a9 00       lda #0
-0 00 002 0202                         8d f9 ff    sta $FFF9
-0 00 005 0205                         a9 13       lda #%00010011
-0 00 007 0207                         8d 8a fd    sta $FD8A
-0 00 00a 020a                         a9 04       lda #%00000100
-0 00 00c 020c                         8d 8c fd    sta $FD8C
-0 00 00f 020f                         a9 08       lda #%00001000
-0 00 011 0211                         8d 8b fd    sta $FD8B
-0 00 014 0214                         a2 00       ldx #0
-0 00 016 0216                HLA0:    ad b2 fc    lda $FCB2
-0 00 019 0219                         9d 00 fb    sta $FB00,x
-0 00 01c 021c                         e8          inx
-0 00 01d 021d                         d0 f7       bne -9
-0 00 01f 021f                         4c 00 fb    jmp $FB00
 """
+BA SG CNT ADDR               LABELS    00 00 00    CODE
+00 00 000 0000                                     .org $0200
+00 00 000 0200        MICRO_LOADER:    A9 00       lda #0
+00 00 002 0202                         8D F9 FF    sta $FFF9
+00 00 005 0205                         A9 13       lda #%00010011
+00 00 007 0207                         8D 8A FD    sta $FD8A
+00 00 00A 020A                         A9 04       lda #%00000100
+00 00 00C 020C                         8D 8C FD    sta $FD8C
+00 00 00F 020F                         A9 08       lda #%00001000
+00 00 011 0211                         8D 8B FD    sta $FD8B
+00 00 014 0214                         A2 00       ldx #0
+00 00 016 0216                HLA0:    AD B2 FC    lda $FCB2
+00 00 019 0219                         9D 00 FB    sta $FB00,x
+00 00 01C 021C                         E8          inx
+00 00 01D 021D                         D0 F7       bne *-9
+00 00 01F 021F                         4C 00 FB    jmp $FB00
+00 00 022 0222                                     .end
+"""
+
         gen = Session().generator()
 
         # build the rom
-        lnx = gen.build_rom(cc.get_output()[0:17])
+        lnx = gen.build_rom(cc.get_output()[0:33])
 
         # check the romfile settings
         romfile = gen.romfile()
@@ -674,15 +680,10 @@ jmp $FB00
         self.assertEquals(romfile.get_padding(), 0)
 
         # rom.org checks
-        self.assertEquals(romfile.get_current_bank().get_current_org(), 0)
-        self.assertEquals(romfile.get_current_bank().get_current_addr(), 0)
+        self.assertEquals(romfile.get_current_bank().get_current_org(), 0x0000)
+        self.assertEquals(romfile.get_current_bank().get_current_addr(), 0x0022)
         self.assertEquals(romfile.get_current_bank().get_current_maxsize(), 0x100)
         self.assertTrue(isinstance(romfile.get_current_bank().get_current_block(), Buffer))
-
-        # ram.org checks
-        self.assertEquals(romfile.get_cur_ram_addr(), 0x0200)
-        self.assertEquals(romfile.get_cur_ram_page(), 0x02)
-        self.assertEquals(romfile.get_cur_ram_offset(), 0x00)
 
         # variable checks
         st = SymbolTable()
@@ -697,11 +698,16 @@ jmp $FB00
             self.assertTrue(isinstance(v, Variable))
             self.assertEquals(v.get_address(), a)
 
-        # the labels are being assigned to the global scope by the compilers
-        # which specify the scope as __global__ when generating the conditional
-        # blocks.  this needs to be switched so that they use the current scope
+        lbl = st.lookup_symbol('MICRO_LOADER', '__global__.DummyFile.micro_loader')
+        self.assertTrue(isinstance(lbl, Label))
+        self.assertEquals(lbl.get_address(), 0x0200)
 
-        #self.assertEquals(expected_listing, lnx.get_debug_listing())
+        lbl = st.lookup_symbol('HLA0', '__global__.DummyFile.micro_loader.DO_WHILE0')
+        self.assertTrue(isinstance(lbl, Label))
+        self.assertEquals(lbl.get_address(), 0x0216)
+
+        print lnx.get_debug_listing()
+        self.assertEquals(expected_listing, lnx.get_debug_listing())
 
         # save the rom
         #outf = StringIO()

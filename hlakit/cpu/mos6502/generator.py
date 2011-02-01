@@ -40,12 +40,10 @@ class Generator(CommonGenerator):
         operand = line.get_operand()
 
         # get the bytes for the opcode and operand
-        bytes = []
-        bytes.append(opcode.emit(operand.get_mode()))
-        bytes.extend(operand.emit(romfile))
+        bytes = line.generate(romfile.get_cur_ram_addr())
 
         # add the bytes to the romfile
-        romfile.emit(bytes, str(line))
+        romfile.write_bytes(bytes, str(line))
 
     def _process_token(self, token):
 
@@ -66,7 +64,8 @@ class Generator(CommonGenerator):
             return (None, 0)
         
         elif isinstance(token, InstructionLine):
-            return token.generate()
+            self._process_instruction_line(token)
+            return (None, 0)
         
         elif isinstance(token, ConditionalDecl):
             import pdb; pdb.set_trace()
