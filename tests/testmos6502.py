@@ -690,14 +690,14 @@ class MOS6502CompilerTester(MOS6502Tester):
 
                 while (nonzero) 
                 {
-                    bmi div_done_remainder
+                    bmi div_remainder
                     inx
                     sec
                     sbc dest
                 }
 
                 jmp div_done
-            div_done_remainder:
+            div_remainder:
                 dex
             div_done:
                 stx dest
@@ -711,13 +711,13 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, "lda amount"),
             (ConditionalDecl, "while(['nonzero'])"),
             (ScopeBegin, "{"),
-            (InstructionLine, "bmi div_done_remainder"),
+            (InstructionLine, "bmi div_remainder"),
             (InstructionLine, "inx"),
             (InstructionLine, "sec"),
             (InstructionLine, "sbc dest"),
             (ScopeEnd, "}"),
             (InstructionLine, "jmp div_done"),
-            (Label, "DIV_DONE_REMAINDER"),
+            (Label, "DIV_REMAINDER"),
             (InstructionLine, "dex"),
             (Label, "DIV_DONE"),
             (InstructionLine, "stx dest"),
@@ -733,13 +733,13 @@ class MOS6502CompilerTester(MOS6502Tester):
             (InstructionLine, "lda amount"),
             (Label, "HLA0"),
             (InstructionLine, "bne HLA1"),
-            (InstructionLine, "bmi div_done_remainder"),
+            (InstructionLine, "bmi div_remainder"),
             (InstructionLine, "inx"),
             (InstructionLine, "sec"),
             (InstructionLine, "sbc dest"),
             (Label, "HLA1"),
             (InstructionLine, "jmp div_done"),
-            (Label, "DIV_DONE_REMAINDER"),
+            (Label, "DIV_REMAINDER"),
             (InstructionLine, "dex"),
             (Label, "DIV_DONE"),
             (InstructionLine, "stx dest"),
