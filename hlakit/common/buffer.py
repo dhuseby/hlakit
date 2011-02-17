@@ -178,7 +178,11 @@ class Buffer(object):
                 end = self._current_write + len(bytes)
 
         # copy the data into place
-        self._buffer[start:end] = bytes[0:(end - start)]
+        for i in range(0, (end - start)):
+            self._buffer[start + i] = pack("B", bytes[i])
+
+        # update the current write location
+        self._current_write += (end - start)
 
         # return how many bytes where copied
         return (end - start)

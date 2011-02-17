@@ -1496,7 +1496,6 @@ inline neg_16(number)
     sta number+1
 }
 
-
 /******************************************************************************
  * number++
  * number: Memory location of 16bit variable
@@ -1506,7 +1505,8 @@ inline inc_16(number)
     inc number+0
     if (zero)
         inc number+1
-    }
+}
+
 /******************************************************************************
  * if(number < 0xFFFF) number++
  * number: Memory location of 16bit variable

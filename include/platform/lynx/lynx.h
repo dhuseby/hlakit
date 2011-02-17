@@ -128,7 +128,7 @@ byte MIKEY_MEMORY_MAP_CONTROL   :$FFF9
  * for the address counter, so after setting the cart segment address the
  * address counter will always be 0.
  */
-inline set_cart_segment_adress(addr)
+inline set_cart_segment_address(addr)
 {
     // put the address in the accumulator
     lda #addr

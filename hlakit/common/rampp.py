@@ -51,7 +51,7 @@ class RamOrg(object):
         if not isinstance(address, NumericValue):
             if not pp.has_symbol(address):
                 raise ParseFatalException('unknown preprocessor symbol: %s' % address)
-            address = pp.get_symbol(address)
+            address = NumericValue(pp.get_symbol(address))
 
         maxsize = None
         if 'maxsize' in tokens.keys():

@@ -200,6 +200,7 @@ class Operand(CommonOperand):
             return []
 
         elif self.get_mode() == Operand.IMM:
+            import pdb; pdb.set_trace()
             return [ int(self._value) ]
 
         elif self.get_mode() == Operand.REL:

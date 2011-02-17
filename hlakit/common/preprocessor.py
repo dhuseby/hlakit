@@ -78,8 +78,21 @@ class Preprocessor(object):
             # add in comment ignoring
             self._parser.ignore(cStyleComment | cppStyleComment)
 
+        def _get_line(self, lineno):
+            lines = self._file.getvalue().split('\n')
+            return lines[lineno]
+
+        def _output_parse_exception(self, p):
+            line = self._get_line(p.lineno-1)
+            print "\n%s" % line
+            print "%s^" % (' ' * p.col)
+
         def parse(self):
-            tokens = self._parser.parseFile(self._file, parseAll=True)
+            try:
+                tokens = self._parser.parseFile(self._file, parseAll=True)
+            except ParseException, p:
+                self._output_parse_exception(p)
+                raise Exception('Unknown token')
             return tokens
 
         def get_file_path(self):

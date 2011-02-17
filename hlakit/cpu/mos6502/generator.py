@@ -43,7 +43,7 @@ class Generator(CommonGenerator):
         bytes = line.generate(romfile.get_cur_ram_addr())
 
         # add the bytes to the romfile
-        romfile.write_bytes(bytes, str(line))
+        romfile.write_bytes(bytes, str(line), str(line.get_fn()))
 
     def _process_token(self, token):
 

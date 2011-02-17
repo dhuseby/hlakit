@@ -46,6 +46,7 @@ class ListingLine(object):
         self._addr = addr
         self._label = None
         self._code = None
+        self._fn = None
         self._bytes = []
 
     def set_org(self, addr):
@@ -56,6 +57,9 @@ class ListingLine(object):
 
     def set_code(self, code):
         self._code = str(code)
+
+    def set_fn(self, fn):
+        self._fn = str(fn)
 
     def set_bytes(self, bytes):
         self._bytes = bytes
@@ -85,7 +89,14 @@ class ListingLine(object):
             s += hex(self._bytes[1])[2:].zfill(2).upper() + ' '
             s += hex(self._bytes[2])[2:].zfill(2).upper() + '    '
 
-        s += self._code
+        if self._code != None:
+            s += self._code + (' ' * (16 - len(self._code)))
+        else:
+            s += ' ' * 16
+        
+        if self._fn != None:
+            s += self._fn
+        
         return s
 
     __repr__ = __str__
@@ -165,6 +176,9 @@ class Lnx(MOS6502RomFile):
 
         # listing lines
         self._listing = []
+
+        # the loader function name
+        self._loader_fn = None
 
         # variable location pointer
         self._next_variable_slot = 0
@@ -317,7 +331,7 @@ class Lnx(MOS6502RomFile):
     def set_current_label(self, lbl):
         self._cur_label = str(lbl)
 
-    def write_bytes(self, bytes, line):
+    def write_bytes(self, bytes, line, fn=None):
         if not isinstance(bytes, list):
             raise ValueError("bytes parameter must be an array of bytes")
 
@@ -341,6 +355,9 @@ class Lnx(MOS6502RomFile):
 
         # add the line
         lline.set_code(line)
+
+        # add the fn
+        lline.set_fn(fn)
 
         # add it to the listing
         self._listing.append(lline)
@@ -441,8 +458,8 @@ class Lnx(MOS6502RomFile):
     def get_rotation(self):
         return self._rotation
 
-
     def set_loader(self, loader):
+        print "setting loader to: %s" % str(loader)
         self._loader_fn = str(loader)
 
     def get_loader(self):
@@ -499,31 +516,27 @@ class Lnx(MOS6502RomFile):
     def _unpack_banks(self, inf):
         if self._version == 1:
             # load bank 0
-            banksize = 256 * self._segment_size_bank0
-            b = Buffer(0, banksize)
+            b = LnxRomFileBank(0, segment_size=self._segment_size_bank0)
             b.load(inf)
             self._banks[0] = b
 
             # load bank 1 if needed
             if self._segment_size_bank1 > 0:
-                banksize = 256 * self._segment_size_bank1
-                b = Buffer(0, banksize)
+                b = LnxRomFileBank(1, segment_size=self._segment_size_bank1)
                 b.load(inf)
                 self._banks[1] = b
 
         elif self._version == 2:
             # load the bank 0 banks
             for i in range(0, self._num_banks):
-                banksize = 256 * 2048
-                b = Buffer(0, banksize)
+                b = LnxRomFileBank(i, segment_size=VERSION_2_SEGMENT_SIZE)
                 b.load(inf)
                 self._banks[i] = b
 
             # load the bank 1 banks if needed
             if self._use_cart_strobe:
                 for i in range(0, self._num_banks):
-                    banksize = 256 * 2048
-                    b = Buffer(0, banksize)
+                    b = LnxRomFileBank(i, segment_size=VERSION_2_SEGMENT_SIZE)
                     b.load(inf)
                     self._banks[self._num_banks + i] = b
 
@@ -622,9 +635,20 @@ class Lnx(MOS6502RomFile):
 
 
     def get_debug_listing(self):
-        s = '\nBA SG CNT ADDR               LABELS    00 00 00    CODE\n'
+        s = '\nBA SG CNT ADDR               LABELS    00 00 00    CODE            FN\n'
         for l in self._listing:
             s += str(l) + '\n'
         return s
+
+    def get_debug_str(self):
+        s = ''
+        for (k,v) in self._banks.iteritems():
+            s += "Bank %s\n" % k
+            s += v.get_debug_str()
+        if self._cursor != None:
+            s += "Ram Cusor:\n"
+            s += self._cursor.get_debug_str()
+        return s
+
 
 

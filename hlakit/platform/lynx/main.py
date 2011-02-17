@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -27,33 +27,46 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from hlakit.cpu.mos6502.preprocessor import Preprocessor as MOS6502Preprocessor
-from loader import LynxLoader
-from main import LynxMain
-from lnx import Lnx
-from lnxsetting import LnxSetting
-from rompp import LynxRomOrg
+from pyparsing import *
+from hlakit.common.session import Session
 
-class Preprocessor(MOS6502Preprocessor):
+class LynxMain(object):
+    """
+    This defines the rules for parsing #lynx.main fn line
+    """
 
     @classmethod
-    def first_exprs(klass):
-        e = []
+    def parse(klass, pstring, location, tokens):
+        pp = Session().preprocessor()
 
-        # start with the first base preprocessor rules 
-        e.extend(MOS6502Preprocessor.first_exprs())
+        if pp.ignore():
+            return []
 
-        # add in Lynx specific preprocessor parse rules
-        e.append(('lynxloader', LynxLoader.exprs()))
-        e.append(('lynxmain', LynxMain.exprs()))
-        e.append(('lnxsetting', LnxSetting.exprs()))
+        if 'fn' not in tokens.keys():
+            raise ParseFatalException('missing #lynx.main parameter')
 
-        # replace the original RomOrg with the LynxRomOrg
-        for i in range(0, len(e)):
-            if e[i][0] == 'romorg':
-                e[i] = ('romorg', LynxRomOrg.exprs())
-        
-        return e
+        return klass(tokens.fn)
 
+    @classmethod
+    def exprs(klass):
+        kw = Keyword('#lynx.main')
+        fn = Word(alphas + '_', alphanums + '_').setResultsName('fn')
+        expr = Suppress(kw) + \
+               fn + \
+               Suppress(LineEnd())
+        expr.setParseAction(klass.parse)
+
+        return expr
+
+    def __init__(self, fn):
+        self._fn = fn
+
+    def get_fn(self):
+        return self._fn
+
+    def __str__(self):
+        return 'LynxMain(%s)' % self._fn
+
+    __repr__ = __str__
 
 

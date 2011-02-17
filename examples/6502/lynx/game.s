@@ -42,8 +42,8 @@
 #include <lynx.h>
 
 // make sure we're in bank 0 and set padding to 0
-#lynx.rom.bank          0
-#lynx.rom.padding       0
+#rom.bank				0
+#setpad					0
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@
 // set the rom address: segment=0, counter=0, maxsize=256 the 256 bytes means 
 // that our loader can be decrypted in a single call to the RSALoad system rom 
 // function.
-#lynx.rom.org           0,0,256
+#rom.org				0,0,256
 
 // include the micro loader code
 #include "micro_loader.s"
@@ -70,7 +70,7 @@
 // the micro loader assumes the secondary loader is in the 256 immediately 
 // following the encrypted micro loader and is no more than 256 bytes long.
 // the micro loader will load this function into upper memory and jump to it.
-#lynx.rom.org           0,0x0100,256
+#rom.org				0,0x0100,256
 /*
  * Include the secondary loader code so that it is immediately following the
  * micro loader on the ROM.  This is necessary because the micro loader doesn't
@@ -79,7 +79,7 @@
  */
 #include "secondary_loader.s"
 
-#lynx.rom.end
+#rom.end
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@
 //
 // we use the 512 bytes after the 1st and 2nd stage loader to store startup
 // values that the secondary loader and the main game executable use.
-#lynx.rom.org           0,0x200,512
+#rom.org				0,0x200,512
 
 // each startup variable is defined using a byte to specify where it should
 // get loaded into the zero page, and the value that should get loaded there
@@ -116,20 +116,20 @@ byte    CART_CHUNKS_PER_SEG     = $08
 byte    END_ADDR                = $00
 byte    END                     = $00
 
-#lynx.rom.end
+#rom.end
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN EXECUTABLE SEGMENT
 //
 // set the rom address to the second segment
-#lynx.rom.org           1,0
+#rom.org				1,0
 
 // include the main game code.
 #include "main.s"
 
 // TODO: hook into asset compilation system here.
 
-#lynx.rom.end
+#rom.end
 
 

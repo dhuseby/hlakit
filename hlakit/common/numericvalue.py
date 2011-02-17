@@ -92,8 +92,24 @@ class NumericValue(object):
         number_.setParseAction(klass.parse)
         return number_
 
-    def __init__(self, token, value):
+    def __init__(self, token, value=None):
+        if token is None:
+            raise ValueError('NumericValue parameter 1 cannot be None')
+
         self._token = token
+        if value is None:
+            # try to parse the value
+            if token[0] == '$':
+                value = int(token[1:], 16)
+            elif token[0] == '%':
+                value = int(token[1:], 2)
+            elif token[0:2].lower() == '0x':
+                value = int(token[2:], 16)
+            elif token[-1].upper() == 'K':
+                value = int(token[0:-1], 10) * 1024
+            else:
+                value = int(token, 10)
+
         self._value = value
 
     def resolve(self):

@@ -33,9 +33,10 @@ from hlakit.platform.lynx.cursors import RomCursor
 
 class RomFileBank(object):
 
-    def __init__(self, segment, maxsize=0, type_=None, padding=0, segment_size=0):
+    def __init__(self, bank, maxsize=0, type_=None, padding=0, segment_size=0):
         #NOTE: maxsize is ignored
 
+        self._bank = bank
         self._segments = []
         self._cursor = None
         self._type = type_
@@ -65,6 +66,9 @@ class RomFileBank(object):
     def get_current_block(self):
         self._check_segment()
         return self._segments[self._cursor.get_segment()]
+
+    def get_bank(self):
+        return self._bank
 
     def get_size(self):
         # NOTE: just adds up the amount of data written into each block
@@ -140,4 +144,12 @@ class RomFileBank(object):
             if start == len(bytes):
                 break;
 
-
+    def get_debug_str(self):
+        s = "\tNum Segments: %d\n" % len(self._segments)
+        s += "\tType: %s\n" % self._type
+        s += "\tPadding: %s\n" % self._padding
+        s += "\tSegment Size: %s\n" % self._segment_size
+        if self._cursor != None:
+            s += "\tCurrent Pos:\n"
+            s += self._cursor.get_debug_str()
+        return s

@@ -101,6 +101,15 @@ class RomCursor(object):
         self._cur_segment = new_segment
         self._cur_counter = new_counter
 
+    def get_debug_str(self):
+        s = "\t\tBase Segment: %d\n" % self._base_segment
+        s += "\t\tBase Counter: %d\n" % self._base_counter
+        s += "\t\tSegment Size: %d\n" % self._segment_size
+        s += "\t\tMax Size: %d\n" % self._max_size
+        s += "\t\tCur Segment: %d\n" % self._cur_segment
+        s += "\t\tCur Counter: %d\n" % self._cur_counter
+        return s
+
 
 class RamCursor(object):
 
@@ -182,6 +191,14 @@ class RamCursor(object):
         # update cursor location
         self._cur_page = new_page
         self._cur_offset = new_offset
+
+    def get_debug_str(self):
+        s = "\tBase Page: %d\n" % self._base_page
+        s += "\tBase Offset: %d\n" % self._base_offset
+        s += "\tMax Size: %d\n" % self._max_size
+        s += "\tCur Page: %d\n" % self._cur_page
+        s += "\tCur Offset: %d\n" % self._cur_offset
+        return s
 
 
 
