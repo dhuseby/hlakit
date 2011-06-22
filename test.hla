@@ -1,0 +1,79 @@
+.
++
+-
+*
+/
+~
+!
+%
+>
+<
+=
+&
+^
+|
+"foo\" bar"
+"blah blah"
+12345
+12345K
+0xaF234CDd
+$Fbb0
+%01101000
+>>
+<<
+>=
+<=
+!=
+==
+blah
+byte
+char
+bool
+word
+dword
+pointer
+struct
+typedef
+// a comment in the middle
+shared
+noreturn
+return
+/* a
+ * multiline
+ * comment */
+inline
+function
+interrupt
+interrupt.start
+lo
+hi
+nylo
+nyhi
+sizeof
+
+#sizeof(foo)
+
+byte oamaddrs[] = {$00*4, $08*4, $10*4, $18*4}
+
+noreturn function main()
+{
+}
+
+lda scrollTo.flags
+if(set) 
+{
+    compare_16_16(screen.y, scrollTo.y)
+    if(not equal) 
+    {
+        GetScrollTODiv(screen.y, scrollTo.y)
+        if(carry) 
+        {
+            ScrollUp()
+        } 
+        else 
+        {
+            if(no carry)
+            ScrollDown()
+        }
+    }
+}
