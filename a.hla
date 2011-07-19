@@ -1,0 +1,10 @@
+#define BOO
+#define FOO 1
+#undef BOO
+#define BLAH FOO
+#include "foo.h"
+#ifdef FOO
+#warning "IT WORKS!"
+#else
+#warning "NO IT DOESN'!"
+#endif
