@@ -192,11 +192,31 @@ def t_error(t):
     print "Illegal character '%s'" % t.value[0]
     t.lexer.skip(1)
 
+class InputLine(object):
+    def __init__(self, f, no, s):
+        self._file = f
+        self._pieces = [ (no, s) ]
+
+    def add_piece(self, no, s):
+        self._pieces.append((no, s))
+
+    def __str__(self):
+        s = ''
+        for (no, piece) in self._pieces:
+            s += piece
+        return s
+
+    def __repr__(self):
+        s = self._file + ':\n'
+        for (no, piece) in self._pieces:
+            s += "\t%d: %s\n" % (no, piece)
+        return s
+
 class InputFile(object):
 
-    def __init__(self, ifile):
-        self._ifile = ifile
-        inf = open(ifile, 'r')
+    def __init__(self, f):
+        self._file = f
+        inf = open(f, 'r')
         self._cur_line = 0
         self._lines = inf.readlines()
         inf.close()
@@ -209,7 +229,7 @@ class InputFile(object):
                 return line
 
             # get the current line
-            l = self._lines[self._cur_line]
+            l = InputLine(self._file, self._cur_line, self._lines[self._cur_line]
 
             # strip off slash
             l_strip = l.rstrip()
@@ -235,54 +255,6 @@ class InputFile(object):
 
     def __str__(self):
         return self._ifile
-
-class ASTNode(object):
-
-    def __init__(self, lex_token = None):
-        self._lex_token = lex_token
-
-class ASTValue(ASTNode):
-
-    def __init__(self, value, lex_token = None):
-        self._value = value
-
-    def __getattr__(self, key):
-        return self._value.__getattr__(key)
-
-    def __setattr__(self, key, value):
-        return self._value.__setattr__(key, value)
-
-class ASTInteger(ASTValue):
-
-    def __init__(self, lex_token):
-        assert lex_token.type in ('DECIMAL', 'KILO', 'HEXC', 'HEXS', 'BINARY'), 'Token is not a number value'
-
-        if lex_token.type == 'DECIMAL':
-            # 12345
-            value = int(lex_token.value)
-        elif lex_token.type == 'KILO':
-            # 234K
-            value = int(lex_token.value.strip('Kk')) * 1024
-        elif lex_token.type == 'HEXC':
-            # 0xA5F3
-            value = int(lex_token.value[2:], 16)
-        elif lex_token.type == 'HEXS':
-            # $A5F3
-            value = int(lex_token.value[1:], 16)
-        elif lex_token.type == 'BINARY':
-            # %10110110
-            value = int(lex_token.value[1:], 2)
-
-        super(ASTInteger, self).__init__(value, lex_token)
-
-class ASTString(ASTValue):
-
-    def __init__(self, lex_token):
-        assert lex_token.type == 'STRING'
-
-        value = lex_token.value.strip('"')
-        super(ASTString, self).__init__(value, lex_token)
-
 
 
 class Compiler(object):
