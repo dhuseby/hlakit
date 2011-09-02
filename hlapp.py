@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+from __future__ import generators
 
 """
-Parts of this tool includes software cribbed from the PLY C preprocessor
-example.  That code has the following copyright and free to use under the PLY
-license terms:
+Parts of this tool is software cribbed from the PLY C preprocessor example.
+The code is free to use under the terms of the PLY license as long as I include
+the following copyright statement:
 
 David Beazley (http://www.dabeaz.com)
 Copyright (C) 2007
@@ -39,7 +40,6 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from __future__ import generators
 import copy
 import os.path
 import re
@@ -93,6 +93,7 @@ def t_error(t):
     t.value = t.value[0]
     t.lexer.skip(1)
     return t
+
 
 # ------------------------------------------------------------------
 # Macro object
@@ -377,6 +378,8 @@ class Preprocessor(object):
                     macro.value[i].type = self.t_STRING
                     del macro.value[i-1]
                     macro.str_patch.append((argnum,i-1))
+                    if (i > 1) and macro.value[i-2].value == '##':
+                        i -= 1;  # backup one so that the concatenation happens too
                     continue
                 # Concatenation
                 elif (i > 0 and macro.value[i-1].value == '##'):
@@ -395,6 +398,10 @@ class Preprocessor(object):
                         ((i+1) < len(macro.value)) and (macro.value[i+1].type == self.t_ID) and \
                         (macro.value[i+1].value == macro.vararg):
                     macro.var_comma_patch.append(i-1)
+                elif (i > 0):
+                    macro.patch.append(('c',0,i-1))
+                    del macro.value[i]
+                    continue
             i += 1
         macro.patch.sort(key=lambda x: x[2],reverse=True)
 
@@ -411,7 +418,6 @@ class Preprocessor(object):
         rep = [copy.copy(_x) for _x in macro.value]
 
         # Make string expansion patches.  These do not alter the length of the replacement sequence
-        
         str_expansion = {}
         for argnum, i in macro.str_patch:
             if argnum not in str_expansion:
@@ -434,7 +440,14 @@ class Preprocessor(object):
         for ptype, argnum, i in macro.patch:
             # Concatenation.   Argument is left unexpanded
             if ptype == 'c':
-                rep[i:i+1] = args[argnum]
+                left = rep[i].value
+                if left[-1] == '"':
+                    left = left[:-1]
+                right = rep[i+1].value
+                if right[0] == '"':
+                    right = right[1:]
+                rep[i].value = left + right
+                del rep[i+1]
             # Normal expansion.  Argument is macro expanded first
             elif ptype == 'e':
                 if argnum not in expanded:
@@ -584,7 +597,6 @@ class Preprocessor(object):
     def parsegen(self,input,source=None):
 
         # group lines together
-        import pdb; pdb.set_trace()
         lines = self.group_lines(input)
 
         if not source:
@@ -694,6 +706,14 @@ class Preprocessor(object):
                         enable,iftrigger = ifstack.pop()
                     else:
                         self.error(self.source,dirtokens[0].lineno,"Misplaced #endif")
+                
+                # messages
+                elif name in ('todo', 'warning', 'error', 'fatal'):
+                    if enable:
+                        if len(args):
+                            print "%s: %s" % (name.upper(), args[0].value)
+                        else:
+                            print "%s: %s" % name.upper()
                 else:
                     # Unknown preprocessor directive
                     pass
