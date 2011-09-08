@@ -47,43 +47,168 @@ import sys
 import time
 import ply.lex as lex
 
-tokens = ( 'HLA_ID', 'HLA_INT', 'HLA_STRING', 'HLA_CHAR', 'HLA_WS', 
-           'HLA_COMMENT', 'HLA_HASH', 'HLA_DHASH' )
+preprocessor = {
+    'define':       'PP_DEFINE',
+    'undef':        'PP_UNDEF',
+    'ifdef':        'PP_IFDEF',
+    'ifndef':       'PP_IFNDEF',
+    'else':         'PP_ELSE',
+    'endif':        'PP_ENDIF',
+    'include':      'PP_INCLUDE'
+    }
+
+compiler = {
+    'incbin':       'CP_INCBIN',
+    'todo':         'CP_TODO',
+    'warning':      'CP_WARNING',
+    'error':        'CP_ERROR',
+    'fatal':        'CP_FATAL'
+    }
+
+linker = {
+    'ram':          'LP_RAM',
+    'rom':          'LP_ROM',
+    'org':          'LP_ORG',
+    'end':          'LP_END',
+    'banksize':     'LP_BANKSIZE',
+    'bank':         'LP_BANK',
+    'setpad':       'LP_SET_PAD',
+    'align':        'LP_ALIGN'
+    }
+
+reserved = {
+    'byte':         'TYPE',
+    'char':         'TYPE',
+    'bool':         'TYPE',
+    'word':         'TYPE',
+    'dword':        'TYPE',
+    'pointer':      'TYPE',
+    'struct':       'STRUCT',
+    'typedef':      'TYPEDEF',
+    'shared':       'SHARED',
+    'noreturn':     'NORETURN',
+    'return':       'RETURN',
+    'inline':       'INLINE',
+    'function':     'FUNCTION',
+    'interrupt':    'INTERRUPT',
+    'lo':           'LO',
+    'hi':           'HI',
+    'sizeof':       'SIZEOF',
+    'if':           'IF',
+    'else':         'ELSE',
+    'while':        'WHILE',
+    'do':           'DO',
+    'forever':      'FOREVER',
+    'switch':       'SWITCH',
+    'case':         'CASE',
+    'default':      'DEFAULT',
+    'reg':          'REG',
+    'near':         'NEAR',
+    'far':          'FAR'
+    }
+
+conditionals = {
+    'is':           'IS',
+    'has':          'HAS',
+    'no':           'NO',
+    'not':          'NOT',
+    'plus' :        'POSITIVE',
+    'positive':     'POSITIVE',
+    'minus':        'NEGATIVE',
+    'negative':     'NEGATIVE',
+    'greater':      'GREATER',
+    'less':         'LESS',
+    'overflow':     'OVERFLOW',
+    'carry':        'CARRY',
+    'nonzero':      'TRUE',
+    'set':          'TRUE',
+    'true':         'TRUE',
+    '1':            'TRUE',
+    'zero':         'FALSE',
+    'unset':        'FALSE',
+    'false':        'FALSE',
+    '0':            'FALSE',
+    'clear':        'FALSE',
+    'equal':        'EQUAL'
+    }
+
+tokens = [  'STRING', 
+            'DECIMAL', 
+            'KILO', 
+            'HEXC', 
+            'HEXS', 
+            'BINARY', 
+            'HASH',
+            'DHASH',
+            'RSHIFT',
+            'LSHIFT',
+            'GTE',
+            'LTE',
+            'NE',
+            'EQ',
+            'ID',
+            'WS',
+            'COMMENT' ] \
+            + list(set(preprocessor.values())) \
+            + list(set(compiler.values())) \
+            + list(set(linker.values())) \
+            + list(set(reserved.values())) \
+            + list(set(conditionals.values()))
+
 
 literals = '.+-*/~!%><=&^|{}()[]:,'
 
+# pp hash marks
+t_HASH = r'\#'
+t_DHASH = r'\#\#'
+
+# compilter values and operators
+t_STRING    = r'\"(\\.|[^\"])*\"'
+t_DECIMAL   = r'(0|[1-9][0-9]*)'
+t_KILO      = r'(0|[1-9][0-9]*)[kK]'
+t_HEXC      = r'0x[0-9a-fA-F]+'
+t_HEXS      = r'\$[0-9a-fA-F]+'
+t_BINARY    = r'%[01]+'
+t_RSHIFT    = r'>>'
+t_LSHIFT    = r'<<'
+t_GTE       = r'>='
+t_LTE       = r'<='
+t_NE        = r'!='
+t_EQ        = r'=='
+
 # whitespace handler
-def t_HLA_WS(t):
+def t_WS(t):
     r'\s+'
     t.lexer.lineno += t.value.count("\n")
     return t
 
-# pp hash marks
-t_HLA_HASH = r'\#'
-t_HLA_DHASH = r'\#\#'
-
-# identifiers
-t_HLA_ID = r'[a-zA-Z_][\w]*'
-
-# integer literal
-def t_HLA_INT(t):
-    r'((%[01]+)|(((0x)|(0X)|(\$))([0-9a-fA-F]+))|((\d+)([kK])?))'
+# identifier
+def t_ID(t):
+    r'[a-zA-Z_][\w]*'
+    t.type = preprocessor.get(t.value.lower(), None) # check for preprocessor words
+    if t.type != None:
+        t.value = t.value.lower()
+    else:
+        t.type = compiler.get(t.value.lower(), None) # check for reserved words
+        if t.type != None:
+            t.value = t.value.lower()
+        else:
+            t.type = linker.get(t.value.lower(), None) # check for reserved words
+            if t.type != None:
+                t.value = t.value.lower()
+            else:
+                t.type = reserved.get(t.value.lower(), None) # check for reserved words
+                if t.type != None:
+                    t.value = t.value.lower()
+                else:
+                    t.type = conditionals.get(t.value.lower(), None) # check for conditionals
+                    if t.type != None:
+                        t.value = t.value.lower()
+                    else:
+                        t.type = 'ID'
     return t
 
-# string literal
-def t_HLA_STRING(t):
-    r'\"([^\\\n]|(\\(.|\n)))*?\"'
-    t.lexer.lineno += t.value.count("\n")
-    return t
-
-# character literal 'c', '\r', '\n', etc
-def t_HLA_CHAR(t):
-    r'\'([^\\\n]|(\\(.|\n)))*?\''
-    t.lexer.lineno += t.value.count("\n")
-    return t
-
-# comment
-def t_HLA_COMMENT(t):
+def t_COMMENT(t):
     r'(/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/)|(//.*)'
     t.lexer.lineno += t.value.count("\n")
     return t
@@ -93,6 +218,46 @@ def t_error(t):
     t.value = t.value[0]
     t.lexer.skip(1)
     return t
+
+# ------------------------------------------------------------------
+# Scope object
+#
+# This object holds a stack of contexts containing k/v pairs
+# ------------------------------------------------------------------
+
+class Scope(object):
+    def __init__(self, name, initial={}):
+        self._ctxs = [ initial ]
+        self._names = [ name ]
+
+    def push(self, name, initial={}):
+        self._ctxs.append( initial )
+        self._names.append( name )
+
+    def pop(self):
+        self._ctxs.pop()
+        self._names.pop()
+
+    def name(self):
+        return self._names[-1]
+
+    def names(self):
+        return self._names
+
+    def scope(self):
+        return ' => '.join(self._names)
+
+    def __getitem__(self, key):
+        return self._ctxs[-1].__getitem__(key)
+
+    def __setitem__(self, key, value):
+        return self._ctxs[-1].__setitem__(key, value)
+    
+    def __delitem__(self, key):
+        return self._ctxs[-1].__delitem__(key)
+
+    def keys(self):
+        return self._ctxs[-1].keys()
 
 
 # ------------------------------------------------------------------
@@ -122,13 +287,14 @@ class Macro(object):
         self.source = None
 
 # ------------------------------------------------------------------
-# Preprocessor object
+# FrontEnd object
 #
-# Object representing a preprocessor.  Contains macro definitions,
-# include directories, and other information
+# Object representing a compiler.  Contains macro definitions,
+# include directories, and other information and handles lexing and
+# parsing.
 # ------------------------------------------------------------------
 
-class Preprocessor(object):
+class FrontEnd(object):
     def __init__(self,lexer=None):
         if lexer is None:
             lexer = lex.lexer
@@ -265,14 +431,18 @@ class Preprocessor(object):
         lex.lineno = 1
 
         current_line = []
+        current_line_pos = 0;
         while True:
             tok = lex.token()
             if not tok:
                 break
+            tok.linepos = current_line_pos
+            current_line_pos += len(tok.value)
             current_line.append(tok)
             if tok.type in self.t_WS and '\n' in tok.value:
                 yield current_line
                 current_line = []
+                current_line_pos = 0
 
         if current_line:
             yield current_line
@@ -486,6 +656,7 @@ class Preprocessor(object):
                         ex = self.expand_macros([copy.copy(_x) for _x in m.value],expanded)
                         for e in ex:
                             e.lineno = t.lineno
+                            e.linepos = t.linepos
                         tokens[i:i+1] = ex
                         i += len(ex)
                     else:
@@ -526,6 +697,15 @@ class Preprocessor(object):
                     t.value = self.t_INTEGER_TYPE(t.lineno)
                 
             i += 1
+
+        # fix up line positions
+        i = 0
+        cur_line_pos = 0
+        while i < len(tokens):
+            tokens[i].linepos = cur_line_pos
+            cur_line_pos += len(tokens[i].value)
+            i += 1
+
         return tokens
 
     # ----------------------------------------------------------------------    
@@ -715,8 +895,9 @@ class Preprocessor(object):
                         else:
                             print "%s: %s" % name.upper()
                 else:
-                    # Unknown preprocessor directive
-                    pass
+                    # Unknown preprocessor directive, pass it along
+                    if enable:
+                        chunk.extend(x)
 
             else:
                 # Normal text
@@ -888,14 +1069,18 @@ if __name__ == '__main__':
     lexer = lex.lex()
 
     # Run a preprocessor
-    f = open(sys.argv[1])
-    input = f.read()
+    fin = open(sys.argv[1])
+    input = fin.read()
+    fout = open(sys.argv[1] + ".pp", "w+")
 
-    p = Preprocessor(lexer)
+    p = FrontEnd(lexer)
     p.parse(input,sys.argv[1])
     while True:
         tok = p.token()
         if not tok: break
-        print(p.source, tok)
 
+        print "%s:%s:%s:%s:%s" % (p.source, tok.lineno, tok.linepos, tok.type, repr(tok.value))
+
+    fin.close()
+    fout.close()
 
