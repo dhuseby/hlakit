@@ -200,6 +200,11 @@ class InputLine(object):
     def add_piece(self, no, s):
         self._pieces.append((no, s))
 
+    def rstrip(self, chars):
+        
+
+        return self.__str__().rstrip()
+
     def __str__(self):
         s = ''
         for (no, piece) in self._pieces:
@@ -229,7 +234,7 @@ class InputFile(object):
                 return line
 
             # get the current line
-            l = InputLine(self._file, self._cur_line, self._lines[self._cur_line]
+            l = InputLine(self._file, self._cur_line, self._lines[self._cur_line])
 
             # strip off slash
             l_strip = l.rstrip()
