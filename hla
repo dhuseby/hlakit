@@ -39,11 +39,10 @@ def main():
     try:
         session = Session()
         session.parse_args(sys.argv[1:])
+        session.build()
     except CommandLineError, e:
-        print >> sys.stderr, 'ERROR: %s' % e
         return 0
 
-    session.build()
     return 1
 
 if __name__ == "__main__":

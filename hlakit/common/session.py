@@ -107,13 +107,12 @@ class Session(object):
         obj.__dict__ = cls._shared_state
         return obj
 
-    def parse_args(self, args=[]):
-        self._options = None
-        self._args = None
-        self._target = None
+    def _build_parser(self):
+        self._parser = None
 
         # parse the command line options
-        parser = optparse.OptionParser(version = "%prog " + HLAKIT_VERSION)
+        usage = "usage: %prog [options] file1 file2"
+        parser = optparse.OptionParser(usage=usage, version = "%prog " + HLAKIT_VERSION)
         parser.add_option('--cpu', default='', dest='cpu',
             help='specifying the cpu activates the assembly opcodes for the given cpu.\n'
                 'you probably want to specify a platform instead if you are coding for\n'
@@ -133,13 +132,23 @@ class Session(object):
         parser.add_option('-o', dest='output_file', default=None,
             help='specify the name of the output file')
 
+        self._parser = parser
 
-        (self._options, self._args) = parser.parse_args(args)
+
+    def _initialize_target(self, args):
+        self._options = None
+        self._args = None
+        self._target = None
+
+        # actually parse the args
+        (self._options, self._args) = self.get_parser().parse_args(args)
 
         # make sure that if the platform is 'generic' that they specified a cpu
         if (self._options.platform == 'generic') and (self._options.cpu == ''):
-            raise CommandLineError("With the generic platform you must specify " \
-                                   "a CPU with the --cpu switch\n")
+            raise CommandLineError('With the generic platform you must specify ' \
+                                   'a CPU with the --cpu switch.\n\n' \
+                                   'The supported CPUs are:\n' \
+                                   '\t%s\n' % '\n\t'.join(self.CPU))
 
         # if they specified a platform, then look up the module
         # and class name and instantiate an instance of the target
@@ -147,7 +156,7 @@ class Session(object):
 
         if not self.PLATFORM.has_key(platform):
             raise CommandLineError('You specified an unknown platform name.\n\n' \
-                                   'The supported platform(s) are:\n' \
+                                   'The supported platforms are:\n' \
                                    '\t%s\n' % '\n\t'.join(self.PLATFORM))
 
         # get the platform data
@@ -159,7 +168,18 @@ class Session(object):
         # initialize the target
         self._target = platform_ctor(self._options.cpu.lower())
 
+    def parse_args(self, args=[]):
+        try:
+            self._build_parser()
+            self._initialize_target(args)
+        except CommandLineError, e:
+            print >> sys.stderr, 'ERROR: %s' % e
+            p = self.get_parser()
+            if p:
+                p.print_help()
+            raise e
 
+        
     def get_cpu_spec(self, cpu):
         cpus = getattr(self, 'CPU', None)
         if cpus and cpus.has_key(cpu):
@@ -169,15 +189,21 @@ class Session(object):
     def get_args(self):
         return getattr(self, '_args', [])
 
+    def get_parser(self):
+        return getattr(self, '_parser', None)
+
     def lexer(self):
         target = getattr(self, '_target', None)
         if target:
             return lex.lex(module=target.lexer())
         return None
 
-    def build(self):
-
+    def _build(self):
         lexer = self.lexer()
+
+        files = self.get_args()
+        if len(files) == 0:
+            raise CommandLineError('No files to compile\n')
 
         for f in self.get_args():
             # Run a preprocessor
@@ -195,4 +221,15 @@ class Session(object):
                 print "%s:%s:%s:%s:%s" % (p.source, tok.lineno, tok.linepos, tok.type, repr(tok.value))
             fin.close()
             fout.close()
+
+    def build(self):
+        try:
+            self._build()
+        except CommandLineError, e:
+            print >> sys.stderr, 'ERROR: %s' % e
+            p = self.get_parser()
+            if p:
+                p.print_help()
+            raise e
+
 
