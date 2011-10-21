@@ -1,6 +1,6 @@
 """
 HLAKit
-Copyright (c) 2010 David Huseby. All rights reserved.
+Copyright (c) 2010-2011 David Huseby. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
@@ -27,51 +27,17 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from pyparsing import MatchFirst, CaselessKeyword
-from hlakit.common.target import Target
-from hlakit.common.type_ import Type
-from preprocessor import Preprocessor
-from compiler import Compiler
-from generator import Generator
-from conditionaldecl import ConditionalDecl
-from opcode import Opcode
+from lexer import Lexer
+#from parser import Parser
 
-class MOS6502(Target):
-
-    BASIC_TYPES = [ Type('byte', 1), 
-                    Type('char', 1),
-                    Type('bool', 1),
-                    Type('word', 2),
-                    Type('pointer', 2) ]
+class MOS6502(object):
 
     def __init__(self):
+        self._lexer = Lexer()
+#        self._parser = Parser()
 
-        # init the base class 
-        super(MOS6502, self).__init__()
+    def lexer(self):
+        return self._lexer
 
-    def opcodes(self):
-        return Opcode.exprs()
-
-    def keywords(self):
-        return super(MOS6502, self).keywords()
-
-    def basic_types(self):
-        return self.BASIC_TYPES
-
-    def default_int_type(self):
-        return Type('byte', 1)
-
-    def conditions(self):
-        return MatchFirst([CaselessKeyword(c) for c in ConditionalDecl.CONDITIONS])
-
-    def preprocessor(self):
-        return Preprocessor()
-
-    def compiler(self):
-        return Compiler()
-
-    def generator(self):
-        return Generator()
-
-
-
+#    def parser(self):
+#        return self._parser

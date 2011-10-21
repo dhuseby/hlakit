@@ -1,6 +1,6 @@
 """
 HLAKit
-Copyright (c) 2010 David Huseby. All rights reserved.
+Copyright (c) 2010-2011 David Huseby. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
@@ -27,46 +27,33 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from pyparsing import *
-from hlakit.common.session import Session
+from hlakit.common.session import Session, CommandLineError
 
-class File(object):
-    """
-    This is the base class for all file preprocessor directives
-    """
-    FILE_NAME_CHARS = '0123456789' + \
-                      'abcdefghijklmnopqrstuvwxyz' + \
-                      'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + \
-                      '!"#$%&\\\'()*+,-./:;=?@[]^_`{|}~'
+class Generic(object):
+    
+    def __init__(self, cpu=None):
+        if not cpu:
+            raise CommandLineError("no CPU specified for generic platform")
 
+        cpu_spec = Session().get_cpu_spec(cpu)
+        if not cpu_spec:
+            raise CommandLineError("unknown CPU type: %s" % cpu)
 
-    @classmethod
-    def parse(klass, pstring, location, tokens):
-        pp = Session().preprocessor()
+        # get the platform data
+        cpu_class = cpu_spec['class']
+        cpu_module = 'hlakit.' + cpu_spec['module']
+        cpu_symbols = __import__(cpu_module, fromlist=[cpu_class])
+        cpu_ctor = getattr(cpu_symbols, cpu_class)
 
-        if pp.ignore():
-            return []
+        # initialize the target
+        self._cpu = cpu_ctor()
 
-        path = getattr(tokens, 'literal_path', None)
-        implied = False
-        if not path:
-            path = getattr(tokens, 'implied_path', None)
-            implied = True
+    def lexer(self):
+        return self._cpu.lexer()
+
+    def parser(self):
+        return self._cpu_parser()
+
         
-        return klass._handle_file(path, implied)
 
-    @classmethod
-    def exprs(klass):
-        kw = Keyword(klass._get_keyword())
-        literal_path = quotedString(Word(klass.FILE_NAME_CHARS))
-        literal_path.setParseAction(removeQuotes)
-        literal_path = literal_path.setResultsName('literal_path')
-        implied_path = Suppress(Literal('<')) + \
-                       Word(klass.FILE_NAME_CHARS).setResultsName('implied_path') + \
-                       Suppress(Literal('>'))
-        expr = Suppress(kw) + \
-               Or([literal_path, implied_path]) 
-        expr.setParseAction(klass.parse)
-
-        return expr
 

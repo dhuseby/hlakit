@@ -1,6 +1,6 @@
 """
 HLAKit
-Copyright (c) 2010 David Huseby. All rights reserved.
+Copyright (c) 2010-2011 David Huseby. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
@@ -30,10 +30,10 @@ or implied, of David Huseby.
 import os
 import sys
 import optparse
-from symboltable import SymbolTable
-from codeblock import CodeBlock
+import ply.lex as lex
+from frontend import Macro,FrontEnd
 
-HLAKIT_VERSION = "0.7"
+HLAKIT_VERSION = "0.8"
 
 class CommandLineError(Exception):
     def __init__(self, value):
@@ -53,11 +53,6 @@ class Session(object):
 
     # definitions for supported CPU's 
     CPU = {
-        'generic' : {
-            'module': 'common.target',
-            'class': 'Target',
-            'desc': 'Generic Target'
-        },
         '6502': {
             'module': 'cpu.mos6502', 
             'class': 'MOS6502', 
@@ -80,16 +75,22 @@ class Session(object):
         #}
     }
     PLATFORM = {
+        'generic': {
+            'module': 'platform.generic',
+            'class': 'Generic',
+            'cpu': None,
+            'desc': 'Generic platform, turns off platform-specific features'
+        },
         'nes': {
             'module': 'platform.nes',
             'class': 'NES',
-            'cpu': 'mos6502',
+            'cpu': '6502',
             'desc': 'Nintendo Entertainment System'
         },
         'lynx': {
             'module': 'platform.lynx',
             'class': 'Lynx',
-            'cpu': 'mos6502',
+            'cpu': '6502',
             'desc': 'Atari Lynx Portable System'
         }
         #'gameboy': {
@@ -113,12 +114,12 @@ class Session(object):
 
         # parse the command line options
         parser = optparse.OptionParser(version = "%prog " + HLAKIT_VERSION)
-        parser.add_option('--cpu', default=None, dest='cpu',
+        parser.add_option('--cpu', default='', dest='cpu',
             help='specifying the cpu activates the assembly opcodes for the given cpu.\n'
                 'you probably want to specify a platform instead if you are coding for\n'
                 'a specific platform (e.g. NES).  if you want to just create a generic\n'
                 'binary for a given cpu, then this is the option for you.')
-        parser.add_option('--platform', default=None, dest='platform',
+        parser.add_option('--platform', default='generic', dest='platform',
             help='specifying the platform activates platform specific preprocessor\n'
                  'directives and implies the cpu so you don\'t have to specify the cpu.')
         parser.add_option('-I', '--include', action="append", default=[], dest='include',
@@ -135,264 +136,63 @@ class Session(object):
 
         (self._options, self._args) = parser.parse_args(args)
 
-        # check for required options
-        if (not self._options.platform) and (not self._options.cpu):
-            raise CommandLineError('You must specify either a platform with ' \
-                         '--platform or a cpu with --cpu\n')
+        # make sure that if the platform is 'generic' that they specified a cpu
+        if (self._options.platform == 'generic') and (self._options.cpu == ''):
+            raise CommandLineError("With the generic platform you must specify " \
+                                   "a CPU with the --cpu switch\n")
 
-        # get a handle to the compile target
-        if self._options.platform != None:
-            # if they specified a platform, then look up the module
-            # and class name and instantiate an instance of the target
-            platform = self._options.platform.lower()
+        # if they specified a platform, then look up the module
+        # and class name and instantiate an instance of the target
+        platform = self._options.platform.lower()
 
-            if not self.PLATFORM.has_key(platform):
-                raise CommandLineError('You specified an unknown platform name.\n\n' \
-                                       'The supported platform(s) are:\n' \
-                                       '\t%s\n' % '\n\t'.join(self.PLATFORM))
+        if not self.PLATFORM.has_key(platform):
+            raise CommandLineError('You specified an unknown platform name.\n\n' \
+                                   'The supported platform(s) are:\n' \
+                                   '\t%s\n' % '\n\t'.join(self.PLATFORM))
 
-            platform_class = self.PLATFORM[platform]['class']
-            platform_module = 'hlakit.' + self.PLATFORM[platform]['module']
-            module_symbols = __import__(platform_module, fromlist=[platform_class])
-            platform_ctor = getattr(module_symbols, platform_class)
-            self._target = platform_ctor()
-        else:
-            # otherwise they specified a cpu so look up its module and class
-            # and instantiate an instance as the target
-            cpu = self._options.cpu.lower()
+        # get the platform data
+        platform_class = self.PLATFORM[platform]['class']
+        platform_module = 'hlakit.' + self.PLATFORM[platform]['module']
+        module_symbols = __import__(platform_module, fromlist=[platform_class])
+        platform_ctor = getattr(module_symbols, platform_class)
 
-            if not self.CPU.has_key(cpu):
-                raise CommandLineError('You specified an unknown CPU name.\n\n' \
-                                       'The supported CPU(s) are:\n' \
-                                       '\t%s\n' % '\n\t'.join(self.CPU))
+        # initialize the target
+        self._target = platform_ctor(self._options.cpu.lower())
 
-            cpu_class = self.CPU[cpu]['class']
-            cpu_module = 'hlakit.' + self.CPU[cpu]['module']
-            module_symbols = __import__(cpu_module, fromlist=[cpu_class])
-            cpu_ctor = getattr(module_symbols, cpu_class)
-            self._target = cpu_ctor()
 
-    def get_include_dirs(self):
-        options = getattr(self, '_options', None)
-        if options:
-            return options.include
-        return []
-
-    def add_include_dir(self, path):
-        """ this is only used by the #usepath preprocessor directive that is
-        deprecated and will be gone in version 1.0 """
-        options = getattr(self, '_optons', None)
-        if options:
-            options.include.append(path)
-        else:
-            self._options = DummyOptions()
-            setattr(self._options, 'include', [ path ])
+    def get_cpu_spec(self, cpu):
+        cpus = getattr(self, 'CPU', None)
+        if cpus and cpus.has_key(cpu):
+            return cpus[cpu]
+        return None
 
     def get_args(self):
         return getattr(self, '_args', [])
 
-    def get_file_dir(self, f):
-
-        # calculate the correct path to the file 
-        if f[0] == '/':
-            # if it starts with a '/' then it is an absolute path
-            return os.path.dirname(f)
-  
-        # add in the current file dir
-        pp = self.preprocessor()
-        state = pp.state_stack_top()
-        if state and state.get_file_path():
-            search_paths.append(os.path.dirname(state.get_file_path()))
-
-        # add in cwd as last option
-        search_paths.append(os.getcwd())
-
-        # add in the included directories
-        if len(self.get_include_dirs()) > 0:
-            search_paths.extend(self.get_include_dirs())
-
-        # look in the search paths for the file they specified
-        for path in search_paths:
-            if path[0] == '/':
-                test_path = os.path.join(path, f)
-            else:
-                test_path = os.path.join(os.getcwd(), path, f)
-
-            # if we've found it, then return the dir it resides in
-            if os.path.exists(test_path):
-                return os.path.dirname(test_path)
-
-        return None
-
-    def get_file_path(self, f):
-        search_paths = []
-
-        # calculate the correct path to the file 
-        if f[0] == '/':
-            # if it starts with a '/' then it is an absolute path
-            return f
-      
-        # add in the current file dir
-        pp = self.preprocessor()
-        state = pp.state_stack_top()
-        if state and state.get_file_path():
-            search_paths.append(os.path.dirname(state.get_file_path()))
-
-        # add in cwd as last option
-        search_paths.append(os.getcwd())
-
-        # add in the included directories
-        if len(self.get_include_dirs()) > 0:
-            search_paths.extend(self.get_include_dirs())
-
-        # look in the search paths for the file they specified
-        for path in search_paths:
-            if path[0] == '/':
-                test_path = os.path.join(path, f)
-            else:
-                test_path = os.path.join(os.getcwd(), path, f)
-
-            # if we've found it, then return the dir it resides in
-            if os.path.exists(test_path):
-                return test_path
-
-        return None
-
-    def opcodes(self):
+    def lexer(self):
         target = getattr(self, '_target', None)
         if target:
-            return target.opcodes()
+            return lex.lex(module=target.lexer())
         return None
-
-    def keywords(self):
-        target = getattr(self, '_target', None)
-        if target:
-            return target.keywords()
-        return None
-
-    def basic_types(self):
-        target = getattr(self, '_target', None)
-        if target:
-            return target.basic_types()
-        return None
-
-    def default_int_type(self):
-        target = getattr(self, '_target', None)
-        if target:
-            return target.default_int_type()
-        return None
-
-    def conditions(self):
-        target = getattr(self, '_target', None)
-        if target:
-            return target.conditions()
-        return None
-
-    def preprocessor(self):
-        target = getattr(self, '_target', None)
-        if target:
-            return target.preprocessor()
-        return None
-
-    def compiler(self):
-        target = getattr(self, '_target', None)
-        if target:
-            return target.compiler()
-        return None
-
-    def generator(self):
-        target = getattr(self, '_target', None)
-        if target:
-            return target.generator()
-        return None
-
-    def romfile(self):
-        return self.generator().romfile() 
-
 
     def build(self):
-        pp = self.preprocessor()
-        cc = self.compiler()
-        gen = self.generator()
+
+        lexer = self.lexer()
 
         for f in self.get_args():
+            # Run a preprocessor
+            fin = open(f)
+            input = fin.read()
+            fout = open(f + ".pp", "w+")
 
-            # calculate the correct path to the file 
-            fpath = self.get_file_path(f)
-            
-            # make sure the file was found 
-            if fpath is None:
-                continue;
+            p = FrontEnd(lexer)
+            p.parse(input, f)
+            while True:
+                tok = p.token()
+                if not tok: break
+                if tok.type == 'WS': continue
 
-            # parse the file
-            inf = open(fpath, 'r')
-            pp_tokens = pp.parse(inf)
-            inf.close()
-
-            #for t in pp_tokens:
-            #    print "pp: %s" % type(t)
-
-            if self._options.output_pp:
-                for t in pp_tokens:
-                    if not isinstance(t.__str__(), str):
-                        import pdb; pdb.set_trace()
-                    s = str(t)
-                    s += ' ' * (80 - len(s))
-                    s += str(type(t))
-                    print s
-                    #if isinstance(t, CodeBlock):
-                    #    print str(t)
-                return
-
-            # compile the tokenstream
-            cc_tokens = cc.compile(pp_tokens, self._options.debug)
-
-            # now output the CodeBlock and the tokens it 
-            # parsed to
-            if self._options.debug:
-                fns = []
-                for t in cc_tokens:
-                    if not isinstance(t.__str__(), str):
-                        import pdb; pdb.set_trace()
-                    s = str(t)
-                    tl = str(type(t))
-                    print tl + (' ' * (80 - len(tl))) + s
-                    if hasattr(t, 'get_tokens'):
-                        fns.append(t)
-                        ftokens = t.get_tokens()
-                        for ft in ftokens:
-                            ftl = str(type(ft))
-                            print '    ' + ftl + (' ' * (76 - len(ftl))) + str(ft)
-
-                print "\nFunction Tree:"
-                for fn in fns:
-                    print str(fn)
-                    for dep in fn.get_dependencies():
-                        print "+-- " + str(dep)
-
-                st = SymbolTable()
-                print "\nScopes:"
-                for (ns, sc) in st.get_scopes().iteritems():
-                    print '=' * 80
-                    print '%s:' % ns
-                    print '-' * 80
-                    for (name, symbol) in sc.iteritems():
-                        print '    %s = %s' % (name, type(symbol[1]))
-
-            if self._options.output_cc:
-                for t in cc_tokens:
-                    s = str(t)
-                    s += ' ' * (80 - len(s))
-                    ts = str(type(t))
-                    ts = ts[ts.rfind('.')+1:-2]
-                    s += ts
-                    if s not in ('FileBegin', 'FileEnd'):
-                        print '%s,' % s
-
-            # link the compiled tokens into a binary
-            print 'Building ROM'
-            rom = gen.build_rom(cc_tokens)
-
-            # output the rom to file 
-            #rom.save(self._options.output_file)
+                print "%s:%s:%s:%s:%s" % (p.source, tok.lineno, tok.linepos, tok.type, repr(tok.value))
+            fin.close()
+            fout.close()
 

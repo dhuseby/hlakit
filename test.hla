@@ -1,5 +1,4 @@
 #todo "hello world!"
-#rom.org $0000, 2K
 .
 +
 -
@@ -63,6 +62,24 @@ noreturn function main()
 {
 }
 
+ldx #12
+switch(X)
+{
+	case #12
+	{
+		// braces needed, multiple lines
+		lda #23
+		ora somevar
+	}
+	case #32
+		lda #123 // no braces needed, single line
+
+	default
+	{
+		lda #0
+	}
+}
+
 lda scrollTo.flags
 if(set) 
 {
@@ -81,3 +98,6 @@ if(set)
         }
     }
 }
+
+#interrupt.start main
+

@@ -1,19 +1,7 @@
-#!/usr/bin/env python
 from __future__ import generators
-
-"""
-Parts of this tool is software cribbed from the PLY C preprocessor example.
-The code is free to use under the terms of the PLY license as long as I include
-the following copyright statement:
-
-David Beazley (http://www.dabeaz.com)
-Copyright (C) 2007
-All rights reserved
-"""
-
 """
 HLAKit
-Copyright (c) 2010 David Huseby. All rights reserved.
+Copyright (c) 2010-2011 David Huseby. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
@@ -25,7 +13,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -42,223 +30,7 @@ or implied, of David Huseby.
 
 import copy
 import os.path
-import re
-import sys
 import time
-import ply.lex as lex
-
-preprocessor = {
-    'define':       'PP_DEFINE',
-    'undef':        'PP_UNDEF',
-    'ifdef':        'PP_IFDEF',
-    'ifndef':       'PP_IFNDEF',
-    'else':         'PP_ELSE',
-    'endif':        'PP_ENDIF',
-    'include':      'PP_INCLUDE'
-    }
-
-compiler = {
-    'incbin':       'CP_INCBIN',
-    'todo':         'CP_TODO',
-    'warning':      'CP_WARNING',
-    'error':        'CP_ERROR',
-    'fatal':        'CP_FATAL'
-    }
-
-linker = {
-    'ram':          'LP_RAM',
-    'rom':          'LP_ROM',
-    'org':          'LP_ORG',
-    'end':          'LP_END',
-    'banksize':     'LP_BANKSIZE',
-    'bank':         'LP_BANK',
-    'setpad':       'LP_SET_PAD',
-    'align':        'LP_ALIGN'
-    }
-
-reserved = {
-    'byte':         'TYPE',
-    'char':         'TYPE',
-    'bool':         'TYPE',
-    'word':         'TYPE',
-    'dword':        'TYPE',
-    'pointer':      'TYPE',
-    'struct':       'STRUCT',
-    'typedef':      'TYPEDEF',
-    'shared':       'SHARED',
-    'noreturn':     'NORETURN',
-    'return':       'RETURN',
-    'inline':       'INLINE',
-    'function':     'FUNCTION',
-    'interrupt':    'INTERRUPT',
-    'lo':           'LO',
-    'hi':           'HI',
-    'sizeof':       'SIZEOF',
-    'if':           'IF',
-    'else':         'ELSE',
-    'while':        'WHILE',
-    'do':           'DO',
-    'forever':      'FOREVER',
-    'switch':       'SWITCH',
-    'case':         'CASE',
-    'default':      'DEFAULT',
-    'reg':          'REG',
-    'near':         'NEAR',
-    'far':          'FAR'
-    }
-
-conditionals = {
-    'is':           'IS',
-    'has':          'HAS',
-    'no':           'NO',
-    'not':          'NOT',
-    'plus' :        'POSITIVE',
-    'positive':     'POSITIVE',
-    'minus':        'NEGATIVE',
-    'negative':     'NEGATIVE',
-    'greater':      'GREATER',
-    'less':         'LESS',
-    'overflow':     'OVERFLOW',
-    'carry':        'CARRY',
-    'nonzero':      'TRUE',
-    'set':          'TRUE',
-    'true':         'TRUE',
-    '1':            'TRUE',
-    'zero':         'FALSE',
-    'unset':        'FALSE',
-    'false':        'FALSE',
-    '0':            'FALSE',
-    'clear':        'FALSE',
-    'equal':        'EQUAL'
-    }
-
-tokens = [  'STRING', 
-            'DECIMAL', 
-            'KILO', 
-            'HEXC', 
-            'HEXS', 
-            'BINARY', 
-            'HASH',
-            'DHASH',
-            'RSHIFT',
-            'LSHIFT',
-            'GTE',
-            'LTE',
-            'NE',
-            'EQ',
-            'ID',
-            'WS',
-            'COMMENT' ] \
-            + list(set(preprocessor.values())) \
-            + list(set(compiler.values())) \
-            + list(set(linker.values())) \
-            + list(set(reserved.values())) \
-            + list(set(conditionals.values()))
-
-
-literals = '.+-*/~!%><=&^|{}()[]:,'
-
-# pp hash marks
-t_HASH = r'\#'
-t_DHASH = r'\#\#'
-
-# compilter values and operators
-t_STRING    = r'\"(\\.|[^\"])*\"'
-t_DECIMAL   = r'(0|[1-9][0-9]*)'
-t_KILO      = r'(0|[1-9][0-9]*)[kK]'
-t_HEXC      = r'0x[0-9a-fA-F]+'
-t_HEXS      = r'\$[0-9a-fA-F]+'
-t_BINARY    = r'%[01]+'
-t_RSHIFT    = r'>>'
-t_LSHIFT    = r'<<'
-t_GTE       = r'>='
-t_LTE       = r'<='
-t_NE        = r'!='
-t_EQ        = r'=='
-
-# whitespace handler
-def t_WS(t):
-    r'\s+'
-    t.lexer.lineno += t.value.count("\n")
-    return t
-
-# identifier
-def t_ID(t):
-    r'[a-zA-Z_][\w]*'
-    t.type = preprocessor.get(t.value.lower(), None) # check for preprocessor words
-    if t.type != None:
-        t.value = t.value.lower()
-    else:
-        t.type = compiler.get(t.value.lower(), None) # check for reserved words
-        if t.type != None:
-            t.value = t.value.lower()
-        else:
-            t.type = linker.get(t.value.lower(), None) # check for reserved words
-            if t.type != None:
-                t.value = t.value.lower()
-            else:
-                t.type = reserved.get(t.value.lower(), None) # check for reserved words
-                if t.type != None:
-                    t.value = t.value.lower()
-                else:
-                    t.type = conditionals.get(t.value.lower(), None) # check for conditionals
-                    if t.type != None:
-                        t.value = t.value.lower()
-                    else:
-                        t.type = 'ID'
-    return t
-
-def t_COMMENT(t):
-    r'(/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/)|(//.*)'
-    t.lexer.lineno += t.value.count("\n")
-    return t
-
-def t_error(t):
-    t.type = t.value[0]
-    t.value = t.value[0]
-    t.lexer.skip(1)
-    return t
-
-# ------------------------------------------------------------------
-# Scope object
-#
-# This object holds a stack of contexts containing k/v pairs
-# ------------------------------------------------------------------
-
-class Scope(object):
-    def __init__(self, name, initial={}):
-        self._ctxs = [ initial ]
-        self._names = [ name ]
-
-    def push(self, name, initial={}):
-        self._ctxs.append( initial )
-        self._names.append( name )
-
-    def pop(self):
-        self._ctxs.pop()
-        self._names.pop()
-
-    def name(self):
-        return self._names[-1]
-
-    def names(self):
-        return self._names
-
-    def scope(self):
-        return ' => '.join(self._names)
-
-    def __getitem__(self, key):
-        return self._ctxs[-1].__getitem__(key)
-
-    def __setitem__(self, key, value):
-        return self._ctxs[-1].__setitem__(key, value)
-    
-    def __delitem__(self, key):
-        return self._ctxs[-1].__delitem__(key)
-
-    def keys(self):
-        return self._ctxs[-1].keys()
-
 
 # ------------------------------------------------------------------
 # Macro object
@@ -1063,24 +835,4 @@ class FrontEnd(object):
             self.parser = None
             return None
 
-
-if __name__ == '__main__':
-    # create the lexer
-    lexer = lex.lex()
-
-    # Run a preprocessor
-    fin = open(sys.argv[1])
-    input = fin.read()
-    fout = open(sys.argv[1] + ".pp", "w+")
-
-    p = FrontEnd(lexer)
-    p.parse(input,sys.argv[1])
-    while True:
-        tok = p.token()
-        if not tok: break
-
-        print "%s:%s:%s:%s:%s" % (p.source, tok.lineno, tok.linepos, tok.type, repr(tok.value))
-
-    fin.close()
-    fout.close()
 

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
+from __future__ import generators
+
 """
 HLAKit
-Copyright (c) 2010 David Huseby. All rights reserved.
+Copyright (c) 2010-2011 David Huseby. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
