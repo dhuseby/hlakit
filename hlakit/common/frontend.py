@@ -67,10 +67,11 @@ class Macro(object):
 # ------------------------------------------------------------------
 
 class FrontEnd(object):
-    def __init__(self,lexer=None):
+    def __init__(self, lexer=None, include_paths=[]):
         if lexer is None:
             lexer = lex.lexer
         self.lexer = lexer
+        self.include_paths = include_paths
         self.macros = { }
         self.path = []
         self.temp_path = []
@@ -701,9 +702,10 @@ class FrontEnd(object):
     # ----------------------------------------------------------------------
 
     def include(self,tokens):
-        # Try to extract the filename and then process an include file
         if not tokens:
             return
+       
+        # try to get the file name 
         if tokens:
             if tokens[0].value != '<' and tokens[0].type != self.t_STRING:
                 tokens = self.expand_macros(tokens)
@@ -719,13 +721,14 @@ class FrontEnd(object):
                     print("Malformed #include <...>")
                     return
                 filename = "".join([x.value for x in tokens[1:i]])
-                path = self.path + [""] + self.temp_path
+                path = self.include_paths + self.path + [""] + self.temp_path
             elif tokens[0].type == self.t_STRING:
                 filename = tokens[0].value[1:-1]
-                path = self.temp_path + [""] + self.path
+                path = self.include_paths + self.temp_path + [""] + self.path
             else:
                 print("Malformed #include statement")
                 return
+
         for p in path:
             iname = os.path.join(p,filename)
             try:

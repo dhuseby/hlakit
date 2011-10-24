@@ -1,1 +1,0 @@
-#incbin "blob.bin"

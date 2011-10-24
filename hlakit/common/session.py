@@ -178,7 +178,6 @@ class Session(object):
             if p:
                 p.print_help()
             raise e
-
         
     def get_cpu_spec(self, cpu):
         cpus = getattr(self, 'CPU', None)
@@ -198,6 +197,12 @@ class Session(object):
             return lex.lex(module=target.lexer())
         return None
 
+    def get_include_dirs(self):
+        options = getattr(self, '_options', None)
+        if options:
+            return options.include
+        return []
+
     def _build(self):
         lexer = self.lexer()
 
@@ -211,7 +216,7 @@ class Session(object):
             input = fin.read()
             fout = open(f + ".pp", "w+")
 
-            p = FrontEnd(lexer)
+            p = FrontEnd(lexer, self.get_include_dirs())
             p.parse(input, f)
             while True:
                 tok = p.token()
