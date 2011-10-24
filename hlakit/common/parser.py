@@ -1,4 +1,5 @@
 """
+HLAKit
 Copyright (c) 2010-2011 David Huseby. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
@@ -25,3 +26,28 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
+
+class Parser(object):
+    
+    def p_program(p):
+        '''program : statement
+                   | program statement'''
+        if len(p) == 2:
+            p[0] = ('program', p[1])
+        elif len(p) == 3:
+            p[0] = ('program', p[1], p[2])
+
+    def p_statement(p):
+        '''statement : TYPE
+                     | STRUCT
+                     | TYPEDEF
+                     | SHARED
+                     | NORETURN
+                     | RETURN
+                     | INLINE
+                     | FUNCTION
+                     | INTERRUPT
+                     | LO
+                     | HI
+                     | SIZEOF'''
+        pass

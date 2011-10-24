@@ -553,7 +553,7 @@ class FrontEnd(object):
 
         if not source:
             source = ""
-            
+           
         self.define("__FILE__ \"%s\"" % source)
 
         self.source = source
@@ -563,15 +563,19 @@ class FrontEnd(object):
         ifstack = []
 
         for x in lines:
+
+            # skip WS tokens
             for i,tok in enumerate(x):
                 if tok.type not in self.t_WS: break
+
             if tok.value == '#':
                 # Preprocessor directive
 
                 for tok in x:
                     if tok in self.t_WS and '\n' in tok.value:
                         chunk.append(tok)
-                
+               
+                # remove leading/trailing WS tokens from list
                 dirtokens = self.tokenstrip(x[i+1:])
                 if dirtokens:
                     name = dirtokens[0].value
@@ -588,6 +592,7 @@ class FrontEnd(object):
                             yield tok
                         chunk = []
                         self.define(args)
+
                 elif name == 'include':
                     if enable:
                         for tok in self.expand_macros(chunk):
@@ -604,6 +609,7 @@ class FrontEnd(object):
                             yield tok
                         chunk = []
                         self.undef(args)
+
                 elif name == 'ifdef':
                     ifstack.append((enable,iftrigger))
                     if enable:
@@ -612,6 +618,7 @@ class FrontEnd(object):
                             iftrigger = False
                         else:
                             iftrigger = True
+
                 elif name == 'ifndef':
                     ifstack.append((enable,iftrigger))
                     if enable:
@@ -620,6 +627,7 @@ class FrontEnd(object):
                             iftrigger = False
                         else:
                             iftrigger = True
+
                 elif name == 'if':
                     ifstack.append((enable,iftrigger))
                     if enable:
@@ -629,6 +637,7 @@ class FrontEnd(object):
                             iftrigger = False
                         else:
                             iftrigger = True
+
                 elif name == 'elif':
                     if ifstack:
                         if ifstack[-1][0]:     # We only pay attention if outer "if" allows this
@@ -658,6 +667,11 @@ class FrontEnd(object):
                         enable,iftrigger = ifstack.pop()
                     else:
                         self.error(self.source,dirtokens[0].lineno,"Misplaced #endif")
+
+                #elif name == 'sizeof':
+                #    if enable:
+                #        # look up symbol and get it's allocation size
+                #        # yeild '#' token followed by decimal token containing size
                 
                 # messages
                 elif name in ('todo', 'warning', 'error', 'fatal'):

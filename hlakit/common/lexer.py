@@ -136,6 +136,7 @@ class Lexer(object):
                 'EQ',
                 'ID',
                 'WS',
+                'NL',
                 'COMMENT' ] \
                 + list(set(preprocessor.values())) \
                 + list(set(compiler.values())) \
@@ -163,11 +164,16 @@ class Lexer(object):
     t_NE        = r'!='
     t_EQ        = r'=='
 
+    def t_NL(self, t):
+        r'\n+'
+        t.lexer.lineno += t.value.count('\n')
+        return t
+
     # whitespace handler
     def t_WS(self, t):
         r'\s+'
-        t.lexer.lineno += t.value.count("\n")
         return t
+        # eat whitespace
 
     # identifier
     def t_ID(self, t):
@@ -206,7 +212,7 @@ class Lexer(object):
     def t_COMMENT(self, t):
         r'(/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/)|(//.*)'
         t.lexer.lineno += t.value.count("\n")
-        return t
+        # eat comments
 
     def t_error(self, t):
         t.type = t.value[0]
