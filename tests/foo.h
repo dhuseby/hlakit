@@ -1,0 +1,1 @@
+#warn "from foo.h"

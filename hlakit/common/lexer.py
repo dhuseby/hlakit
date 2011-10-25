@@ -93,34 +93,7 @@ class Lexer(object):
         'far':          'FAR'
         }
 
-    # hla conditional tokens 
-    conditionals = {
-        'is':           'IS',
-        'has':          'HAS',
-        'no':           'NO',
-        'not':          'NOT',
-        'plus' :        'POSITIVE',
-        'positive':     'POSITIVE',
-        'minus':        'NEGATIVE',
-        'negative':     'NEGATIVE',
-        'greater':      'GREATER',
-        'less':         'LESS',
-        'overflow':     'OVERFLOW',
-        'carry':        'CARRY',
-        'nonzero':      'TRUE',
-        'set':          'TRUE',
-        'true':         'TRUE',
-        '1':            'TRUE',
-        'zero':         'FALSE',
-        'unset':        'FALSE',
-        'false':        'FALSE',
-        '0':            'FALSE',
-        'clear':        'FALSE',
-        'equal':        'EQUAL'
-        }
-
-    # the tokens list
-    tokens = [  'STRING', 
+    rtokens = [ 'STRING', 
                 'DECIMAL', 
                 'KILO', 
                 'HEXC', 
@@ -137,12 +110,17 @@ class Lexer(object):
                 'ID',
                 'WS',
                 'NL',
-                'COMMENT' ] \
-                + list(set(preprocessor.values())) \
-                + list(set(compiler.values())) \
-                + list(set(reserved.values())) \
-                + list(set(conditionals.values()))
+                'COMMENT' ] 
 
+    # the tokens list
+    tokens = rtokens \
+             + list(set(preprocessor.values())) \
+             + list(set(compiler.values())) \
+             + list(set(reserved.values()))
+
+    # the parser tokens list
+    ptokens = rtokens \
+              + list(set(reserved.values()))
 
     literals = '.+-*/~!%><=&^|{}()[]:,'
 
@@ -200,12 +178,7 @@ class Lexer(object):
         if t.type != None:
             t.value = value
             return t
-
-        t.type = self.conditionals.get(value, None) # check for conditionals
-        if t.type != None:
-            t.value = value
-            return t
-            
+           
         t.type = 'ID'
         return t
 

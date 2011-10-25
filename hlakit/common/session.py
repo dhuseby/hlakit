@@ -31,6 +31,7 @@ import os
 import sys
 import optparse
 import ply.lex as lex
+import ply.yacc as yacc
 from frontend import Macro,FrontEnd
 
 HLAKIT_VERSION = "0.8"
@@ -194,7 +195,13 @@ class Session(object):
     def lexer(self):
         target = getattr(self, '_target', None)
         if target:
-            return lex.lex(module=target.lexer())
+            return target.preprocessor(lex.lex(module=target.lexer()), self.get_include_dirs())
+        return None
+
+    def parser(self):
+        target = getattr(self, '_target', None)
+        if target:
+            return yacc.yacc(module=target.parser())
         return None
 
     def get_include_dirs(self):
@@ -205,27 +212,33 @@ class Session(object):
 
     def _build(self):
         lexer = self.lexer()
+        parser = self.parser()
 
         files = self.get_args()
         if len(files) == 0:
             raise CommandLineError('No files to compile\n')
 
         for f in self.get_args():
-            # Run a preprocessor
-            fin = open(f)
-            input = fin.read()
-            fout = open(f + ".pp", "w+")
 
-            p = FrontEnd(lexer, self.get_include_dirs())
-            p.parse(input, f)
+            # read the file
+            fin = open(f)
+            inf = fin.read()
+            fin.close()
+
+            #fout = open(f + ".pp", "w+")
+
+            lexer.add_path(os.path.dirname(f))
+            lexer.parse(inf, f)
+            parser.parse(lexer=lexer)
+            '''
             while True:
                 tok = p.token()
                 if not tok: break
                 if tok.type == 'WS': continue
 
                 print "%s:%s:%s:%s:%s" % (p.source, tok.lineno, tok.linepos, tok.type, repr(tok.value))
-            fin.close()
-            fout.close()
+            '''
+            #fout.close()
 
     def build(self):
         try:

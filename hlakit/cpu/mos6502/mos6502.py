@@ -28,16 +28,16 @@ or implied, of David Huseby.
 """
 
 from lexer import Lexer
-#from parser import Parser
+from parser import Parser
 
 class MOS6502(object):
 
     def __init__(self):
         self._lexer = Lexer()
-#        self._parser = Parser()
+        self._parser = Parser(tokens=self._lexer.ptokens)
 
     def lexer(self):
         return self._lexer
 
-#    def parser(self):
-#        return self._parser
+    def parser(self):
+        return self._parser

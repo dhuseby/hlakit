@@ -39,78 +39,111 @@ class Lexer(CommonLexer):
         'irq':          'LP_IRQ'
         }
 
+    # 6502 conditional tokens 
+    conditionals = {
+        'is':           'IS',
+        'has':          'HAS',
+        'no':           'NO',
+        'not':          'NOT',
+        'plus' :        'POSITIVE',
+        'positive':     'POSITIVE',
+        'minus':        'NEGATIVE',
+        'negative':     'NEGATIVE',
+        'greater':      'GREATER',
+        'less':         'LESS',
+        'overflow':     'OVERFLOW',
+        'carry':        'CARRY',
+        'nonzero':      'TRUE',
+        'set':          'TRUE',
+        'true':         'TRUE',
+        '1':            'TRUE',
+        'zero':         'FALSE',
+        'unset':        'FALSE',
+        'false':        'FALSE',
+        '0':            'FALSE',
+        'clear':        'FALSE',
+        'equal':        'EQUAL'
+        }
+
     # registers
     registers = {
-        'a': 'A',
-        'x': 'X',
-        'y': 'Y'
+        'a':            'A',
+        'x':            'X',
+        'y':            'Y'
         }
 
     # opcodes
     opcodes = {
-        'adc':  'ADC', 
-        'and':  'AND', 
-        'asl':  'ASL', 
-        'bcc':  'BCC', 
-        'bcs':  'BCS', 
-        'beq':  'BEQ', 
-        'bit':  'BIT', 
-        'bmi':  'BMI', 
-        'bne':  'BNE', 
-        'bpl':  'BPL', 
-        'brk':  'BRK', 
-        'bvc':  'BVC', 
-        'bvs':  'BVS', 
-        'clc':  'CLC', 
-        'cld':  'CLD', 
-        'cli':  'CLI', 
-        'clv':  'CLV', 
-        'cmp':  'CMP', 
-        'cpx':  'CPX', 
-        'cpy':  'CPY', 
-        'dec':  'DEC', 
-        'dex':  'DEX', 
-        'dey':  'DEY', 
-        'eor':  'EOR', 
-        'inc':  'INC', 
-        'inx':  'INX', 
-        'iny':  'INY', 
-        'jmp':  'JMP', 
-        'jsr':  'JSR', 
-        'lda':  'LDA', 
-        'ldx':  'LDX', 
-        'ldy':  'LDY', 
-        'lsr':  'LSR', 
-        'nop':  'NOP', 
-        'ora':  'ORA', 
-        'pha':  'PHA', 
-        'php':  'PHP', 
-        'pla':  'PLA', 
-        'plp':  'PLP', 
-        'rol':  'ROL', 
-        'ror':  'ROR', 
-        'rti':  'RTI', 
-        'rts':  'RTS', 
-        'sbc':  'SBC', 
-        'sec':  'SEC', 
-        'sed':  'SED', 
-        'sei':  'SEI', 
-        'sta':  'STA', 
-        'stx':  'STX', 
-        'sty':  'STY', 
-        'tax':  'TAX', 
-        'tay':  'TAY', 
-        'tsx':  'TSX', 
-        'txa':  'TXA', 
-        'txs':  'TXS', 
-        'tya':  'TYA'
+        'adc':          'ADC', 
+        'and':          'AND', 
+        'asl':          'ASL', 
+        'bcc':          'BCC', 
+        'bcs':          'BCS', 
+        'beq':          'BEQ', 
+        'bit':          'BIT', 
+        'bmi':          'BMI', 
+        'bne':          'BNE', 
+        'bpl':          'BPL', 
+        'brk':          'BRK', 
+        'bvc':          'BVC', 
+        'bvs':          'BVS', 
+        'clc':          'CLC', 
+        'cld':          'CLD', 
+        'cli':          'CLI', 
+        'clv':          'CLV', 
+        'cmp':          'CMP', 
+        'cpx':          'CPX', 
+        'cpy':          'CPY', 
+        'dec':          'DEC', 
+        'dex':          'DEX', 
+        'dey':          'DEY', 
+        'eor':          'EOR', 
+        'inc':          'INC', 
+        'inx':          'INX', 
+        'iny':          'INY', 
+        'jmp':          'JMP', 
+        'jsr':          'JSR', 
+        'lda':          'LDA', 
+        'ldx':          'LDX', 
+        'ldy':          'LDY', 
+        'lsr':          'LSR', 
+        'nop':          'NOP', 
+        'ora':          'ORA', 
+        'pha':          'PHA', 
+        'php':          'PHP', 
+        'pla':          'PLA', 
+        'plp':          'PLP', 
+        'rol':          'ROL', 
+        'ror':          'ROR', 
+        'rti':          'RTI', 
+        'rts':          'RTS', 
+        'sbc':          'SBC', 
+        'sec':          'SEC', 
+        'sed':          'SED', 
+        'sei':          'SEI', 
+        'sta':          'STA', 
+        'stx':          'STX', 
+        'sty':          'STY', 
+        'tax':          'TAX', 
+        'tay':          'TAY', 
+        'tsx':          'TSX', 
+        'txa':          'TXA', 
+        'txs':          'TXS', 
+        'tya':          'TYA'
         }
 
     # 6502 tokens list
     tokens = CommonLexer.tokens \
              + list(set(preprocessor.values())) \
              + list(set(registers.values())) \
+             + list(set(conditionals.values())) \
              + list(set(opcodes.values()))
+
+    # 6502 parser tokens list
+    ptokens = CommonLexer.ptokens \
+              + list(set(registers.values())) \
+              + list(set(conditionals.values())) \
+              + list(set(opcodes.values()))
 
     # identifier
     def t_ID(self, t):
@@ -118,6 +151,21 @@ class Lexer(CommonLexer):
 
         value = t.value.lower()
 
+        t.type = self.preprocessor.get(value, None) # check for preprocessor words
+        if t.type != None:
+            t.value = value
+            return t
+
+        t.type = self.registers.get(value, None) # check for conditionals
+        if t.type != None:
+            t.value = value
+            return t
+
+        t.type = self.conditionals.get(value, None) # check for conditionals
+        if t.type != None:
+            t.value = value
+            return t
+ 
         t.type = self.opcodes.get(value, None) # check for opcode words
         if t.type != None:
             t.value = value

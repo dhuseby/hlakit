@@ -28,17 +28,60 @@ or implied, of David Huseby.
 """
 
 class Parser(object):
+
+    def __init__(self, tokens=[]):
+        self.tokens = tokens
     
-    def p_program(p):
-        '''program : statement
-                   | program statement'''
+    def p_program(self, p):
+        '''program : core_statement
+                   | program core_statement'''
         if len(p) == 2:
             p[0] = ('program', p[1])
         elif len(p) == 3:
             p[0] = ('program', p[1], p[2])
 
-    def p_statement(p):
-        '''statement : TYPE
+    def p_core_statement(self, p):
+        '''core_statement : '.'
+                     | '+'
+                     | '-'
+                     | '*'
+                     | '/'
+                     | '~'
+                     | '!'
+                     | '%'
+                     | '>'
+                     | '<'
+                     | '='
+                     | '&'
+                     | '^'
+                     | '|'
+                     | '{'
+                     | '}'
+                     | '('
+                     | ')'
+                     | '['
+                     | ']'
+                     | ':'
+                     | ','
+                     | STRING
+                     | DECIMAL
+                     | KILO
+                     | HEXC
+                     | HEXS
+                     | BINARY
+                     | HASH
+                     | DHASH
+                     | RSHIFT
+                     | LSHIFT
+                     | GTE
+                     | LTE
+                     | NE
+                     | EQ
+                     | ID
+                     | WS
+                     | NL
+                     | COMMENT
+                     | TYPE
                      | STRUCT
                      | TYPEDEF
                      | SHARED
@@ -49,5 +92,21 @@ class Parser(object):
                      | INTERRUPT
                      | LO
                      | HI
-                     | SIZEOF'''
-        pass
+                     | SIZEOF
+                     | IF
+                     | ELSE
+                     | WHILE
+                     | DO
+                     | FOREVER
+                     | SWITCH
+                     | CASE
+                     | DEFAULT
+                     | REG
+                     | NEAR
+                     | FAR '''
+        p[0] = ('statement', p[1])
+
+    # must have a p_error rule
+    def p_error(self, p):
+        print "Syntax error in input!"
+

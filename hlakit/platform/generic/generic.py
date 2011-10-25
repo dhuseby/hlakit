@@ -52,7 +52,7 @@ class Generic(object):
         return self._cpu.lexer()
 
     def parser(self):
-        return self._cpu_parser()
+        return self._cpu.parser()
 
         
 
