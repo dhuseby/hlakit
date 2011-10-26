@@ -29,7 +29,7 @@ or implied, of David Huseby.
 
 from symboltable import SymbolTable
 
-class Parser(object):
+class PPParser(object):
 
     def __init__(self, tokens=[]):
         self.tokens = tokens
@@ -49,23 +49,26 @@ class Parser(object):
 
     def p_pp_statement(self, p):
         '''pp_statement : HASH pp_include
+                        | HASH pp_incbin
                         | HASH pp_define
                         | HASH pp_undef
                         | HASH pp_startblock
                         | HASH pp_endblock
-                        | HASH cp_msg '''
+                        | HASH pp_msg '''
         p[0] = ('pp_statement', p[2])
 
     def p_pp_startblock(self, p):
         '''pp_startblock : PP_IFDEF ID
                          | PP_IFNDEF ID'''
-        
+       
+        """
         defined = (SymbolTable().lookup_symbol(p[2]) != None)
 
         if ((p[1] == 'PP_IFDEF') and defined) or ((p[1] == 'PP_IFNDEF') and not defined):
             p.lexer.push_state('ifdefin')
         else:
             p.lexer.push_state('ifdefout')
+        """
 
         p[0] = ('pp_startblock', p[1], p[2])
 
@@ -73,8 +76,7 @@ class Parser(object):
         '''pp_endblock : PP_ELSE
                        | PP_ENDIF'''
         
-        import pdb; pdb.set_trace()
-
+        """
         # figure out which state we're current in
         cin = (p.lexer.current_state() == 'ifdefin')
 
@@ -88,6 +90,7 @@ class Parser(object):
                 p.lexer.push_state('ifdefout')
             else:
                 p.lexer.push_state('ifdefin')
+        """
         p[0] = ('pp_endblock', p[1])
 
     def p_pp_define(self, p):
@@ -131,80 +134,52 @@ class Parser(object):
         p[0] = ('pp_include', p[2])
         print 'INCLUDING: %s' % p[2]
 
-    def p_cp_msg(self, p):
-        '''cp_msg : CP_TODO STRING
-                  | CP_WARNING STRING
-                  | CP_ERROR STRING
-                  | CP_FATAL STRING'''
+    def p_pp_msg(self, p):
+        '''pp_msg : PP_TODO STRING
+                  | PP_WARNING STRING
+                  | PP_ERROR STRING
+                  | PP_FATAL STRING'''
         print '%s: %s' % (p[1].upper(), p[2])
 
+    def p_pp_incbin(self, p):
+        '''pp_incbin : PP_INCBIN STRING
+                     | PP_INCBIN BSTRING'''
+        p[0] = ('pp_incbin', p[2])
+
     def p_base_statement(self, p):
-        '''base_statement : CP_INCBIN
-                     | '.'
-                     | '+'
-                     | '-'
-                     | '*'
-                     | '/'
-                     | '~'
-                     | '!'
-                     | '%'
-                     | '>'
-                     | '<'
-                     | '='
-                     | '&'
-                     | '^'
-                     | '|'
-                     | '{'
-                     | '}'
-                     | '('
-                     | ')'
-                     | '['
-                     | ']'
-                     | ':'
-                     | ','
-                     | STRING
-                     | BSTRING
-                     | DECIMAL
-                     | KILO
-                     | HEXC
-                     | HEXS
-                     | BINARY
-                     | DHASH
-                     | RSHIFT
-                     | LSHIFT
-                     | GTE
-                     | LTE
-                     | NE
-                     | EQ
-                     | ID
-                     | WS
-                     | NL
-                     | COMMENT
-                     | TYPE
-                     | STRUCT
-                     | TYPEDEF
-                     | SHARED
-                     | NORETURN
-                     | RETURN
-                     | INLINE
-                     | FUNCTION
-                     | INTERRUPT
-                     | LO
-                     | HI
-                     | SIZEOF
-                     | IF
-                     | ELSE
-                     | WHILE
-                     | DO
-                     | FOREVER
-                     | SWITCH
-                     | CASE
-                     | DEFAULT
-                     | REG
-                     | NEAR
-                     | FAR '''
-        if p[1] != '\n':
-            p[0] = ('base_statement', p[1])
+        '''base_statement : STRING
+                          | BSTRING
+                          | DECIMAL
+                          | KILO
+                          | HEXC
+                          | HEXS
+                          | BINARY
+                          | ID
+                          | WS
+                          | NL
+                          | '.'
+                          | '+'
+                          | '-'
+                          | '*'
+                          | '/'
+                          | '~'
+                          | '!'
+                          | '%'
+                          | '>'
+                          | '<'
+                          | '='
+                          | '&'
+                          | '^'
+                          | '|'
+                          | '{'
+                          | '}'
+                          | '('
+                          | ')'
+                          | '['
+                          | ']'
+                          | ':'
+                          | ',' '''
+        p[0] = ('base_statement', p[1])
 
     # must have a p_error rule
     def p_error(self, p):

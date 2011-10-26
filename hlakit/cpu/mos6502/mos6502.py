@@ -29,10 +29,16 @@ or implied, of David Huseby.
 
 from lexer import Lexer
 from parser import Parser
+from pplexer import PPLexer
+from ppparser import PPParser
 
 class MOS6502(object):
 
     def __init__(self):
+
+        # preprpocessor lexer and parser
+        self._pp_lexer = PPLexer()
+        self._pp_parser = PPParser(tokens=self._pp_lexer.tokens)
 
         # general lexer and parser
         self._lexer = Lexer()
@@ -43,4 +49,10 @@ class MOS6502(object):
 
     def parser(self):
         return self._parser
+
+    def pp_lexer(self):
+        return self._pp_lexer
+
+    def pp_parser(self):
+        return self._pp_parser
 

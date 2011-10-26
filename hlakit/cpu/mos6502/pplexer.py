@@ -27,36 +27,35 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from hlakit.common.session import Session, CommandLineError
+from hlakit.common.pplexer import PPLexer as CommonPPLexer
 
-class Generic(object):
-    
-    def __init__(self, cpu=None):
-        if not cpu:
-            raise CommandLineError("no CPU specified for generic platform")
+class PPLexer(CommonPPLexer):
 
-        cpu_spec = Session().get_cpu_spec(cpu)
-        if not cpu_spec:
-            raise CommandLineError("unknown CPU type: %s" % cpu)
+    # 6502 specific preprocessors
+    mos6502_preprocessor = {
+        'interrupt':    'LP_INTERRUPT',
+        'start':        'LP_START',
+        'nmi':          'LP_NMI',
+        'irq':          'LP_IRQ'
+    }
 
-        # get the platform data
-        cpu_class = cpu_spec['class']
-        cpu_module = 'hlakit.' + cpu_spec['module']
-        cpu_symbols = __import__(cpu_module, fromlist=[cpu_class])
-        cpu_ctor = getattr(cpu_symbols, cpu_class)
+    # 6502 tokens list
+    tokens = CommonPPLexer.tokens \
+             + list(set(mos6502_preprocessor.values()))
 
-        # initialize the target
-        self._cpu = cpu_ctor()
+    # identifier
+    def t_ID(self, t):
+        r'[a-zA-Z_][\w]*'
 
-    def lexer(self):
-        return self._cpu.lexer()
+        value = t.value.lower()
 
-    def parser(self):
-        return self._cpu.parser()
+        t.type = self.mos6502_preprocessor.get(value, None) # check for preprocessor words
+        if t.type != None:
+            t.value = value
+            return t
 
-    def pp_lexer(self):
-        return self._cpu.pp_lexer()
+        return super(PPLexer, self).t_ID(t)
 
-    def pp_parser(self):
-        return self._cpu.pp_parser()
+    def __init__(self):
+        super(PPLexer, self).__init__()
 

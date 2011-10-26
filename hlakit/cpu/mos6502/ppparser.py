@@ -27,36 +27,36 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from hlakit.common.session import Session, CommandLineError
+from hlakit.common.ppparser import PPParser as CommonPPParser
 
-class Generic(object):
-    
-    def __init__(self, cpu=None):
-        if not cpu:
-            raise CommandLineError("no CPU specified for generic platform")
+class PPParser(CommonPPParser):
 
-        cpu_spec = Session().get_cpu_spec(cpu)
-        if not cpu_spec:
-            raise CommandLineError("unknown CPU type: %s" % cpu)
+    def __init__(self, tokens=[]):
+        self.tokens = tokens
 
-        # get the platform data
-        cpu_class = cpu_spec['class']
-        cpu_module = 'hlakit.' + cpu_spec['module']
-        cpu_symbols = __import__(cpu_module, fromlist=[cpu_class])
-        cpu_ctor = getattr(cpu_symbols, cpu_class)
+    def p_program(self, p):
+        '''program : cpu_statement
+                   | program cpu_statement'''
+        if len(p) == 2:
+            p[0] = ('program', p[1])
+        elif len(p) == 3:
+            p[0] = ('program', p[1], p[2])
 
-        # initialize the target
-        self._cpu = cpu_ctor()
 
-    def lexer(self):
-        return self._cpu.lexer()
+    def p_cpu_statement(self, p):
+        '''cpu_statement : core_statement
+                         | mos6502_statement'''
+        p[0] = ('cpu_statement', p[1])
 
-    def parser(self):
-        return self._cpu.parser()
+    def p_mos6502_statement(self, p):
+        '''mos6502_statement : LP_INTERRUPT
+                             | LP_START
+                             | LP_NMI
+                             | LP_IRQ '''
+        p[0] = ('mos6502_statement', p[1])
 
-    def pp_lexer(self):
-        return self._cpu.pp_lexer()
-
-    def pp_parser(self):
-        return self._cpu.pp_parser()
+    # must have a p_error rule
+    def p_error(self, p):
+        import pdb; pdb.set_trace()
+        print "Syntax error in input!"
 

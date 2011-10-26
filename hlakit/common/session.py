@@ -207,14 +207,51 @@ class Session(object):
     def lexer(self):
         target = getattr(self, '_target', None)
         if target:
-            return lex.lex(module=target.lexer())
+            return lex.lex(module=target.lexer(), debug=self.is_debug())
+        return None
+
+    def pp_lexer(self):
+        target = getattr(self, '_target', None)
+        if target:
+            return lex.lex(module=target.pp_lexer(), debug=self.is_debug())
         return None
 
     def parser(self):
         target = getattr(self, '_target', None)
         if target:
-            return yacc.yacc(module=target.parser())
+            return yacc.yacc(module=target.parser(), debug=self.is_debug())
         return None
+
+    def pp_parser(self):
+        target = getattr(self, '_target', None)
+        if target:
+            return yacc.yacc(module=target.pp_parser(), debug=self.is_debug())
+        return None
+
+    def _preprocess(self):
+        pp_lexer = self.pp_lexer()
+        pp_parser = self.pp_parser()
+
+        # this will contain a tuple for each file containing the file name, the 
+        # preprocessed output, and an object that maps line,col positions in the
+        # preprocessed output to the original file line,col for error reporting
+        output = []
+
+        files = self.get_args()
+        if len(files) == 0:
+            raise CommandLineError('No files to compile\n')
+
+        for f in self.get_args():
+
+            # read the file
+            fin = open(f)
+            inf = fin.read()
+            fin.close()
+
+            #lexer.add_path(os.path.dirname(f))
+            #lexer.parse(inf, f)
+            result = pp_parser.parse(inf, lexer=pp_lexer)
+            print result
 
     def _build(self):
         lexer = self.lexer()
@@ -233,12 +270,13 @@ class Session(object):
 
             #lexer.add_path(os.path.dirname(f))
             #lexer.parse(inf, f)
-            result = parser.parse(inf, debug=self._options.debug, lexer=lexer)
+            result = parser.parse(inf, lexer=lexer)
             print result
 
     def build(self):
         try:
-            self._build()
+            self._preprocess()
+            #self._build()
         except CommandLineError, e:
             print >> sys.stderr, 'ERROR: %s' % e
             p = self.get_parser()
