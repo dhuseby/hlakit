@@ -27,6 +27,8 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from session import Session
+
 class Lexer(object):
 
     # basic preprocessor tokens
@@ -48,18 +50,6 @@ class Lexer(object):
         'error':        'CP_ERROR',
         'fatal':        'CP_FATAL'
         }
-
-    # linker specific preprocessor tokens
-    #linker = {
-    #    'ram':          'LP_RAM',
-    #    'rom':          'LP_ROM',
-    #    'org':          'LP_ORG',
-    #    'end':          'LP_END',
-    #    'banksize':     'LP_BANKSIZE',
-    #    'bank':         'LP_BANK',
-    #    'setpad':       'LP_SET_PAD',
-    #    'align':        'LP_ALIGN'
-    #    }
 
     # hla reserved tokens
     reserved = {
@@ -94,6 +84,7 @@ class Lexer(object):
         }
 
     rtokens = [ 'STRING', 
+                'BSTRING',
                 'DECIMAL', 
                 'KILO', 
                 'HEXC', 
@@ -118,10 +109,6 @@ class Lexer(object):
              + list(set(compiler.values())) \
              + list(set(reserved.values()))
 
-    # the parser tokens list
-    ptokens = rtokens \
-              + list(set(reserved.values()))
-
     literals = '.+-*/~!%><=&^|{}()[]:,'
 
     # pp hash marks
@@ -130,6 +117,7 @@ class Lexer(object):
 
     # compilter values and operators
     t_STRING    = r'\"(\\.|[^\"])*\"'
+    t_BSTRING   = r'\<(\\.|[^\>])*\>'
     t_DECIMAL   = r'(0|[1-9][0-9]*)'
     t_KILO      = r'(0|[1-9][0-9]*)[kK]'
     t_HEXC      = r'0x[0-9a-fA-F]+'
@@ -145,12 +133,11 @@ class Lexer(object):
     def t_NL(self, t):
         r'\n+'
         t.lexer.lineno += t.value.count('\n')
-        return t
+        # eat newlines
 
     # whitespace handler
     def t_WS(self, t):
         r'\s+'
-        return t
         # eat whitespace
 
     # identifier
@@ -169,11 +156,6 @@ class Lexer(object):
             t.value = value
             return t
             
-        #t.type = self.linker.get(value, None) # check for reserved words
-        #if t.type != None:
-        #    t.value = value
-        #    return t
-
         t.type = self.reserved.get(value, None) # check for reserved words
         if t.type != None:
             t.value = value

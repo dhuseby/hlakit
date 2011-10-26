@@ -32,7 +32,6 @@ import sys
 import optparse
 import ply.lex as lex
 import ply.yacc as yacc
-from frontend import Macro,FrontEnd
 
 HLAKIT_VERSION = "0.8"
 
@@ -195,7 +194,7 @@ class Session(object):
     def lexer(self):
         target = getattr(self, '_target', None)
         if target:
-            return target.preprocessor(lex.lex(module=target.lexer()), self.get_include_dirs())
+            return lex.lex(module=target.lexer())
         return None
 
     def parser(self):
@@ -225,20 +224,10 @@ class Session(object):
             inf = fin.read()
             fin.close()
 
-            #fout = open(f + ".pp", "w+")
-
-            lexer.add_path(os.path.dirname(f))
-            lexer.parse(inf, f)
-            parser.parse(lexer=lexer)
-            '''
-            while True:
-                tok = p.token()
-                if not tok: break
-                if tok.type == 'WS': continue
-
-                print "%s:%s:%s:%s:%s" % (p.source, tok.lineno, tok.linepos, tok.type, repr(tok.value))
-            '''
-            #fout.close()
+            #lexer.add_path(os.path.dirname(f))
+            #lexer.parse(inf, f)
+            result = parser.parse(inf, debug=self._options.debug, lexer=lexer)
+            print result
 
     def build(self):
         try:

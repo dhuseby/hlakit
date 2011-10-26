@@ -34,7 +34,7 @@ class MOS6502(object):
 
     def __init__(self):
         self._lexer = Lexer()
-        self._parser = Parser(tokens=self._lexer.ptokens)
+        self._parser = Parser(tokens=self._lexer.tokens)
 
     def lexer(self):
         return self._lexer

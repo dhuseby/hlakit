@@ -54,6 +54,3 @@ class Generic(object):
     def parser(self):
         return self._cpu.parser()
 
-        
-
-

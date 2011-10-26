@@ -41,7 +41,45 @@ class Parser(object):
             p[0] = ('program', p[1], p[2])
 
     def p_core_statement(self, p):
-        '''core_statement : '.'
+        '''core_statement : pp_statement
+                          | base_statement'''
+        p[0] = ('core_statement', p[1])
+
+    def p_pp_statement(self, p):
+        '''pp_statement : HASH pp_include
+                        | HASH cp_msg'''
+        p[0] = ('pp_statement', p[2])
+
+    """
+    def p_pp_define(self, p):
+        '''pp_define : PP_DEFINE ID'''
+        pass
+
+    def p_pp_undef(self, p):
+        '''pp_undef : PP_UNDEF ID'''
+        pass
+    """
+
+    def p_pp_include(self, p):
+        '''pp_include : PP_INCLUDE STRING
+                      | PP_INCLUDE BSTRING'''
+        p[0] = ('pp_include', p[2])
+        print 'INCLUDING: %s' % p[2]
+
+    def p_cp_msg(self, p):
+        '''cp_msg : CP_TODO STRING
+                  | CP_WARNING STRING
+                  | CP_ERROR STRING
+                  | CP_FATAL STRING'''
+        print '%s: %s' % (p[1].upper(), p[2])
+
+    def p_base_statement(self, p):
+        '''base_statement : PP_IFDEF
+                     | PP_IFNDEF
+                     | PP_ELSE
+                     | PP_ENDIF
+                     | CP_INCBIN
+                     | '.'
                      | '+'
                      | '-'
                      | '*'
@@ -64,12 +102,12 @@ class Parser(object):
                      | ':'
                      | ','
                      | STRING
+                     | BSTRING
                      | DECIMAL
                      | KILO
                      | HEXC
                      | HEXS
                      | BINARY
-                     | HASH
                      | DHASH
                      | RSHIFT
                      | LSHIFT
@@ -104,7 +142,7 @@ class Parser(object):
                      | REG
                      | NEAR
                      | FAR '''
-        p[0] = ('statement', p[1])
+        p[0] = ('base_statement', p[1])
 
     # must have a p_error rule
     def p_error(self, p):

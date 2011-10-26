@@ -32,7 +32,7 @@ from hlakit.common.lexer import Lexer as CommonLexer
 class Lexer(CommonLexer):
 
     # 6502 specific preprocessors
-    preprocessor = {
+    mos6502_preprocessor = {
         'interrupt':    'LP_INTERRUPT',
         'start':        'LP_START',
         'nmi':          'LP_NMI',
@@ -134,16 +134,10 @@ class Lexer(CommonLexer):
 
     # 6502 tokens list
     tokens = CommonLexer.tokens \
-             + list(set(preprocessor.values())) \
+             + list(set(mos6502_preprocessor.values())) \
              + list(set(registers.values())) \
              + list(set(conditionals.values())) \
              + list(set(opcodes.values()))
-
-    # 6502 parser tokens list
-    ptokens = CommonLexer.ptokens \
-              + list(set(registers.values())) \
-              + list(set(conditionals.values())) \
-              + list(set(opcodes.values()))
 
     # identifier
     def t_ID(self, t):
@@ -151,7 +145,7 @@ class Lexer(CommonLexer):
 
         value = t.value.lower()
 
-        t.type = self.preprocessor.get(value, None) # check for preprocessor words
+        t.type = self.mos6502_preprocessor.get(value, None) # check for preprocessor words
         if t.type != None:
             t.value = value
             return t

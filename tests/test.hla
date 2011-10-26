@@ -1,5 +1,11 @@
-#todo "hello world!"
+#todo "a todo message"
+#warning "a warning message"
+#error "an error message"
+#fatal "a fatal message"
+
 #include "foo.h"
+#include <bar.h>
+
 byte	a
 char	b
 bool	c

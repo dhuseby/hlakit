@@ -46,9 +46,14 @@ class Parser(CommonParser):
     def p_cpu_statement(self, p):
         '''cpu_statement : core_statement
                          | mos6502_statement'''
+        p[0] = ('cpu_statement', p[1])
 
     def p_mos6502_statement(self, p):
-        '''mos6502_statement : A
+        '''mos6502_statement : LP_INTERRUPT
+                             | LP_START
+                             | LP_NMI
+                             | LP_IRQ
+                             | A
                              | X
                              | Y
                              | IS

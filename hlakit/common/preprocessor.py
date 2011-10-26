@@ -59,14 +59,14 @@ class Macro(object):
         self.source = None
 
 # ------------------------------------------------------------------
-# FrontEnd object
+# Preprocessor object
 #
-# Object representing a compiler.  Contains macro definitions,
+# Object representing a preprocessor.  Contains macro definitions,
 # include directories, and other information and handles lexing and
-# parsing.
+# parsing of core preprocessor directives
 # ------------------------------------------------------------------
 
-class FrontEnd(object):
+class Preprocessor(object):
     def __init__(self, lexer=None, include_paths=[]):
         if lexer is None:
             lexer = lex.lexer
@@ -669,18 +669,6 @@ class FrontEnd(object):
                     else:
                         self.error(self.source,dirtokens[0].lineno,"Misplaced #endif")
 
-                #elif name == 'sizeof':
-                #    if enable:
-                #        # look up symbol and get it's allocation size
-                #        # yeild '#' token followed by decimal token containing size
-                
-                # messages
-                elif name in ('todo', 'warning', 'error', 'fatal'):
-                    if enable:
-                        if len(args):
-                            print "%s: %s" % (name.upper(), args[0].value)
-                        else:
-                            print "%s: %s" % name.upper()
                 else:
                     # Unknown preprocessor directive, pass it along
                     if enable:
