@@ -140,7 +140,7 @@ class Lexer(CommonLexer):
              + list(set(opcodes.values()))
 
     # identifier
-    def t_ID(self, t):
+    def t_INITIAL_ifdefin_ID(self, t):
         r'[a-zA-Z_][\w]*'
 
         value = t.value.lower()
@@ -165,7 +165,7 @@ class Lexer(CommonLexer):
             t.value = value
             return t
 
-        return super(Lexer, self).t_ID(t)
+        return super(Lexer, self).t_INITIAL_ifdefin_ID(t)
 
     def __init__(self):
         super(Lexer, self).__init__()

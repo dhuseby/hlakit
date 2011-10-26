@@ -1,0 +1,3 @@
+#ifdef FOO
+byte foo = 1
+#endif

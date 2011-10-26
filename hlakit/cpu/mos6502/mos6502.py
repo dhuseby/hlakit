@@ -33,6 +33,8 @@ from parser import Parser
 class MOS6502(object):
 
     def __init__(self):
+
+        # general lexer and parser
         self._lexer = Lexer()
         self._parser = Parser(tokens=self._lexer.tokens)
 
@@ -41,3 +43,4 @@ class MOS6502(object):
 
     def parser(self):
         return self._parser
+

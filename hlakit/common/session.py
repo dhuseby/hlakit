@@ -132,7 +132,7 @@ class Session(object):
         parser.add_option('-o', dest='output_file', default=None,
             help='specify the name of the output file')
 
-        self._parser = parser
+        self._opts_parser = parser
 
 
     def _initialize_target(self, args):
@@ -141,7 +141,7 @@ class Session(object):
         self._target = None
 
         # actually parse the args
-        (self._options, self._args) = self.get_parser().parse_args(args)
+        (self._options, self._args) = self.get_opts_parser().parse_args(args)
 
         # make sure that if the platform is 'generic' that they specified a cpu
         if (self._options.platform == 'generic') and (self._options.cpu == ''):
@@ -188,8 +188,21 @@ class Session(object):
     def get_args(self):
         return getattr(self, '_args', [])
 
-    def get_parser(self):
-        return getattr(self, '_parser', None)
+    def get_opts_parser(self):
+        if not hasattr(self, '_opts_parser'):
+            self._build_parser()
+        return getattr(self, '_opts_parser', None)
+
+    def is_debug(self):
+        options = getattr(self, '_options', None)
+        if options:
+            return options.debug
+
+    def get_include_dirs(self):
+        options = getattr(self, '_options', None)
+        if options:
+            return options.include
+        return []
 
     def lexer(self):
         target = getattr(self, '_target', None)
@@ -202,12 +215,6 @@ class Session(object):
         if target:
             return yacc.yacc(module=target.parser())
         return None
-
-    def get_include_dirs(self):
-        options = getattr(self, '_options', None)
-        if options:
-            return options.include
-        return []
 
     def _build(self):
         lexer = self.lexer()

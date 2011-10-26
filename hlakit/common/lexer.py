@@ -31,6 +31,41 @@ from session import Session
 
 class Lexer(object):
 
+    '''
+    the 'macro' state handles parsing #define bodies
+   
+    the 'ifdefin' and 'ifdefout' states are used for handling the conditional
+    compliation 
+    the 'ifdefout' state happens when an #ifdef clause causes the subsequent
+    code to be ignored.  it skips all tokens until the matching #else/#endif
+    is seen.  the 'ifdefout' state is recurrsive so that nested #ifdefs are
+    handled correctly:
+
+    #define FOO
+    #undef BAR
+
+    #ifdef BAR  (push 'ifdefout' state)
+        ... ignored ...
+        #ifdef FOO (push 'ifdefin' state)
+            ... still ignored because nested inside of ignored block ...
+        #else (pop top state, push 'ifdefout' state)
+            ... also ignored ...
+        #endif (pop top state)
+    #else (pop top state, push 'ifdefin' state)
+        ... not ignored ...
+    #endif (pop top state)
+    ... not ignored ...
+    '''
+
+    states = (
+        ( 'ifdefin', 'exclusive' ),
+        ( 'ifdefout', 'exclusive' ),
+    )
+    '''
+        ( 'macro', 'exclusive' ),
+    )
+    '''
+
     # basic preprocessor tokens
     preprocessor = {
         'define':       'PP_DEFINE',
@@ -130,18 +165,25 @@ class Lexer(object):
     t_NE        = r'!='
     t_EQ        = r'=='
 
-    def t_NL(self, t):
+    def t_ANY_NL(self, t):
         r'\n+'
         t.lexer.lineno += t.value.count('\n')
         # eat newlines
 
-    # whitespace handler
-    def t_WS(self, t):
+    def t_ANY_WS(self, t):
         r'\s+'
         # eat whitespace
 
-    # identifier
-    def t_ID(self, t):
+    def t_ifdefout_ID(self, t):
+        r'[^\s]+'
+        # eat everything
+
+    def t_ifdefin_idefout_ID(self, t):
+        r'(else|endif)'
+        import pdb; pdb.set_trace()
+        return t
+
+    def t_INITIAL_ifdefin_ID(self, t):
         r'[a-zA-Z_][\w]*'
 
         value = t.value.lower()
@@ -164,12 +206,12 @@ class Lexer(object):
         t.type = 'ID'
         return t
 
-    def t_COMMENT(self, t):
+    def t_ANY_COMMENT(self, t):
         r'(/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/)|(//.*)'
         t.lexer.lineno += t.value.count("\n")
         # eat comments
 
-    def t_error(self, t):
+    def t_ANY_error(self, t):
         t.type = t.value[0]
         t.value = t.value[0]
         t.lexer.skip(1)

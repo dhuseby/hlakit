@@ -27,6 +27,8 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from symboltable import SymbolTable
+
 class Parser(object):
 
     def __init__(self, tokens=[]):
@@ -47,18 +49,76 @@ class Parser(object):
 
     def p_pp_statement(self, p):
         '''pp_statement : HASH pp_include
-                        | HASH cp_msg'''
+                        | HASH pp_define
+                        | HASH pp_undef
+                        | HASH pp_startblock
+                        | HASH pp_endblock
+                        | HASH cp_msg '''
         p[0] = ('pp_statement', p[2])
 
-    """
+    def p_pp_startblock(self, p):
+        '''pp_startblock : PP_IFDEF ID'''
+        import pdb; pdb.set_trace()
+        if not SymbolTable().lookup_symbol(p[2]):
+            p.lexer.push_state('ifdefout')
+        else:
+            p.lexer.push_state('ifdefin')
+        p[0] = ('pp_ifdef', p[2])
+
+    def p_pp_endblock(self, p):
+        '''pp_endblock : PP_ELSE
+                       | PP_ENDIF'''
+        
+        import pdb; pdb.set_trace()
+
+        # figure out which state we're current in
+        cin = (p.lexer.current_state() == 'ifdefin')
+
+        # always pop state at the end of an #ifdef block
+        p.lexer.pop_state()
+
+        # if we're encountering an #else, we need to swap
+        # to the other state
+        if p[2] == 'PP_ELSE':
+            if cin:
+                p.lexer.push_state('ifdefout')
+            else:
+                p.lexer.push_state('ifdefin')
+
     def p_pp_define(self, p):
-        '''pp_define : PP_DEFINE ID'''
-        pass
+        '''pp_define : PP_DEFINE'''
+        p[0] = ('pp_define', )
+
+        
+        """
+        macro_parser = Session().macro_parser()
+
+        # tell the lexer to return newline tokens
+        p.lexer.set_eat_nl(False)
+
+        # returns a tuple ('macro', <id>, <macro object>)
+        macro = macro_parser.parse(debug=Session().is_debug(), lexer=p.lexer)
+
+        # tell the lexer to eat newline tokens
+        p.lexer.set_eat_nl(True)
+
+        # add the symbol to the symbol table
+        # SymbolTable().new_symbol(macro[1], macro[2])
+
+        # add it to the graph
+        p[0] = ('pp_define', macro)
+        """
 
     def p_pp_undef(self, p):
-        '''pp_undef : PP_UNDEF ID'''
-        pass
-    """
+        '''pp_undef : PP_UNDEF'''
+        p[0] = ('pp_undef', )
+
+        """
+        # remove the symbol from the symbol table
+        # SymbolTable().remove_symbol(p[2])
+
+        p[0] = ('pp_undef', p[2])
+        """
 
     def p_pp_include(self, p):
         '''pp_include : PP_INCLUDE STRING

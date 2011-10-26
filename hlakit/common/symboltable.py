@@ -42,6 +42,8 @@ class SymbolTable(object):
         return obj
 
     def current_namespace(self):
+        if not hasattr(self, '_scope_stack'):
+            self.reset_state()
         return '.'.join(self._scope_stack)
 
     def reset_state(self):
