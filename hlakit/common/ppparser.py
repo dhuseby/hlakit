@@ -67,9 +67,9 @@ class PPParser(object):
         '''pp_block_statement : pp_block_start pp_block_body pp_block_else pp_block_body pp_block_end
                               | pp_block_start pp_block_body pp_block_end'''
         if len(p) == 4:
-            p[0] = ('pp_block_statement', p[1], ('pp_block_body', p[2]), p[3])
+            p[0] = ('pp_block_statement', [ p[1], ('pp_block_body', p[2]), p[3] ])
         elif len(p) == 6:
-            p[0] = ('pp_block_statement', p[1], ('pp_block_body', p[2]), p[3], ('pp_block_body', p[4]), p[5])
+            p[0] = ('pp_block_statement', [ p[1], ('pp_block_body', p[2]), p[3], ('pp_block_body', p[4]), p[5] ])
 
     def p_pp_block_start(self, p):
         '''pp_block_start : HASH PP_IFDEF ID NL

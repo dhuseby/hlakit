@@ -32,6 +32,7 @@ import sys
 import optparse
 import ply.lex as lex
 import ply.yacc as yacc
+from ppgraph import PPGraph
 
 HLAKIT_VERSION = "0.8"
 
@@ -127,8 +128,10 @@ class Session(object):
             help='outputs the preprocessed input to stdout')
         parser.add_option('--cc', action='store_true', dest='output_cc', default=False,
             help='outputs the compiled token names to stdout')
-        parser.add_option('-d', '--debug', action='store_true', dest='debug', default=False,
+        parser.add_option('-g', '--debug', action='store_true', dest='debug', default=False,
             help='outputs some debug output')
+        parser.add_option('-d', '--graph', action='store_true', dest='graph', default=False,
+            help='outputs a graph of the ast')
         parser.add_option('-o', dest='output_file', default=None,
             help='specify the name of the output file')
 
@@ -198,6 +201,11 @@ class Session(object):
         if options:
             return options.debug
 
+    def is_graph(self):
+        options = getattr(self, '_options', None)
+        if options:
+            return options.graph
+
     def get_include_dirs(self):
         options = getattr(self, '_options', None)
         if options:
@@ -252,6 +260,10 @@ class Session(object):
             #lexer.parse(inf, f)
             result = pp_parser.parse(inf, lexer=pp_lexer, debug=self.is_debug())
             print result
+
+            if self.is_graph():
+                graph = PPGraph(os.path.basename(f) + '.pdf', result)
+                graph.save()
 
     def _build(self):
         lexer = self.lexer()
