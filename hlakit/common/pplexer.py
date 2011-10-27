@@ -57,13 +57,14 @@ class PPLexer(object):
                     'BINARY',
                     'ID',
                     'WS',
-                    'NL' ] 
+                    'NL',
+                    'BS' ] 
 
     # the tokens list
     tokens      = rtokens \
                 + list(set(preprocessor.values()))
 
-    literals    = '.+-*/~!%><=&^|{}()[]:,\\'
+    literals    = '.+-*/~!%><=&^|{}()[]:,'
 
     t_HASH      = r'\#'
     t_STRING    = r'\"(\\.|[^\"])*\"'
@@ -77,6 +78,10 @@ class PPLexer(object):
     def t_NL(self, t):
         r'\n+'
         t.lexer.lineno += t.value.count('\n')
+        return t
+
+    def t_BS(self, t):
+        r'\\'
         return t
 
     def t_WS(self, t):

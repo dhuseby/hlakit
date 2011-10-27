@@ -32,28 +32,45 @@ from hlakit.common.ppparser import PPParser as CommonPPParser
 class PPParser(CommonPPParser):
 
     def __init__(self, tokens=[]):
-        self.tokens = tokens
+        super(PPParser, self).__init__(tokens)
 
     def p_program(self, p):
         '''program : cpu_statement
                    | program cpu_statement'''
         if len(p) == 2:
-            p[0] = ('program', p[1])
+            p[0] = ('program', [ p[1] ])
         elif len(p) == 3:
-            p[0] = ('program', p[1], p[2])
+            p[0] = ('program', p[1][1] + [ p[2] ])
 
 
     def p_cpu_statement(self, p):
-        '''cpu_statement : core_statement
-                         | mos6502_statement'''
-        p[0] = ('cpu_statement', p[1])
+        '''cpu_statement : common_statement
+                         | mos6502_pp_statement'''
+        if self.is_enabled():
+            p[0] = p[1]
 
-    def p_mos6502_statement(self, p):
-        '''mos6502_statement : LP_INTERRUPT
-                             | LP_START
-                             | LP_NMI
-                             | LP_IRQ '''
-        p[0] = ('mos6502_statement', p[1])
+    def p_mos6502_pp_statement(self, p):
+        '''mos6502_pp_statement : HASH LP_INTERRUPT '.' LP_START ID NL
+                                | HASH LP_INTERRUPT '.' LP_NMI ID NL
+                                | HASH LP_INTERRUPT '.' LP_IRQ ID NL'''
+        p[0] = ('mos6502_pp_statement', p[4], p[5])
+
+    def p_pp_block_body(self, p):
+        '''pp_block_body : cpu_statement
+                         | pp_block_body cpu_statement'''
+        if self.is_enabled():
+            if len(p) == 2:
+                p[0] = [ p[1] ]
+            elif len(p) == 3:
+                p[0] = p[1] + [ p[2] ]
+
+    def p_pp_define_body(self, p):
+        '''pp_define_body : cpu_statement
+                          | pp_define_body BS NL cpu_statement'''
+        if len(p) == 2:
+            p[0] = [ p[1] ]
+        elif len(p) == 5:
+            p[0] = p[1] + [ p[4] ]
 
     # must have a p_error rule
     def p_error(self, p):

@@ -32,6 +32,7 @@ import copy
 
 class SymbolTable(object):
 
+    GLOBAL_NAMESPACE = '__global__'
     ANON_NAMESPACE = '__anonymous__'
 
     _shared_state = {}
@@ -47,7 +48,7 @@ class SymbolTable(object):
         return '.'.join(self._scope_stack)
 
     def reset_state(self):
-        self._scope_stack = []
+        self._scope_stack = [ self.GLOBAL_NAMESPACE ]
         self._scopes = {}
 
     def scope_push(self, namespace=ANON_NAMESPACE):

@@ -250,7 +250,7 @@ class Session(object):
 
             #lexer.add_path(os.path.dirname(f))
             #lexer.parse(inf, f)
-            result = pp_parser.parse(inf, lexer=pp_lexer)
+            result = pp_parser.parse(inf, lexer=pp_lexer, debug=self.is_debug())
             print result
 
     def _build(self):
