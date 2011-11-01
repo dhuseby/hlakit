@@ -27,35 +27,50 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from hlakit.common.pplexer import PPLexer as CommonPPLexer
+from hlakit.cpu.mos6502 import MOS6502
 
-class PPLexer(CommonPPLexer):
+from pplexer import PPLexer
+from ppparser import PPParser
 
-    # 6502 specific preprocessors
-    mos6502_preprocessor = {
-        'interrupt':    'PP_INTERRUPT',
-        'start':        'PP_START',
-        'nmi':          'PP_NMI',
-        'irq':          'PP_IRQ'
-    }
+class Ricoh2A0X(MOS6502):
+    '''
+    The 2A03 is a custom integrated circuit used as the heart of NES game 
+    consoles and Family Computers. To avoid costly glue logic, Nintendo squeezed 
+    alot of hardware (alot for the time, which was like 1982) inside this chip. 
+    Here is a list of known integrated components found in the 2A03 (* prefix 
+    indicates simple hardware discussed next).
 
-    # 6502 tokens list
-    tokens = CommonPPLexer.tokens \
-             + list(set(mos6502_preprocessor.values()))
-
-    # identifier
-    def t_ID(self, t):
-        r'[a-zA-Z_][\w]*'
-
-        value = t.value.lower()
-
-        t.type = self.mos6502_preprocessor.get(value, None) # check for preprocessor words
-        if t.type != None:
-            t.value = value
-            return t
-
-        return super(PPLexer, self).t_ID(t)
+    - stock NMOS 6502 microprocessor lacking decimal mode support
+    - low frequency programmable timer
+    - two nearly-identical rectangle wave function generators
+    - triangle wave function generator
+    - random wavelength function generator
+    - audio sample playback unit (delta modulation channel)
+    - one shot programmable DMA transfer unit
+    - master dodecade clock divider
+    - two 6502 address decoders for $4016R and $4017R
+    - 3-bit register and address decoder for $4016W
+    '''
 
     def __init__(self):
-        super(PPLexer, self).__init__()
+
+        # preprpocessor lexer and parser
+        self._pp_lexer = PPLexer()
+        self._pp_parser = PPParser(tokens=self._pp_lexer.tokens)
+
+        # general lexer and parser
+        self._lexer = None
+        self._parser = None
+
+    def lexer(self):
+        return self._lexer
+
+    def parser(self):
+        return self._parser
+
+    def pp_lexer(self):
+        return self._pp_lexer
+
+    def pp_parser(self):
+        return self._pp_parser
 

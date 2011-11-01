@@ -1,2 +1,3 @@
 #include "foo.h"
 #include <bar.h>
+#incbin "blob.bin"

@@ -24,8 +24,8 @@
 
 /******************************************************************************/
 
-#include "nes/nes.h"
-#include "6502/std.h"
+#include <nes/nes.h>
+#include <6502/std.h>
 
 #include "main.h"
 

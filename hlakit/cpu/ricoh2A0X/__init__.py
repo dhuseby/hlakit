@@ -12,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -26,36 +26,4 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of David Huseby.
 """
-
-from hlakit.common.pplexer import PPLexer as CommonPPLexer
-
-class PPLexer(CommonPPLexer):
-
-    # 6502 specific preprocessors
-    mos6502_preprocessor = {
-        'interrupt':    'PP_INTERRUPT',
-        'start':        'PP_START',
-        'nmi':          'PP_NMI',
-        'irq':          'PP_IRQ'
-    }
-
-    # 6502 tokens list
-    tokens = CommonPPLexer.tokens \
-             + list(set(mos6502_preprocessor.values()))
-
-    # identifier
-    def t_ID(self, t):
-        r'[a-zA-Z_][\w]*'
-
-        value = t.value.lower()
-
-        t.type = self.mos6502_preprocessor.get(value, None) # check for preprocessor words
-        if t.type != None:
-            t.value = value
-            return t
-
-        return super(PPLexer, self).t_ID(t)
-
-    def __init__(self):
-        super(PPLexer, self).__init__()
-
+from ricoh2A0X import Ricoh2A0X

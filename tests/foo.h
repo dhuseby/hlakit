@@ -1,1 +1,1 @@
-#warn "from foo.h"
+#warning "from foo.h"

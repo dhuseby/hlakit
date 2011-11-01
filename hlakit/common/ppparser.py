@@ -27,8 +27,10 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from session import Session
 from symboltable import SymbolTable
 from ppmacro import PPMacro
+from buffer import Buffer
 
 class PPParser(object):
 
@@ -95,8 +97,8 @@ class PPParser(object):
         '''pp_block_else : HASH PP_ELSE NL '''
 
         if len(self._enabled) == 1:
-            #TODO report an error
-            pass
+            print "ERROR: unmatched #else"
+            return
 
         # remove the top item in the list
         old_state = self._enabled.pop()
@@ -115,8 +117,8 @@ class PPParser(object):
         '''pp_block_end : HASH PP_ENDIF NL '''
 
         if len(self._enabled) == 1:
-            #TODO report an error
-            pass
+            print "ERROR: unmatched #endif"
+            return
 
         # pop the current state off of the stack
         self._enabled.pop()
@@ -170,22 +172,38 @@ class PPParser(object):
         p[0] = ('pp_undef', )
 
     def p_pp_include(self, p):
-        '''pp_include : PP_INCLUDE STRING NL
-                      | PP_INCLUDE BSTRING NL'''
-        p[0] = ('pp_include', p[2][1:-1])
-        print 'INCLUDING: %s' % p[2]
+        '''pp_include : PP_INCLUDE filename NL'''
+
+        # resolve the file name path
+        fpath = Session().get_file_path(p[2][1:-1], (p[2][0] == '<'))
+        print 'INCLUDING: %s' % fpath
+
+        # get the program ast for the included file
+        prg = Session().preprocess_file(fpath)
+    
+        p[0] = ('pp_include', fpath, prg[1])
 
     def p_pp_msg(self, p):
         '''pp_msg : PP_TODO STRING NL
                   | PP_WARNING STRING NL
                   | PP_ERROR STRING NL
                   | PP_FATAL STRING NL'''
-        print '%s: %s' % (p[1].upper(), p[2])
+        msg = '%s: %s' % (p[1].upper(), p[2])
+        print msg
+        p[0] = ('pp_msg', msg)
 
     def p_pp_incbin(self, p):
-        '''pp_incbin : PP_INCBIN STRING NL
-                     | PP_INCBIN BSTRING NL'''
-        p[0] = ('pp_incbin', p[2])
+        '''pp_incbin : PP_INCBIN filename NL'''
+
+        # resolve the file name path
+        fpath = Session().get_file_path(p[2][1:-1], (p[2][0] == '<'))
+        print 'INCLUDING BINARY: %s' % fpath
+
+        # get the binary buffer for the file
+        binc = Buffer()
+        binc.load(fpath)
+
+        p[0] = ('pp_incbin', fpath, binc)
 
     def p_base_statement(self, p):
         '''base_statement : base_token
@@ -195,14 +213,27 @@ class PPParser(object):
         elif len(p) == 3:
             p[0] = ('base_statement', p[1][1] + [ p[2] ])
 
+    def p_number(self, p):
+        '''number : DECIMAL
+                  | KILO
+                  | HEXC
+                  | HEXS
+                  | BINARY'''
+        p[0] = p[1]
+
+    def p_filename(self, p):
+        '''filename : STRING
+                    | BSTRING'''
+        p[0] = p[1]
+
+    def p_immediate(self, p):
+        '''immediate : HASH number'''
+        p[0] = ('immediate', p[2])
+
     def p_base_token(self, p):
-        '''base_token     : STRING
-                          | BSTRING
-                          | DECIMAL
-                          | KILO
-                          | HEXC
-                          | HEXS
-                          | BINARY
+        '''base_token     : number
+                          | immediate
+                          | STRING
                           | ID
                           | WS
                           | NL
@@ -232,5 +263,5 @@ class PPParser(object):
 
     # must have a p_error rule
     def p_error(self, p):
-        print "Syntax error in input!"
+        print "Syntax error in input! File: %s, Line: %s" % (Session().get_cur_file(), p.lineno)
 

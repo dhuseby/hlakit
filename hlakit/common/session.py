@@ -58,6 +58,16 @@ class Session(object):
             'module': 'cpu.mos6502', 
             'class': 'MOS6502', 
             'desc': 'MOS Technologies 6502 8-bit CPU'
+        },
+        '2A03': {
+            'module': 'cpu.ricoh2A0X',
+            'class': 'Ricoh2A0X',
+            'desc': 'NES NTSC CPU'
+        },
+        '2A07': {
+            'module': 'cpu.ricoh2A0X',
+            'class': 'Ricoh2A0X',
+            'desc': 'NES PAL CPU'
         }
         #'z80': {
         #    'module': 'cpu.z80',
@@ -85,15 +95,15 @@ class Session(object):
         'nes': {
             'module': 'platform.nes',
             'class': 'NES',
-            'cpu': '6502',
+            'cpu': [ '2A03', '2A07' ],
             'desc': 'Nintendo Entertainment System'
         },
-        'lynx': {
-            'module': 'platform.lynx',
-            'class': 'Lynx',
-            'cpu': '6502',
-            'desc': 'Atari Lynx Portable System'
-        }
+        #'lynx': {
+        #    'module': 'platform.lynx',
+        #    'class': 'Lynx',
+        #    'cpu': '6502',
+        #    'desc': 'Atari Lynx Portable System'
+        #}
         #'gameboy': {
         #    'module': 'platform.gameboy',
         #    'class': 'GameBoy',
@@ -162,6 +172,12 @@ class Session(object):
                                    'The supported platforms are:\n' \
                                    '\t%s\n' % '\n\t'.join(self.PLATFORM))
 
+        if isinstance(self.PLATFORM[platform]['cpu'], list) and \
+           (self._options.cpu not in self.PLATFORM[platform]['cpu']):
+            raise CommandLineError('You specified the %s platform but chose the wrong CPU.\n' \
+                                   'The supported cpu\'s for the %s platform are:\n' \
+                                   '\t%s\n' % (platform, platform, '\n\t'.join(self.PLATFORM[platform]['cpu'])))
+
         # get the platform data
         platform_class = self.PLATFORM[platform]['class']
         platform_module = 'hlakit.' + self.PLATFORM[platform]['module']
@@ -177,11 +193,11 @@ class Session(object):
             self._initialize_target(args)
         except CommandLineError, e:
             print >> sys.stderr, 'ERROR: %s' % e
-            p = self.get_parser()
+            p = self._opts_parser
             if p:
                 p.print_help()
             raise e
-        
+
     def get_cpu_spec(self, cpu):
         cpus = getattr(self, 'CPU', None)
         if cpus and cpus.has_key(cpu):
@@ -206,22 +222,56 @@ class Session(object):
         if options:
             return options.graph
 
+    def set_cur_dir(self, d):
+        self._cur_dir = d
+
+    def set_cur_file(self, f):
+        self._cur_file = f
+
+    def get_cur_file(self):
+        return self._cur_file
+
     def get_include_dirs(self):
         options = getattr(self, '_options', None)
         if options:
             return options.include
         return []
 
+    def get_file_path(self, f, inc_dirs=False):
+        search_paths = []
+
+        # calculate the correct path to the file 
+        if f[0] == '/':
+            # if it starts with a '/' then it is an absolute path
+            return f
+      
+        # add in the current file dir
+        search_paths.append(self._cur_dir)
+
+        # add in cwd as last option
+        search_paths.append(os.getcwd())
+
+        # add in the included directories
+        if inc_dirs and (len(self.get_include_dirs()) > 0):
+            search_paths.extend(self.get_include_dirs())
+
+        # look in the search paths for the file they specified
+        for path in search_paths:
+            if path[0] == '/':
+                test_path = os.path.join(path, f)
+            else:
+                test_path = os.path.join(os.getcwd(), path, f)
+
+            # if we've found it, then return the dir it resides in
+            if os.path.exists(test_path):
+                return test_path
+
+        return None
+
     def lexer(self):
         target = getattr(self, '_target', None)
         if target:
             return lex.lex(module=target.lexer(), debug=self.is_debug())
-        return None
-
-    def pp_lexer(self):
-        target = getattr(self, '_target', None)
-        if target:
-            return lex.lex(module=target.pp_lexer(), debug=self.is_debug())
         return None
 
     def parser(self):
@@ -230,70 +280,52 @@ class Session(object):
             return yacc.yacc(module=target.parser(), debug=self.is_debug())
         return None
 
-    def pp_parser(self):
+    def pp_lexer(self, debug=False):
         target = getattr(self, '_target', None)
         if target:
-            return yacc.yacc(module=target.pp_parser(), debug=self.is_debug())
+            return lex.lex(module=target.pp_lexer(), debug=(self.is_debug() or debug))
         return None
 
-    def _preprocess(self):
-        pp_lexer = self.pp_lexer()
-        pp_parser = self.pp_parser()
+    def pp_parser(self, debug=False):
+        target = getattr(self, '_target', None)
+        if target:
+            return yacc.yacc(module=target.pp_parser(), debug=(self.is_debug() or debug))
+        return None
 
-        # this will contain a tuple for each file containing the file name, the 
-        # preprocessed output, and an object that maps line,col positions in the
-        # preprocessed output to the original file line,col for error reporting
+    def preprocess_file(self, f, debug=False):
+        pp_lexer = self.pp_lexer(debug)
+        pp_parser = self.pp_parser(debug)
+
+        # read the file
+        fin = open(f)
+        inf = fin.read()
+        fin.close()
+
+        self.set_cur_file(f)
+        self.set_cur_dir(os.path.dirname(f))
+        result = pp_parser.parse(inf, lexer=pp_lexer, debug=self.is_debug())
+        if self.is_graph():
+            graph = PPGraph(os.path.basename(f) + '.pdf', result)
+            graph.save()
+
+        return result
+
+    def preprocess(self):
         output = []
 
         files = self.get_args()
         if len(files) == 0:
             raise CommandLineError('No files to compile\n')
 
-        for f in self.get_args():
-
-            # read the file
-            fin = open(f)
-            inf = fin.read()
-            fin.close()
-
-            #lexer.add_path(os.path.dirname(f))
-            #lexer.parse(inf, f)
-            result = pp_parser.parse(inf, lexer=pp_lexer, debug=self.is_debug())
-            print result
-
-            if self.is_graph():
-                graph = PPGraph(os.path.basename(f) + '.pdf', result)
-                graph.save()
-
-    def _build(self):
-        lexer = self.lexer()
-        parser = self.parser()
-
-        files = self.get_args()
-        if len(files) == 0:
-            raise CommandLineError('No files to compile\n')
-
-        for f in self.get_args():
-
-            # read the file
-            fin = open(f)
-            inf = fin.read()
-            fin.close()
-
-            #lexer.add_path(os.path.dirname(f))
-            #lexer.parse(inf, f)
-            result = parser.parse(inf, lexer=lexer)
-            print result
-
-    def build(self):
         try:
-            self._preprocess()
-            #self._build()
+            for f in files:
+                output.append( (f, self.preprocess_file(f), None) )
         except CommandLineError, e:
             print >> sys.stderr, 'ERROR: %s' % e
-            p = self.get_parser()
+            p = self._opts_parser
             if p:
                 p.print_help()
             raise e
 
+        return output
 

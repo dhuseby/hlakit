@@ -88,6 +88,11 @@ class PPLexer(object):
         r'\s+'
         # eat whitespace
 
+    def t_COMMENT(self, t):
+        r'(/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/)|(//.*)'
+        t.lexer.lineno += t.value.count("\n")
+        # eat comments
+
     def t_ID(self, t):
         r'[a-zA-Z_][\w]*'
 

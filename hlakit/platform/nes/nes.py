@@ -27,35 +27,29 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from hlakit.common.pplexer import PPLexer as CommonPPLexer
+from hlakit.common.session import CommandLineError
+from pplexer import PPLexer
+from ppparser import PPParser
 
-class PPLexer(CommonPPLexer):
+class NES(object):
+    
+    def __init__(self, cpu=None):
 
-    # 6502 specific preprocessors
-    mos6502_preprocessor = {
-        'interrupt':    'PP_INTERRUPT',
-        'start':        'PP_START',
-        'nmi':          'PP_NMI',
-        'irq':          'PP_IRQ'
-    }
+        self._cpu = cpu
 
-    # 6502 tokens list
-    tokens = CommonPPLexer.tokens \
-             + list(set(mos6502_preprocessor.values()))
+        # preprocessor lexer and parser
+        self._pp_lexer = PPLexer()
+        self._pp_parser = PPParser(tokens=self._pp_lexer.tokens)
 
-    # identifier
-    def t_ID(self, t):
-        r'[a-zA-Z_][\w]*'
+    def lexer(self):
+        return None
 
-        value = t.value.lower()
+    def parser(self):
+        return None
 
-        t.type = self.mos6502_preprocessor.get(value, None) # check for preprocessor words
-        if t.type != None:
-            t.value = value
-            return t
+    def pp_lexer(self):
+        return self._pp_lexer
 
-        return super(PPLexer, self).t_ID(t)
-
-    def __init__(self):
-        super(PPLexer, self).__init__()
+    def pp_parser(self):
+        return self._pp_parser
 

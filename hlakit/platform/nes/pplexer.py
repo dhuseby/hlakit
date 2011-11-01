@@ -27,21 +27,35 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from hlakit.common.pplexer import PPLexer as CommonPPLexer
+from hlakit.cpu.ricoh2A0X.pplexer import PPLexer as Ricoh2A0XPPLexer
 
-class PPLexer(CommonPPLexer):
+class PPLexer(Ricoh2A0XPPLexer):
 
-    # 6502 specific preprocessors
-    mos6502_preprocessor = {
-        'interrupt':    'PP_INTERRUPT',
-        'start':        'PP_START',
-        'nmi':          'PP_NMI',
-        'irq':          'PP_IRQ'
+    # NES specific preprocessors
+    nes_preprocessor = {
+        'ram': 'PP_RAM',
+        'rom': 'PP_ROM',
+        'org': 'PP_ORG',
+        'end': 'PP_END',
+        'banksize': 'PP_BANKSIZE',
+        'bank': 'PP_BANK',
+        'setpad': 'PP_SETPAD',
+        'align': 'PP_ALIGN',
+        'ines': 'PP_INES',
+        'mapper': 'PP_MAPPER',
+        'mirroring': 'PP_MIRRORING',
+        'fourscreen': 'PP_FOURSCREEN',
+        'battery': 'PP_BATTERY',
+        'trainer': 'PP_TRAINER',
+        'prgrepeat': 'PP_PRGREPEAT',
+        'chrrepeat': 'PP_CHRREPEAT',
+        'chr': 'PP_CHR',
+        'link': 'PP_LINK',
     }
 
-    # 6502 tokens list
-    tokens = CommonPPLexer.tokens \
-             + list(set(mos6502_preprocessor.values()))
+    # NES tokens list
+    tokens = Ricoh2A0XPPLexer.tokens \
+             + list(set(nes_preprocessor.values()))
 
     # identifier
     def t_ID(self, t):
@@ -49,7 +63,7 @@ class PPLexer(CommonPPLexer):
 
         value = t.value.lower()
 
-        t.type = self.mos6502_preprocessor.get(value, None) # check for preprocessor words
+        t.type = self.nes_preprocessor.get(value, None) # check for preprocessor words
         if t.type != None:
             t.value = value
             return t
@@ -58,4 +72,5 @@ class PPLexer(CommonPPLexer):
 
     def __init__(self):
         super(PPLexer, self).__init__()
+
 

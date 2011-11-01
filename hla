@@ -33,13 +33,14 @@ or implied, of David Huseby.
 import os
 import sys
 import optparse
+import pprint
 from hlakit.common.session import Session, CommandLineError
 
 def main():
     try:
         session = Session()
         session.parse_args(sys.argv[1:])
-        session.build()
+        pprint.pprint(session.preprocess())
     except CommandLineError, e:
         return 0
 

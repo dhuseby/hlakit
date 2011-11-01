@@ -27,34 +27,12 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from hlakit.common.pplexer import PPLexer as CommonPPLexer
+from hlakit.cpu.mos6502.pplexer import PPLexer as MOS6502PPLexer
 
-class PPLexer(CommonPPLexer):
-
-    # 6502 specific preprocessors
-    mos6502_preprocessor = {
-        'interrupt':    'PP_INTERRUPT',
-        'start':        'PP_START',
-        'nmi':          'PP_NMI',
-        'irq':          'PP_IRQ'
-    }
+class PPLexer(MOS6502PPLexer):
 
     # 6502 tokens list
-    tokens = CommonPPLexer.tokens \
-             + list(set(mos6502_preprocessor.values()))
-
-    # identifier
-    def t_ID(self, t):
-        r'[a-zA-Z_][\w]*'
-
-        value = t.value.lower()
-
-        t.type = self.mos6502_preprocessor.get(value, None) # check for preprocessor words
-        if t.type != None:
-            t.value = value
-            return t
-
-        return super(PPLexer, self).t_ID(t)
+    tokens = MOS6502PPLexer.tokens
 
     def __init__(self):
         super(PPLexer, self).__init__()
