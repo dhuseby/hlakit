@@ -27,51 +27,20 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-from hlakit.cpu.ricoh2A0X.pplexer import PPLexer as Ricoh2A0XPPLexer
-
-class PPLexer(Ricoh2A0XPPLexer):
-
-    # NES specific preprocessors
-    nes_preprocessor = {
-        'ram': 'PP_RAM',
-        'rom': 'PP_ROM',
-        'org': 'PP_ORG',
-        'end': 'PP_END',
-        'banksize': 'PP_BANKSIZE',
-        'bank': 'PP_BANK',
-        'setpad': 'PP_SETPAD',
-        'align': 'PP_ALIGN',
-        'ines': 'PP_INES',
-        'mapper': 'PP_MAPPER',
-        'mirroring': 'PP_MIRRORING',
-        'fourscreen': 'PP_FOURSCREEN',
-        'battery': 'PP_BATTERY',
-        'trainer': 'PP_TRAINER',
-        'prgrepeat': 'PP_PRGREPEAT',
-        'chrrepeat': 'PP_CHRREPEAT',
-        'chr': 'PP_CHR',
-        'link': 'PP_LINK',
-        'off': 'PP_OFF'
-    }
-
-    # NES tokens list
-    tokens = Ricoh2A0XPPLexer.tokens \
-             + list(set(nes_preprocessor.values()))
-
-    # identifier
-    def t_ID(self, t):
-        r'[a-zA-Z_][\w]*'
-
-        value = t.value.lower()
-
-        t.type = self.nes_preprocessor.get(value, None) # check for preprocessor words
-        if t.type != None:
-            t.value = value
-            return t
-
-        return super(PPLexer, self).t_ID(t)
+class Target(object):
 
     def __init__(self):
-        super(PPLexer, self).__init__()
+        self._settings = {}
 
+    def __getitem__(self, key):
+        return self._settings.__getitem__(key)
+
+    def __setitem__(self, key, value):
+        self._settings.__setitem__(key, value)
+
+    def __delitem__(self, key):
+        self._settings.__delitem__(key)
+
+    def __contains__(self, key):
+        return self._settings.__contains__(key)
 

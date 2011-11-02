@@ -27,14 +27,17 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from hlakit.common.target import Target
 from lexer import Lexer
 from parser import Parser
 from pplexer import PPLexer
 from ppparser import PPParser
 
-class MOS6502(object):
+class MOS6502(Target):
 
     def __init__(self):
+
+        super(MOS6502, self).__init__()
 
         # preprpocessor lexer and parser
         self._pp_lexer = PPLexer()

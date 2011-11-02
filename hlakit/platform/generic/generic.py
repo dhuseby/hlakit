@@ -27,13 +27,16 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from hlakit.common.target import Target
 from hlakit.common.session import Session, CommandLineError
 
-class Generic(object):
+class Generic(Target):
     
     def __init__(self, cpu=None):
         if not cpu:
             raise CommandLineError("no CPU specified for generic platform")
+
+        super(Generic, self).__init__()
 
         cpu_spec = Session().get_cpu_spec(cpu)
         if not cpu_spec:

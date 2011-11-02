@@ -220,6 +220,11 @@ class Session(object):
         if getattr(self, '_options', None):
             return self._options.graph
 
+    def get_target(self):
+        if getattr(self, '_target', None) is None:
+            return None
+        return self._target
+
     def push_cur_dir(self, d):
         if getattr(self, '_cur_dir', None) is None:
             self._cur_dir = []

@@ -54,6 +54,8 @@ class Ricoh2A0X(MOS6502):
 
     def __init__(self):
 
+        super(Ricoh2A0X, self).__init__()
+
         # preprpocessor lexer and parser
         self._pp_lexer = PPLexer()
         self._pp_parser = PPParser(tokens=self._pp_lexer.tokens)
@@ -62,15 +64,4 @@ class Ricoh2A0X(MOS6502):
         self._lexer = None
         self._parser = None
 
-    def lexer(self):
-        return self._lexer
-
-    def parser(self):
-        return self._parser
-
-    def pp_lexer(self):
-        return self._pp_lexer
-
-    def pp_parser(self):
-        return self._pp_parser
 

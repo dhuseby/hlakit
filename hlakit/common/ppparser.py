@@ -45,6 +45,7 @@ class PPParser(object):
     def p_program(self, p):
         '''program : common_statement
                    | program common_statement'''
+        import pdb; pdb.set_trace()
         if len(p) == 2:
             if p[1] is None:
                 p[0] = ('program', [])
@@ -250,7 +251,10 @@ class PPParser(object):
 
         # get the program ast for the included file
         prg = Session().preprocess_file(fpath)
-  
+ 
+        if p is None or prg is None:
+            import pdb; pdb.set_trace()
+
         if Session().is_debug():
             p[0] = ('pp_include', fpath, prg[1])
         else:
