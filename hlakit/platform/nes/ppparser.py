@@ -39,41 +39,59 @@ class PPParser(Ricoh2A0XPPParser):
         '''program : platform_statement
                    | program platform_statement'''
         if len(p) == 2:
-            p[0] = ('program', [ p[1] ])
+            if p[1] is None:
+                p[0] = ('program', [])
+                return
+            if isinstance(p[1], list):
+                p[0] = ('program', p[1])
+            else:
+                p[0] = ('program', [ p[1] ])
         elif len(p) == 3:
-            p[0] = ('program', p[1][1] + [ p[2] ])
+            if p[2] is None:
+                p[0] = ('program', p[1][1])
+                return
+            if isinstance(p[2], list):
+                p[0] = ('program', p[1][1] + p[2])
+            else:
+                p[0] = ('program', p[1][1] + [ p[2] ])
 
     def p_platform_statement(self, p):
         '''platform_statement : cpu_statement
                               | nes_pp_statement'''
-        if self.is_enabled():
+        if self.is_enabled() and p[1] != None:
             p[0] = p[1]
 
     def p_nes_pp_statement(self, p):
         '''nes_pp_statement : HASH nes_pp_mem_statement
                             | HASH nes_pp_ines_statement'''
-        if self.is_enabled():
-            p[1] = p[1]
+        pass
+        #if self.is_enabled():
+        #    p[0] = p[2]
+
+    def p_nes_pp_value(self, p):
+        '''nes_pp_value : id
+                        | number
+                        | STRING'''
+        p[0] = p[1]
 
     def p_nes_pp_mem_statement(self, p):
         '''nes_pp_mem_statement : PP_RAM '.' PP_END NL
-                                | PP_RAM '.' PP_ORG number NL
-                                | PP_RAM '.' PP_ORG number ',' number NL
+                                | PP_RAM '.' PP_ORG nes_pp_value NL
+                                | PP_RAM '.' PP_ORG nes_pp_value ',' nes_pp_value NL
                                 | PP_ROM '.' PP_END NL
-                                | PP_ROM '.' PP_ORG number NL
-                                | PP_ROM '.' PP_BANKSIZE number NL
-                                | PP_ROM '.' PP_BANK number NL
-                                | PP_ROM '.' PP_BANK number ',' number NL
-                                | PP_ROM '.' PP_ORG number ',' number NL
+                                | PP_ROM '.' PP_ORG nes_pp_value NL
+                                | PP_ROM '.' PP_BANKSIZE nes_pp_value NL
+                                | PP_ROM '.' PP_BANK nes_pp_value NL
+                                | PP_ROM '.' PP_BANK nes_pp_value ',' nes_pp_value NL
+                                | PP_ROM '.' PP_ORG nes_pp_value ',' nes_pp_value NL
                                 | PP_CHR '.' PP_END NL
-                                | PP_CHR '.' PP_BANKSIZE number NL
+                                | PP_CHR '.' PP_BANKSIZE nes_pp_value NL
                                 | PP_CHR '.' PP_LINK filename NL
-                                | PP_CHR '.' PP_LINK filename ',' number NL
-                                | PP_CHR '.' PP_BANK number NL
-                                | PP_CHR '.' PP_BANK number ',' number NL
-                                | PP_SETPAD STRING NL
-                                | PP_SETPAD number NL
-                                | PP_ALIGN number NL'''
+                                | PP_CHR '.' PP_LINK filename ',' nes_pp_value NL
+                                | PP_CHR '.' PP_BANK nes_pp_value NL
+                                | PP_CHR '.' PP_BANK nes_pp_value ',' nes_pp_value NL
+                                | PP_SETPAD nes_pp_value NL
+                                | PP_ALIGN nes_pp_value NL'''
         if len(p) == 4:
             p[0] = ('nes_pp_mem_statement', p[1], p[2])
         elif len(p) == 5:
@@ -84,18 +102,13 @@ class PPParser(Ricoh2A0XPPParser):
             p[0] = ('nes_pp_mem_statement', p[1], p[3], p[4], p[6])
 
     def p_nes_pp_ines_statement(self, p):
-        '''nes_pp_ines_statement : PP_INES '.' PP_MAPPER STRING NL
-                                 | PP_INES '.' PP_MAPPER number NL
-                                 | PP_INES '.' PP_MIRRORING STRING NL
-                                 | PP_INES '.' PP_MIRRORING number NL
-                                 | PP_INES '.' PP_FOURSCREEN STRING NL
-                                 | PP_INES '.' PP_FOURSCREEN number NL
-                                 | PP_INES '.' PP_BATTERY STRING NL
-                                 | PP_INES '.' PP_BATTERY number NL
-                                 | PP_INES '.' PP_TRAINER STRING NL
-                                 | PP_INES '.' PP_TRAINER number NL
-                                 | PP_INES '.' PP_PRGREPEAT number NL
-                                 | PP_INES '.' PP_CHRREPEAT number NL'''
+        '''nes_pp_ines_statement : PP_INES '.' PP_MAPPER nes_pp_value NL
+                                 | PP_INES '.' PP_MIRRORING nes_pp_value NL
+                                 | PP_INES '.' PP_FOURSCREEN nes_pp_value NL
+                                 | PP_INES '.' PP_BATTERY nes_pp_value NL
+                                 | PP_INES '.' PP_TRAINER nes_pp_value NL
+                                 | PP_INES '.' PP_PRGREPEAT nes_pp_value NL
+                                 | PP_INES '.' PP_CHRREPEAT nes_pp_value NL'''
         p[0] = ('nes_pp_ines_statement', p[3], p[4])
 
     # must have a p_error rule

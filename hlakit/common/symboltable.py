@@ -75,6 +75,16 @@ class SymbolTable(object):
         # add the symbol to the scope
         self._scopes[namespace][name] = value
 
+    def del_symbol(self, name, namespace=None):
+        if namespace is None:
+            namespace = self.current_namespace()
+
+        # make sure the scope exists
+        if not self._scopes.has_key(namespace):
+            self._scopes[namespace] = {}
+
+        del self._scopes[namespace][name]
+
     def lookup_symbol(self, name, namespace=None):
         if namespace is None:
             namespace = self.current_namespace()

@@ -112,7 +112,7 @@ enum PPU {
 
 // sprites
 #define SPR_OAM_TOTAL    64
-#define SPR_OAM_SIZE    (sizeof(OAM_ENTRY)*SPR_OAM_TOTAL)
+#define SPR_OAM_SIZE    sizeof(OAM_ENTRY)*SPR_OAM_TOTAL
 
 typedef struct OAM_ENTRY_ {
     byte y,

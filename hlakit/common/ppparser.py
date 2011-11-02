@@ -46,15 +46,33 @@ class PPParser(object):
         '''program : common_statement
                    | program common_statement'''
         if len(p) == 2:
-            p[0] = ('program', [ p[1] ])
+            if p[1] is None:
+                p[0] = ('program', [])
+                return
+            if isinstance(p[1], list):
+                p[0] = ('program', p[1])
+            else:
+                p[0] = ('program', [ p[1] ])
         elif len(p) == 3:
-            p[0] = ('program', p[1][1] + [ p[2] ])
+            if p[2] is None:
+                p[0] = ('program', p[1][1])
+                return
+            if isinstance(p[2], list):
+                p[0] = ('program', p[1][1] + p[2])
+            else:
+                p[0] = ('program', p[1][1] + [ p[2] ])
 
     def p_common_statement(self, p):
-        '''common_statement : pp_statement
+        '''common_statement : hash_statement
                             | pp_block_statement
                             | base_statement'''
-        if self.is_enabled():
+        if self.is_enabled() and p[1] != None:
+            p[0] = p[1]
+
+    def p_hash_statement(self, p):
+        '''hash_statement : immediate
+                          | pp_statement'''
+        if p[1] != None:
             p[0] = p[1]
 
     def p_pp_statement(self, p):
@@ -69,9 +87,20 @@ class PPParser(object):
         '''pp_block_statement : pp_block_start pp_block_body pp_block_else pp_block_body pp_block_end
                               | pp_block_start pp_block_body pp_block_end'''
         if len(p) == 4:
-            p[0] = ('pp_block_statement', [ p[1], ('pp_block_body', p[2]), p[3] ])
+            if Session().is_debug():
+                p[0] = ('pp_block_statement', [ p[1], ('pp_block_body', p[2]), p[3] ])
+            else:
+                if p[2] is None:
+                    return
+                p[0] = p[2]
         elif len(p) == 6:
-            p[0] = ('pp_block_statement', [ p[1], ('pp_block_body', p[2]), p[3], ('pp_block_body', p[4]), p[5] ])
+            if Session().is_debug():
+                p[0] = ('pp_block_statement', [ p[1], ('pp_block_body', p[2]), p[3], ('pp_block_body', p[4]), p[5] ])
+            else:
+                if p[2] is None:
+                    p[0] = p[4]
+                else:
+                    p[0] = p[2]
 
     def p_pp_block_start(self, p):
         '''pp_block_start : HASH PP_IFDEF ID NL
@@ -129,25 +158,38 @@ class PPParser(object):
         '''pp_block_body : common_statement
                          | pp_block_body common_statement'''
         if len(p) == 2:
-            p[0] = [ p[1] ]
+            if p[1] is None:
+                p[0] = []
+                return
+            if isinstance(p[1], list):
+                p[0] = p[1]
+            else:
+                p[0] = [ p[1] ]
         elif len(p) == 3:
-            p[0] = p[1] + [ p[2] ]
+            if p[2] is None:
+                p[0] = p[1]
+                return
+            if isinstance(p[2], list):
+                p[0] = p[1] + p[2]
+            else:
+                p[0] = p[1] + [ p[2] ]
 
     def p_pp_define(self, p):
-        '''pp_define : PP_DEFINE ID pp_define_body
+        '''pp_define : PP_DEFINE ID NL
+                     | PP_DEFINE ID pp_define_body
                      | PP_DEFINE ID '(' pp_define_params ')' pp_define_body'''
 
         name = p[2]
-        value = None
+        value = []
         params = None
 
         if len(p) == 4:
             value = p[3]
-            p[0] = ('pp_define', p[2], p[3])
+            #p[0] = ('pp_define', p[2], p[3])
         elif len(p) == 7:
             value = p[6]
             params = p[4]
-            p[0] = ('pp_define_macro', p[2], p[4], p[6])
+            #p[0] = ('pp_define_macro', p[2], p[4], p[6])
 
         SymbolTable().new_symbol( name, PPMacro(name, value, params) )
 
@@ -155,33 +197,64 @@ class PPParser(object):
         '''pp_define_params : ID
                             | pp_define_params ',' ID'''
         if len(p) == 2:
-            p[0] = [ p[1] ]
+            if p[1] is None:
+                p[0] = []
+                return
+            if isinstance(p[1], list):
+                p[0] = p[1]
+            else:
+                p[0] = [ p[1] ]
         elif len(p) == 4:
-            p[0] = p[1] + [ p[3] ]
+            if p[3] is None:
+                p[0] = p[1]
+                return
+            if isinstance(p[3], list):
+                p = p[1] + p[3]
+            else:
+                p[0] = p[1] + [ p[3] ]
 
     def p_pp_define_body(self, p):
-        '''pp_define_body : statement
-                          | pp_define_body BS NL statement'''
+        '''pp_define_body : common_statement
+                          | pp_define_body BS NL common_statement'''
         if len(p) == 2:
-            p[0] = [ p[1] ]
+            if p[1] is None:
+                p[0] = []
+                return
+            if isinstance(p[1], list):
+                p[0] = p[1]
+            else:
+                p[0] = [ p[1] ]
         elif len(p) == 5:
-            p[0] = p[1] + [ p[4] ]
+            if p[4] is None:
+                p[0] = p[1]
+                return
+            if isinstance(p[4], list):
+                p[0] = p[1] + p[4]
+            else:
+                p[0] = p[1] + [ p[4] ]
 
     def p_pp_undef(self, p):
         '''pp_undef : PP_UNDEF ID NL'''
-        p[0] = ('pp_undef', )
+        SymbolTable().del_symbol(p[2])
+        #p[0] = ('pp_undef', p[2])
 
     def p_pp_include(self, p):
         '''pp_include : PP_INCLUDE filename NL'''
 
         # resolve the file name path
+        #print "Including %s from: %s, line: %s" % (p[2][1:-1], Session().get_cur_file(), p.lexer.lineno)
         fpath = Session().get_file_path(p[2][1:-1], (p[2][0] == '<'))
-        print 'INCLUDING: %s' % fpath
+
+        if fpath is None:
+            import pdb; pdb.set_trace()
 
         # get the program ast for the included file
         prg = Session().preprocess_file(fpath)
-    
-        p[0] = ('pp_include', fpath, prg[1])
+  
+        if Session().is_debug():
+            p[0] = ('pp_include', fpath, prg[1])
+        else:
+            p[0] = prg[1]
 
     def p_pp_msg(self, p):
         '''pp_msg : PP_TODO STRING NL
@@ -197,7 +270,7 @@ class PPParser(object):
 
         # resolve the file name path
         fpath = Session().get_file_path(p[2][1:-1], (p[2][0] == '<'))
-        print 'INCLUDING BINARY: %s' % fpath
+        #print 'INCLUDING BINARY: %s' % fpath
 
         # get the binary buffer for the file
         binc = Buffer()
@@ -209,9 +282,21 @@ class PPParser(object):
         '''base_statement : base_token
                           | base_statement base_token'''
         if len(p) == 2:
-            p[0] = ('base_statement', [ p[1] ])
+            if p[1] is None:
+                p[0] = []
+                return
+            if isinstance(p[1], list):
+                p[0] = p[1]
+            else:
+                p[0] = [ p[1] ]
         elif len(p) == 3:
-            p[0] = ('base_statement', p[1][1] + [ p[2] ])
+            if p[2] is None:
+                p[0] = p[1]
+                return
+            if isinstance(p[2], list):
+                p[0] = p[1] + p[2]
+            else:
+                p[0] = p[1] + [ p[2] ]
 
     def p_number(self, p):
         '''number : DECIMAL
@@ -227,14 +312,37 @@ class PPParser(object):
         p[0] = p[1]
 
     def p_immediate(self, p):
-        '''immediate : HASH number'''
-        p[0] = ('immediate', p[2])
+        '''immediate : HASH number
+                     | HASH ID
+                     | HASH '~' '(' ID ')'
+                     | HASH '(' ID ')' '''
+        pre = []
+        post = []
+        key = None
+        if len(p) == 3:
+            pre = [ p[1] ]
+            key = p[2]
+        elif len(p) == 5:
+            pre = p[1:2]
+            post = p[4:]
+            key = p[3]
+        elif len(p) == 6:
+            pre = p[1:3]
+            post = p[5:]
+            key = p[4]
+
+        macro = SymbolTable().lookup_symbol(key)
+        if macro:
+            imm = pre + macro.value + post
+            return ''.join(imm)
+
+        return ''.join(p[1:])
 
     def p_base_token(self, p):
         '''base_token     : number
-                          | immediate
+                          | id
+                          | PP_ELSE
                           | STRING
-                          | ID
                           | WS
                           | NL
                           | '.'
@@ -259,6 +367,14 @@ class PPParser(object):
                           | ']'
                           | ':'
                           | ',' '''
+        p[0] = p[1]
+
+    def p_id(self, p):
+        '''id : ID'''
+        macro = SymbolTable().lookup_symbol(p[1])
+        if macro:
+            return macro.value
+
         p[0] = p[1]
 
     # must have a p_error rule

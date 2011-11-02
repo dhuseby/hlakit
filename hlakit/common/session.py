@@ -213,23 +213,41 @@ class Session(object):
         return getattr(self, '_opts_parser', None)
 
     def is_debug(self):
-        options = getattr(self, '_options', None)
-        if options:
-            return options.debug
+        if getattr(self, '_options', None):
+            return self._options.debug
 
     def is_graph(self):
-        options = getattr(self, '_options', None)
-        if options:
-            return options.graph
+        if getattr(self, '_options', None):
+            return self._options.graph
 
-    def set_cur_dir(self, d):
-        self._cur_dir = d
+    def push_cur_dir(self, d):
+        if getattr(self, '_cur_dir', None) is None:
+            self._cur_dir = []
+        self._cur_dir.append(d)
 
-    def set_cur_file(self, f):
-        self._cur_file = f
+    def pop_cur_dir(self):
+        if getattr(self, '_cur_dir', None):
+            self._cur_dir.pop()
+
+    def push_cur_file(self, f):
+        if getattr(self, '_cur_file', None) is None:
+            self._cur_file = []
+        self._cur_file.append(f)
+
+    def pop_cur_file(self):
+        if getattr(self, '_cur_file', None):
+            self._cur_file.pop()
 
     def get_cur_file(self):
-        return self._cur_file
+        if getattr(self, '_cur_file', None):
+            return self._cur_file[-1]
+        return None
+
+    def get_cur_dir(self):
+        cur_dir = getattr(self, '_cur_dir', None)
+        if cur_dir:
+            return cur_dir[-1]
+        return None
 
     def get_include_dirs(self):
         options = getattr(self, '_options', None)
@@ -246,7 +264,7 @@ class Session(object):
             return f
       
         # add in the current file dir
-        search_paths.append(self._cur_dir)
+        search_paths.append(self.get_cur_dir())
 
         # add in cwd as last option
         search_paths.append(os.getcwd())
@@ -301,9 +319,11 @@ class Session(object):
         inf = fin.read()
         fin.close()
 
-        self.set_cur_file(f)
-        self.set_cur_dir(os.path.dirname(f))
+        self.push_cur_file(f)
+        self.push_cur_dir(os.path.dirname(f))
         result = pp_parser.parse(inf, lexer=pp_lexer, debug=self.is_debug())
+        self.pop_cur_dir()
+        self.pop_cur_file()
         if self.is_graph():
             graph = PPGraph(os.path.basename(f) + '.pdf', result)
             graph.save()
@@ -319,7 +339,13 @@ class Session(object):
 
         try:
             for f in files:
-                output.append( (f, self.preprocess_file(f), None) )
+                pp = self.preprocess_file(f)
+                fout = open(f + '.pp', 'w+')
+                for p in pp[1]:
+                    if isinstance(p, str):
+                        fout.write(' %s' % p)
+                fout.close()
+                output.append( (f, pp, None ) )
         except CommandLineError, e:
             print >> sys.stderr, 'ERROR: %s' % e
             p = self._opts_parser

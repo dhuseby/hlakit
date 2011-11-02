@@ -27,7 +27,9 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+import copy
 from session import Session
+from symboltable import SymbolTable
 
 class PPLexer(object):
 
@@ -69,8 +71,8 @@ class PPLexer(object):
     t_HASH      = r'\#'
     t_STRING    = r'\"(\\.|[^\"])*\"'
     t_BSTRING   = r'\<(\\.|[^\>])*\>'
-    t_DECIMAL   = r'(0|[1-9][0-9]*)'
-    t_KILO      = r'(0|[1-9][0-9]*)[kK]'
+    t_DECIMAL   = r'\b(0|[1-9][0-9]*)\b'
+    t_KILO      = r'\b(0|[1-9][0-9]*)[kK]\b'
     t_HEXC      = r'0x[0-9a-fA-F]+'
     t_HEXS      = r'\$[0-9a-fA-F]+'
     t_BINARY    = r'%[01]+'
@@ -102,6 +104,43 @@ class PPLexer(object):
         if t.type != None:
             t.value = value
             return t
+
+        """
+        # the token is a normal ID...we need to expand it if it is a macro name
+        exp = SymbolTable().lookup_symbol(t.value)
+        ret = []
+        if exp != None:
+
+            # so this is where it gets tricky...we need to return the first token
+            # and splice the rest into the lexer's stream at the correct place
+
+            # now splice in the new text and adjust things
+            toklen = len(t.value)
+            splice_start = t.lexer.lexpos - toklen 
+            splice_end = t.lexer.lexpos
+
+            # build a temporary lexer so we can get the first token of the macro value string
+            splice_str = ' '.join(exp.value)
+            tmplexer = Session().pp_lexer(Session().is_debug())
+            tmplexer.input(splice_str)
+
+            # get the first token
+            tmptok = tmplexer.token()
+
+            # copy it's type and value to the token we're going to return
+            t.original_value = t.value
+            t.type = tmptok.type
+            t.value = tmptok.value
+           
+            # splice the string in and adjust the lexpos
+            t.lexer.lexdata = t.lexer.lexdata[:splice_start] + splice_str + t.lexer.lexdata[splice_end:]
+            # adjust the current lexpos
+            t.lexer.lexlen = len(t.lexer.lexdata)
+            t.lexer.lexpos = min((splice_start + len(t.value)), (t.lexer.lexlen - 1))
+
+            # return the first token
+            return t
+        """
 
         t.type = 'ID'
         return t
