@@ -40,18 +40,34 @@ class PPParser(Ricoh2A0XPPParser):
                    | program platform_statement'''
 
         nes = Session().get_target()
-        if nes.has_ended_block():
-            block = nes.clear_block()
-            if len(p) == 2:
-                p[0] = ('program', [ block ] )
-            elif len(p) == 3:
-                p[0] = ('program', p[1][1] + [ block ])
-        else:
-            if len(p) == 2:
-                nes.append_to_block(p[1])
-            elif len(p) == 3:
-                nes.append_to_block(p[2])
+        block = None
 
+        if nes.has_block_started() and nes.get_block()['start'] is None:
+            nes.set_block_start(len(p[1][1]) - 1)
+
+        if nes.has_block_ended():
+            nes.set_block_end(len(p[1][1]))
+            block = nes.clear_block()
+        
+        if len(p) == 2:
+            if p[1] is None:
+                p[0] = ('program', [], [])
+            else:
+                if isinstance(p[1], list):
+                    p[0] = ('program', p[1], [])
+                else:
+                    p[0] = ('program', [ p[1] ], [])
+        elif len(p) == 3:
+            if p[2] is None:
+                p[0] = ('program', p[1][1], p[1][2])
+            else:
+                if isinstance(p[2], list):
+                    p[0] = ('program', p[1][1] + p[2], p[1][2])
+                else:
+                    p[0] = ('program', p[1][1] + [ p[2] ], p[1][2])
+
+        if block != None:
+            p[0][2].append(block)
 
     def p_platform_statement(self, p):
         '''platform_statement : cpu_statement
@@ -98,21 +114,26 @@ class PPParser(Ricoh2A0XPPParser):
 
         nes = Session().get_target()
         if p[1] in ('ram', 'rom', 'chr'):
-            if nes.get_block() is None:
-                nes.start_block(p[1])
-            if nes.get_block().type is None:
-                nes.set_block_type(p[1])
+            if p[3] in ('org', 'bank'):
+                if nes.has_block_started():
+                    t = nes.get_block()['type']
+                    if t != None and t != p[1]:
+                        raise Exception('WARNING: unclosed %s block at file: %s, line: %s, included from: %s' % (t, Session().get_cur_file(), p.lexer.lineno, Session()._cur_file))
+                else:
+                    nes.start_block(p[1])
+                if nes.get_block()['type'] is None:
+                    nes.set_block_type(p[1])
 
             if p[3] == 'org':
                 nes.set_block_org(p[4])
                 if len(p) == 8:
                     nes.set_block_maxsize(p[6])
             elif p[3] == 'bank':
-                nes.set_bank(p[4])
+                nes.set_block_bank(p[4])
                 if len(p) == 8:
                     nes.set_banksize(p[6])
             elif p[3] == 'banksize':
-                nes.set_banksize(p[4])
+                nes.set_banksize(p[1], p[4])
             elif p[3] == 'link':
                 nes.set_block_link(p[4])
             elif p[3] == 'end':

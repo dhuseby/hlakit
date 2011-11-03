@@ -37,7 +37,6 @@ class PPParser(CommonPPParser):
     def p_program(self, p):
         '''program : cpu_statement
                    | program cpu_statement'''
-        import pdb; pdb.set_trace()
         if len(p) == 2:
             if p[1] is None:
                 p[0] = ('program', [])

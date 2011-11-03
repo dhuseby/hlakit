@@ -49,6 +49,8 @@
 #include "visuals.s"
 #include "main.s"
 
+#rom.end
+
 /******************************************************************************/
 
 
@@ -60,7 +62,6 @@
  #  MMMM  MM  MM MM  MM
   #############################################################################*/
 
-#chr.banksize   8K
 #chr.bank    CHR_FONT_BANK
 #incbin "font2.chr"
 #chr.end
