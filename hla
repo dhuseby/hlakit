@@ -44,7 +44,6 @@ def main():
         pprint.pprint(prg)
         for p in prg:
             for b in p[1][2]:
-                import pdb; pdb.set_trace()
                 print "Block lines:"
                 print p[1][1][b['start']:b['end']]
     except CommandLineError, e:
