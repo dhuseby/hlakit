@@ -30,6 +30,7 @@ or implied, of David Huseby.
 import os
 import sys
 import optparse
+import cStringIO
 import ply.lex as lex
 import ply.yacc as yacc
 from ppgraph import PPGraph
@@ -248,6 +249,11 @@ class Session(object):
             return self._cur_file[-1]
         return None
 
+    def get_root_file(self):
+        if getattr(self, '_cur_file', None):
+            return self._cur_file[0]
+        return None
+
     def get_cur_dir(self):
         cur_dir = getattr(self, '_cur_dir', None)
         if cur_dir:
@@ -291,16 +297,16 @@ class Session(object):
 
         return None
 
-    def lexer(self):
+    def lexer(self, debug=False):
         target = getattr(self, '_target', None)
         if target:
-            return lex.lex(module=target.lexer(), debug=self.is_debug())
+            return lex.lex(module=target.lexer(), debug=(self.is_debug() or debug))
         return None
 
-    def parser(self):
+    def parser(self, debug=False):
         target = getattr(self, '_target', None)
         if target:
-            return yacc.yacc(module=target.parser(), debug=self.is_debug())
+            return yacc.yacc(module=target.parser(), debug=(self.is_debug() or debug))
         return None
 
     def pp_lexer(self, debug=False):
@@ -315,6 +321,25 @@ class Session(object):
             return yacc.yacc(module=target.pp_parser(), debug=(self.is_debug() or debug))
         return None
 
+    def _strip_pp(self, pp):
+        line = []
+        output = []
+        inline = False
+
+        for p in pp[1]:
+            if inline:
+                if len(p.strip()) > 0:
+                    line.append(p)
+                if p[0] == '\n':
+                    output.append(' '.join(line))
+                    inline = False
+            else:
+                if len(p.strip()) > 0:
+                    line = []
+                    line.append(p)
+                    inline = True
+        return ('program', output)
+
     def preprocess_file(self, f, debug=False):
         pp_lexer = self.pp_lexer(debug)
         pp_parser = self.pp_parser(debug)
@@ -324,9 +349,10 @@ class Session(object):
         inf = fin.read()
         fin.close()
 
+        print "Preprocessing %s..." % f
         self.push_cur_file(f)
         self.push_cur_dir(os.path.dirname(f))
-        result = pp_parser.parse(inf, lexer=pp_lexer, debug=self.is_debug())
+        result = pp_parser.parse(inf, lexer=pp_lexer, debug=(self.is_debug() or debug))
         self.pop_cur_dir()
         self.pop_cur_file()
         if self.is_graph():
@@ -345,12 +371,11 @@ class Session(object):
         try:
             for f in files:
                 pp = self.preprocess_file(f)
-                fout = open(f + '.pp', 'w+')
-                for p in pp[1]:
-                    if isinstance(p, str):
-                        fout.write(' %s' % p)
-                fout.close()
-                output.append( (f, pp, None ) )
+                clean = self._strip_pp(pp)
+                sio = cStringIO.StringIO()
+                sio.write('\n'.join(clean[1]))
+                output.append( (f, pp, sio.getvalue() ) )
+                sio.close()
         except CommandLineError, e:
             print >> sys.stderr, 'ERROR: %s' % e
             p = self._opts_parser
@@ -359,4 +384,36 @@ class Session(object):
             raise e
 
         return output
+
+    def compile_file(self, cunit, debug=False):
+        lexer = self.lexer(debug)
+        parser = self.parser(debug)
+
+        print "Compiling %s..." % cunit[0]
+        self.push_cur_file(cunit[0])
+        self.push_cur_dir(os.path.dirname(cunit[0]))
+        result = parser.parse(cunit[2], lexer=lexer, debug=(self.is_debug() or debug))
+        self.pop_cur_dir()
+        self.pop_cur_file()
+
+        return result
+        
+    def compile(self, cunits):
+        '''
+        cus is a list of tuples, each tuple contains the following:
+         0: full path to compilation unit file
+         1: the pre-processor tuple with AST ('program', [ ...tokens... ])
+         2: the pre-processor output
+        '''
+
+        output = []
+        try:
+            for cunit in cunits:
+                cc = self.compile_file(cunit)
+                output.append( (cunit[0], cunit[1], cunit[2], cc) )
+        except RuntimeError, e:
+            import pdb; pdb.set_trace()
+
+        return output
+
 

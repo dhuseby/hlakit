@@ -31,6 +31,11 @@ from session import Session
 
 class Lexer(object):
 
+    # incbin is handled in the compiler phase
+    preprocessor = {
+        'incbin':       'PP_INCBIN',
+    }
+
     # hla reserved tokens
     reserved = {
         'byte':         'TYPE',
@@ -71,7 +76,6 @@ class Lexer(object):
                 'HEXS', 
                 'BINARY', 
                 'HASH',
-                'DHASH',
                 'RSHIFT',
                 'LSHIFT',
                 'GTE',
@@ -80,20 +84,16 @@ class Lexer(object):
                 'EQ',
                 'ID',
                 'WS',
-                'NL',
-                'COMMENT' ] 
+                'NL' ] 
 
     # the tokens list
-    tokens = rtokens \
-             + list(set(reserved.values()))
+    tokens      = rtokens \
+                + list(set(preprocessor.values())) \
+                + list(set(reserved.values()))
 
-    literals = '.+-*/~!%><=&^|{}()[]:,'
+    literals    = '.+-*/~!%><=&^|{}()[]:,'
 
-    # pp hash marks
-    t_HASH = r'\#'
-    t_DHASH = r'\#\#'
-
-    # compilter values and operators
+    t_HASH      = r'\#'
     t_STRING    = r'\"(\\.|[^\"])*\"'
     t_BSTRING   = r'\<(\\.|[^\>])*\>'
     t_DECIMAL   = r'(0|[1-9][0-9]*)'
@@ -121,6 +121,11 @@ class Lexer(object):
         r'[a-zA-Z_][\w]*'
 
         value = t.value.lower()
+
+        t.type = self.preprocessor.get(value, None) # check for preprocessor words
+        if t.type != None:
+            t.value = value
+            return t
 
         t.type = self.reserved.get(value, None) # check for reserved words
         if t.type != None:

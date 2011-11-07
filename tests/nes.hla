@@ -1,0 +1,22 @@
+# rom . banksize 16K
+# chr . banksize 8K
+inline enable_interrupts ( )
+{
+cli
+}
+# ram . org 0x0000 , 0x100
+byte _b_temp
+word _w_temp
+pointer _p_temp
+char msgbuf [ 64 ]
+# ram . end
+# rom . bank $C000
+# rom . org 0xC000
+function Turn_Video_On ( )
+{
+assign ( PPU . CNT1 , | %00000010 )
+}
+# rom . end
+# chr . bank $0000
+# incbin "/home/huseby/Projects/hlakit/examples/6502/nes/font2.chr"
+# chr . end

@@ -28,11 +28,12 @@ or implied, of David Huseby.
 """
 
 from hlakit.common.target import Target
-from hlakit.common.session import CommandLineError
+from hlakit.common.session import CommandLineError, Session
 from pplexer import PPLexer
 from ppparser import PPParser
-import pprint
-import cStringIO
+from lexer import Lexer
+from parser import Parser
+import copy
 
 class NES(Target):
     
@@ -46,10 +47,15 @@ class NES(Target):
         self._pp_lexer = PPLexer()
         self._pp_parser = PPParser(tokens=self._pp_lexer.tokens)
 
+        # compiler lexer and parser
+        self._lexer = Lexer()
+        self._parser = Parser(tokens=self._lexer.tokens)
+
         # initialize the current block member
         self._alignment = None
         self._padding = '0xFF'
         self._banksize = { 'rom': '16K', 'ram': '16K', 'chr': '16K' }
+        self._blocks = {}
 
         # initially turn #ines.off to False
         self.__setitem__('off', False)
@@ -58,16 +64,19 @@ class NES(Target):
         self._init_block()
 
     def lexer(self):
-        return None
+        return self._lexer
 
     def parser(self):
-        return None
+        return self._parser
 
     def pp_lexer(self):
         return self._pp_lexer
 
     def pp_parser(self):
         return self._pp_parser
+
+
+    ''' functions for building and saving the ram/rom/chr block data '''
 
     def _init_block(self):
         self._block = { 'type': None,
@@ -89,17 +98,24 @@ class NES(Target):
         self._block['type'] = type_ 
         self._block['started'] = True
         self._block['banksize'] = self._banksize[type_]
+        self._block['source'] = copy.copy(Session()._cur_file)
 
     def end_block(self):
         self._block['ended'] = True
 
-    def get_block(self):
+    def get_cur_block(self):
         return self._block
 
-    def clear_block(self):
-        block = self._block
+    def get_blocks(self):
+        return self._blocks
+
+    def reset_block(self):
+        root_file = Session().get_root_file()
+        if root_file not in self._blocks:
+            self._blocks[root_file] = []
+
+        self._blocks[root_file].append(self._block)
         self._init_block()
-        return block
 
     def set_block_org(self, org):
         self._block['org'] = org

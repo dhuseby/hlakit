@@ -37,22 +37,8 @@ class PPParser(CommonPPParser):
     def p_program(self, p):
         '''program : cpu_statement
                    | program cpu_statement'''
-        if len(p) == 2:
-            if p[1] is None:
-                p[0] = ('program', [])
-                return
-            if isinstance(p[1], list):
-                p[0] = ('program', p[1])
-            else:
-                p[0] = ('program', [ p[1] ])
-        elif len(p) == 3:
-            if p[2] is None:
-                p[0] = ('program', p[1][1])
-                return
-            if isinstance(p[2], list):
-                p[0] = ('program', p[1][1] + p[2])
-            else:
-                p[0] = ('program', p[1][1] + [ p[2] ])
+        # call base class implementation
+        super(PPParser, self).p_program(p)
 
     def p_cpu_statement(self, p):
         '''cpu_statement : common_statement
@@ -72,43 +58,14 @@ class PPParser(CommonPPParser):
     def p_pp_block_body(self, p):
         '''pp_block_body : cpu_statement
                          | pp_block_body cpu_statement'''
-        if self.is_enabled():
-            if len(p) == 2:
-                if p[1] is None:
-                    p[0] = []
-                    return
-                if isinstance(p[1], list):
-                    p[0] = p[1]
-                else:
-                    p[0] = [ p[1] ]
-            elif len(p) == 3:
-                if p[2] is None:
-                    p[0] = p[1]
-                    return
-                if isinstance(p[2], list):
-                    p[0] = p[1] + p[2]
-                else:
-                    p[0] = p[1] + [ p[2] ]
+        # call the base class implementation
+        super(PPParser, self).p_pp_block_body(p)
 
     def p_pp_define_body(self, p):
         '''pp_define_body : cpu_statement
                           | pp_define_body BS NL cpu_statement'''
-        if len(p) == 2:
-            if p[1] is None:
-                p[0] = []
-                return
-            if isinstance(p[1], list):
-                p[0] = p[1]
-            else:
-                p[0] = [ p[1] ]
-        elif len(p) == 5:
-            if p[4] is None:
-                p[0] = p[1]
-                return
-            if isinstance(p[4], list):
-                p[0] = p[1] + p[4]
-            else:
-                p[0] = p[1] + [ p[4] ]
+        # call the base class implementation
+        super(PPParser, self).p_pp_define_body(p)
 
     def p_mos6502_statement(self, p):
         '''mos6502_statement : mos6502_token

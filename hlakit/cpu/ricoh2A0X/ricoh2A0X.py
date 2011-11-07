@@ -31,6 +31,8 @@ from hlakit.cpu.mos6502 import MOS6502
 
 from pplexer import PPLexer
 from ppparser import PPParser
+from lexer import Lexer
+from parser import Parser
 
 class Ricoh2A0X(MOS6502):
     '''
@@ -61,7 +63,7 @@ class Ricoh2A0X(MOS6502):
         self._pp_parser = PPParser(tokens=self._pp_lexer.tokens)
 
         # general lexer and parser
-        self._lexer = None
-        self._parser = None
+        self._lexer = Lexer()
+        self._parser = Parser(tokens=self._lexer.tokens)
 
 

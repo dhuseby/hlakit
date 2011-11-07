@@ -35,176 +35,121 @@ class Parser(object):
         self.tokens = tokens
     
     def p_program(self, p):
-        '''program : core_statement
-                   | program core_statement'''
+        '''program : common_statement
+                   | program common_statement'''
         if len(p) == 2:
             p[0] = ('program', p[1])
         elif len(p) == 3:
             p[0] = ('program', p[1], p[2])
 
+    def p_common_statement(self, p):
+        '''common_statement : core_statement
+                            | core_pp_statement'''
+        if p[1] != None:
+            p[0] = p[1]
+
+    def p_core_pp_statement(self, p):
+        '''core_pp_statement : HASH PP_INCBIN filename'''
+        print "Including binary file: %s..." % p[3]
+
     def p_core_statement(self, p):
-        '''core_statement : pp_statement
-                          | base_statement'''
-        p[0] = ('core_statement', p[1])
-
-    def p_pp_statement(self, p):
-        '''pp_statement : HASH pp_include
-                        | HASH pp_define
-                        | HASH pp_undef
-                        | HASH pp_startblock
-                        | HASH pp_endblock
-                        | HASH cp_msg '''
-        p[0] = ('pp_statement', p[2])
-
-    def p_pp_startblock(self, p):
-        '''pp_startblock : PP_IFDEF ID
-                         | PP_IFNDEF ID'''
-        
-        defined = (SymbolTable().lookup_symbol(p[2]) != None)
-
-        if ((p[1] == 'PP_IFDEF') and defined) or ((p[1] == 'PP_IFNDEF') and not defined):
-            p.lexer.push_state('ifdefin')
-        else:
-            p.lexer.push_state('ifdefout')
-
-        p[0] = ('pp_startblock', p[1], p[2])
-
-    def p_pp_endblock(self, p):
-        '''pp_endblock : PP_ELSE
-                       | PP_ENDIF'''
-        
-        import pdb; pdb.set_trace()
-
-        # figure out which state we're current in
-        cin = (p.lexer.current_state() == 'ifdefin')
-
-        # always pop state at the end of an #ifdef block
-        p.lexer.pop_state()
-
-        # if we're encountering an #else, we need to swap
-        # to the other state
-        if p[2] == 'PP_ELSE':
-            if cin:
-                p.lexer.push_state('ifdefout')
+        '''core_statement : common_token
+                          | core_statement common_token'''
+        if len(p) == 2:
+            if p[1] is None:
+                p[0] = []
+                return
+            if isinstance(p[1], list):
+                p[0] = p[1]
             else:
-                p.lexer.push_state('ifdefin')
-        p[0] = ('pp_endblock', p[1])
+                p[0] = [ p[1] ]
+        elif len(p) == 3:
+            if p[2] is None:
+                p[0] = p[1]
+                return
+            if isinstance(p[2], list):
+                p[0] = p[1] + p[2]
+            else:
+                p[0] = p[1] + [ p[2] ]
 
-    def p_pp_define(self, p):
-        '''pp_define : PP_DEFINE'''
-        p[0] = ('pp_define', )
+    def p_number(self, p):
+        '''number : DECIMAL
+                  | KILO
+                  | HEXC
+                  | HEXS
+                  | BINARY'''
+        p[0] = p[1]
 
-        
-        """
-        macro_parser = Session().macro_parser()
+    def p_filename(self, p):
+        '''filename : STRING
+                    | BSTRING'''
+        p[0] = p[1]
 
-        # tell the lexer to return newline tokens
-        p.lexer.set_eat_nl(False)
 
-        # returns a tuple ('macro', <id>, <macro object>)
-        macro = macro_parser.parse(debug=Session().is_debug(), lexer=p.lexer)
-
-        # tell the lexer to eat newline tokens
-        p.lexer.set_eat_nl(True)
-
-        # add the symbol to the symbol table
-        # SymbolTable().new_symbol(macro[1], macro[2])
-
-        # add it to the graph
-        p[0] = ('pp_define', macro)
-        """
-
-    def p_pp_undef(self, p):
-        '''pp_undef : PP_UNDEF'''
-        p[0] = ('pp_undef', )
-
-        """
-        # remove the symbol from the symbol table
-        # SymbolTable().remove_symbol(p[2])
-
-        p[0] = ('pp_undef', p[2])
-        """
-
-    def p_pp_include(self, p):
-        '''pp_include : PP_INCLUDE STRING
-                      | PP_INCLUDE BSTRING'''
-        p[0] = ('pp_include', p[2])
-        print 'INCLUDING: %s' % p[2]
-
-    def p_cp_msg(self, p):
-        '''cp_msg : CP_TODO STRING
-                  | CP_WARNING STRING
-                  | CP_ERROR STRING
-                  | CP_FATAL STRING'''
-        print '%s: %s' % (p[1].upper(), p[2])
-
-    def p_base_statement(self, p):
-        '''base_statement : CP_INCBIN
-                     | '.'
-                     | '+'
-                     | '-'
-                     | '*'
-                     | '/'
-                     | '~'
-                     | '!'
-                     | '%'
-                     | '>'
-                     | '<'
-                     | '='
-                     | '&'
-                     | '^'
-                     | '|'
-                     | '{'
-                     | '}'
-                     | '('
-                     | ')'
-                     | '['
-                     | ']'
-                     | ':'
-                     | ','
-                     | STRING
-                     | BSTRING
-                     | DECIMAL
-                     | KILO
-                     | HEXC
-                     | HEXS
-                     | BINARY
-                     | DHASH
-                     | RSHIFT
-                     | LSHIFT
-                     | GTE
-                     | LTE
-                     | NE
-                     | EQ
-                     | ID
-                     | WS
-                     | NL
-                     | COMMENT
-                     | TYPE
-                     | STRUCT
-                     | TYPEDEF
-                     | SHARED
-                     | NORETURN
-                     | RETURN
-                     | INLINE
-                     | FUNCTION
-                     | INTERRUPT
-                     | LO
-                     | HI
-                     | SIZEOF
-                     | IF
-                     | ELSE
-                     | WHILE
-                     | DO
-                     | FOREVER
-                     | SWITCH
-                     | CASE
-                     | DEFAULT
-                     | REG
-                     | NEAR
-                     | FAR '''
+    def p_common_token(self, p):
+        '''common_token : '.'
+                        | '+'
+                        | '-'
+                        | '*'
+                        | '/'
+                        | '~'
+                        | '!'
+                        | '%'
+                        | '>'
+                        | '<'
+                        | '='
+                        | '&'
+                        | '^'
+                        | '|'
+                        | '{'
+                        | '}'
+                        | '('
+                        | ')'
+                        | '['
+                        | ']'
+                        | ':'
+                        | ','
+                        | STRING
+                        | BSTRING
+                        | DECIMAL
+                        | KILO
+                        | HEXC
+                        | HEXS
+                        | BINARY
+                        | RSHIFT
+                        | LSHIFT
+                        | GTE
+                        | LTE
+                        | NE
+                        | EQ
+                        | ID
+                        | WS
+                        | NL
+                        | TYPE
+                        | STRUCT
+                        | TYPEDEF
+                        | SHARED
+                        | NORETURN
+                        | RETURN
+                        | INLINE
+                        | FUNCTION
+                        | INTERRUPT
+                        | LO
+                        | HI
+                        | SIZEOF
+                        | IF
+                        | ELSE
+                        | WHILE
+                        | DO
+                        | FOREVER
+                        | SWITCH
+                        | CASE
+                        | DEFAULT
+                        | REG
+                        | NEAR
+                        | FAR '''
         if p[1] != '\n':
-            p[0] = ('base_statement', p[1])
+            p[0] = p[1]
 
     # must have a p_error rule
     def p_error(self, p):

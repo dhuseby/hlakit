@@ -31,14 +31,6 @@ from hlakit.common.lexer import Lexer as CommonLexer
 
 class Lexer(CommonLexer):
 
-    # 6502 specific preprocessors
-    mos6502_preprocessor = {
-        'interrupt':    'LP_INTERRUPT',
-        'start':        'LP_START',
-        'nmi':          'LP_NMI',
-        'irq':          'LP_IRQ'
-        }
-
     # 6502 conditional tokens 
     conditionals = {
         'is':           'IS',
@@ -63,14 +55,14 @@ class Lexer(CommonLexer):
         '0':            'FALSE',
         'clear':        'FALSE',
         'equal':        'EQUAL'
-        }
+    }
 
     # registers
     registers = {
         'a':            'A',
         'x':            'X',
         'y':            'Y'
-        }
+    }
 
     # opcodes
     opcodes = {
@@ -130,25 +122,19 @@ class Lexer(CommonLexer):
         'txa':          'TXA', 
         'txs':          'TXS', 
         'tya':          'TYA'
-        }
+    }
 
     # 6502 tokens list
     tokens = CommonLexer.tokens \
-             + list(set(mos6502_preprocessor.values())) \
              + list(set(registers.values())) \
              + list(set(conditionals.values())) \
              + list(set(opcodes.values()))
 
     # identifier
-    def t_INITIAL_ifdefin_ID(self, t):
+    def t_ID(self, t):
         r'[a-zA-Z_][\w]*'
 
         value = t.value.lower()
-
-        t.type = self.mos6502_preprocessor.get(value, None) # check for preprocessor words
-        if t.type != None:
-            t.value = value
-            return t
 
         t.type = self.registers.get(value, None) # check for conditionals
         if t.type != None:
@@ -165,7 +151,7 @@ class Lexer(CommonLexer):
             t.value = value
             return t
 
-        return super(Lexer, self).t_INITIAL_ifdefin_ID(t)
+        return super(Lexer, self).t_ID(t)
 
     def __init__(self):
         super(Lexer, self).__init__()

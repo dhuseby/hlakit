@@ -37,95 +37,92 @@ class Parser(CommonParser):
     def p_program(self, p):
         '''program : cpu_statement
                    | program cpu_statement'''
-        if len(p) == 2:
-            p[0] = ('program', p[1])
-        elif len(p) == 3:
-            p[0] = ('program', p[1], p[2])
-
+        super(Parser, self).p_program(p)
 
     def p_cpu_statement(self, p):
-        '''cpu_statement : core_statement
+        '''cpu_statement : common_statement
                          | mos6502_statement'''
-        p[0] = ('cpu_statement', p[1])
+        p[0] = p[1]
 
     def p_mos6502_statement(self, p):
-        '''mos6502_statement : LP_INTERRUPT
-                             | LP_START
-                             | LP_NMI
-                             | LP_IRQ
-                             | A
-                             | X
-                             | Y
-                             | IS
-                             | HAS
-                             | NO
-                             | NOT
-                             | POSITIVE
-                             | NEGATIVE
-                             | GREATER
-                             | LESS
-                             | OVERFLOW
-                             | CARRY
-                             | TRUE
-                             | FALSE
-                             | EQUAL
-                             | ADC
-                             | AND
-                             | ASL
-                             | BCC
-                             | BCS
-                             | BEQ
-                             | BIT
-                             | BMI
-                             | BNE
-                             | BPL
-                             | BRK
-                             | BVC
-                             | BVS
-                             | CLC
-                             | CLD
-                             | CLI
-                             | CLV
-                             | CMP
-                             | CPX
-                             | CPY
-                             | DEC
-                             | DEX
-                             | DEY
-                             | EOR
-                             | INC
-                             | INX
-                             | INY
-                             | JMP
-                             | JSR
-                             | LDA
-                             | LDX
-                             | LDY
-                             | LSR
-                             | NOP
-                             | ORA
-                             | PHA
-                             | PHP
-                             | PLA
-                             | PLP
-                             | ROL
-                             | ROR
-                             | RTI
-                             | RTS
-                             | SBC
-                             | SEC
-                             | SED
-                             | SEI
-                             | STA
-                             | STX
-                             | STY
-                             | TAX
-                             | TAY
-                             | TSX
-                             | TXA
-                             | TXS
-                             | TYA '''
-        p[0] = ('mos6502_statement', p[1])
+        '''mos6502_statement : mos6502_token
+                             | mos6502_statement mos6502_token'''
+        super(Parser, self).p_common_statement(p)
+
+    def p_mos6502_token(self, p):
+        '''mos6502_token : A
+                         | X
+                         | Y
+                         | IS
+                         | HAS
+                         | NO
+                         | NOT
+                         | POSITIVE
+                         | NEGATIVE
+                         | GREATER
+                         | LESS
+                         | OVERFLOW
+                         | CARRY
+                         | TRUE
+                         | FALSE
+                         | EQUAL
+                         | ADC
+                         | AND
+                         | ASL
+                         | BCC
+                         | BCS
+                         | BEQ
+                         | BIT
+                         | BMI
+                         | BNE
+                         | BPL
+                         | BRK
+                         | BVC
+                         | BVS
+                         | CLC
+                         | CLD
+                         | CLI
+                         | CLV
+                         | CMP
+                         | CPX
+                         | CPY
+                         | DEC
+                         | DEX
+                         | DEY
+                         | EOR
+                         | INC
+                         | INX
+                         | INY
+                         | JMP
+                         | JSR
+                         | LDA
+                         | LDX
+                         | LDY
+                         | LSR
+                         | NOP
+                         | ORA
+                         | PHA
+                         | PHP
+                         | PLA
+                         | PLP
+                         | ROL
+                         | ROR
+                         | RTI
+                         | RTS
+                         | SBC
+                         | SEC
+                         | SED
+                         | SEI
+                         | STA
+                         | STX
+                         | STY
+                         | TAX
+                         | TAY
+                         | TSX
+                         | TXA
+                         | TXS
+                         | TYA '''
+        p[0] = p[1]
 
     # must have a p_error rule
     def p_error(self, p):

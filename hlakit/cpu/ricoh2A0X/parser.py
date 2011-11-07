@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import generators
-
 """
 HLAKit
 Copyright (c) 2010-2011 David Huseby. All rights reserved.
@@ -15,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -30,24 +27,10 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-import os
-import sys
-import optparse
-import pprint
-from hlakit.common.session import Session, CommandLineError
+from hlakit.cpu.mos6502.parser import Parser as MOS6502Parser
 
-def main():
-    try:
-        session = Session()
-        session.parse_args(sys.argv[1:])
-        pp = session.preprocess()
-        cc = session.compile(pp)
-    except CommandLineError, e:
-        return 0
+class Parser(MOS6502Parser):
 
-    print "Done!"
-    return 1
+    def __init__(self, tokens=[]):
+        super(Parser, self).__init__(tokens)
 
-if __name__ == "__main__":
-    
-    sys.exit(main())

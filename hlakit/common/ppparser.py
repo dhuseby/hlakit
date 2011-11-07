@@ -48,19 +48,19 @@ class PPParser(object):
         if len(p) == 2:
             if p[1] is None:
                 p[0] = ('program', [])
-                return
-            if isinstance(p[1], list):
-                p[0] = ('program', p[1])
             else:
-                p[0] = ('program', [ p[1] ])
+                if isinstance(p[1], list):
+                    p[0] = ('program', p[1])
+                else:
+                    p[0] = ('program', [ p[1] ])
         elif len(p) == 3:
             if p[2] is None:
                 p[0] = ('program', p[1][1])
-                return
-            if isinstance(p[2], list):
-                p[0] = ('program', p[1][1] + p[2])
             else:
-                p[0] = ('program', p[1][1] + [ p[2] ])
+                if isinstance(p[2], list):
+                    p[0] = ('program', p[1][1] + p[2])
+                else:
+                    p[0] = ('program', p[1][1] + [ p[2] ])
 
     def p_common_statement(self, p):
         '''common_statement : hash_statement
@@ -157,22 +157,23 @@ class PPParser(object):
     def p_pp_block_body(self, p):
         '''pp_block_body : common_statement
                          | pp_block_body common_statement'''
-        if len(p) == 2:
-            if p[1] is None:
-                p[0] = []
-                return
-            if isinstance(p[1], list):
-                p[0] = p[1]
-            else:
-                p[0] = [ p[1] ]
-        elif len(p) == 3:
-            if p[2] is None:
-                p[0] = p[1]
-                return
-            if isinstance(p[2], list):
-                p[0] = p[1] + p[2]
-            else:
-                p[0] = p[1] + [ p[2] ]
+        if self.is_enabled():
+            if len(p) == 2:
+                if p[1] is None:
+                    p[0] = []
+                    return
+                if isinstance(p[1], list):
+                    p[0] = p[1]
+                else:
+                    p[0] = [ p[1] ]
+            elif len(p) == 3:
+                if p[2] is None:
+                    p[0] = p[1]
+                    return
+                if isinstance(p[2], list):
+                    p[0] = p[1] + p[2]
+                else:
+                    p[0] = p[1] + [ p[2] ]
 
     def p_pp_define(self, p):
         '''pp_define : PP_DEFINE ID NL
@@ -275,11 +276,7 @@ class PPParser(object):
         fpath = Session().get_file_path(p[2][1:-1], (p[2][0] == '<'))
         #print 'INCLUDING BINARY: %s' % fpath
 
-        # get the binary buffer for the file
-        binc = Buffer()
-        binc.load(fpath)
-
-        p[0] = ('pp_incbin', fpath, binc)
+        p[0] = [ '#', 'incbin', '"' + fpath + '"', '\n' ]
 
     def p_base_statement(self, p):
         '''base_statement : base_token
@@ -376,7 +373,8 @@ class PPParser(object):
         '''id : ID'''
         macro = SymbolTable().lookup_symbol(p[1])
         if macro:
-            return macro.value
+            p[0] = macro.value
+            return
 
         p[0] = p[1]
 

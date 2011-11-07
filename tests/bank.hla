@@ -1,0 +1,3 @@
+#define BANK_MAIN_ENTRY $C000
+#rom.bank BANK_MAIN_ENTRY
+#rom.end

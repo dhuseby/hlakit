@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import generators
-
 """
 HLAKit
 Copyright (c) 2010-2011 David Huseby. All rights reserved.
@@ -15,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -30,24 +27,47 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-import os
-import sys
-import optparse
-import pprint
-from hlakit.common.session import Session, CommandLineError
+from hlakit.cpu.ricoh2A0X.lexer import Lexer as Ricoh2A0XLexer
 
-def main():
-    try:
-        session = Session()
-        session.parse_args(sys.argv[1:])
-        pp = session.preprocess()
-        cc = session.compile(pp)
-    except CommandLineError, e:
-        return 0
+class Lexer(Ricoh2A0XLexer):
 
-    print "Done!"
-    return 1
+    '''NOTE: that the handling of RAM/ROM/CHR preprocessor statements is done
+       at the compiler level so we need to be able to parse them from the input
+       stream of text.  However, the #ines preprocessor statements were handled
+       during the preprocess stage and don't need to be handled here.'''
 
-if __name__ == "__main__":
-    
-    sys.exit(main())
+    # NES specific preprocessors
+    nes_preprocessor = {
+        'ram': 'PP_RAM',
+        'rom': 'PP_ROM',
+        'org': 'PP_ORG',
+        'end': 'PP_END',
+        'banksize': 'PP_BANKSIZE',
+        'bank': 'PP_BANK',
+        'setpad': 'PP_SETPAD',
+        'align': 'PP_ALIGN',
+        'chr': 'PP_CHR',
+        'link': 'PP_LINK',
+    }
+
+    # NES tokens list
+    tokens = Ricoh2A0XLexer.tokens \
+           + list(set(nes_preprocessor.values()))
+
+    # identifier
+    def t_ID(self, t):
+        r'[a-zA-Z_][\w]*'
+
+        value = t.value.lower()
+
+        t.type = self.nes_preprocessor.get(value, None) # check for preprocessor words
+        if t.type != None:
+            t.value = value
+            return t
+
+        return super(Lexer, self).t_ID(t)
+
+    def __init__(self):
+        super(Lexer, self).__init__()
+
+

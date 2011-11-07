@@ -28,18 +28,17 @@ or implied, of David Huseby.
 """
 
 from hlakit.common.session import Session
-from hlakit.cpu.ricoh2A0X.ppparser import PPParser as Ricoh2A0XPPParser
+from hlakit.cpu.ricoh2A0X.parser import Parser as Ricoh2A0XParser
 
-class PPParser(Ricoh2A0XPPParser):
+class Parser(Ricoh2A0XParser):
 
     def __init__(self, tokens=[]):
-        super(PPParser, self).__init__(tokens)
+        super(Parser, self).__init__(tokens)
 
     def p_program(self, p):
         '''program : platform_statement
                    | program platform_statement'''
 
-        '''
         nes = Session().get_target()
 
         if nes.has_block_started() and nes.get_cur_block()['start'] is None:
@@ -48,29 +47,27 @@ class PPParser(Ricoh2A0XPPParser):
         if nes.has_block_ended():
             nes.set_block_end(len(p[1][1]))
             nes.reset_block()
-        '''
 
         # call base class implementation
-        super(PPParser, self).p_program(p)
+        super(Parser, self).p_program(p)
 
     def p_platform_statement(self, p):
         '''platform_statement : cpu_statement
                               | nes_pp_statement'''
-        if self.is_enabled() and p[1] != None:
+        if p[1] != None:
             p[0] = p[1]
 
     def p_nes_pp_statement(self, p):
-        '''nes_pp_statement : HASH nes_pp_mem_statement
-                            | HASH nes_pp_ines_statement'''
-        if self.is_enabled() and p[2] != None:
+        '''nes_pp_statement : HASH nes_pp_mem_statement'''
+        if p[2] != None:
             if isinstance(p[2], list):
                 p[0] = [ p[1] ] + p[2]
             else:
                 p[0] = p[1:]
 
+    # no id necessary because macros have been expanded already
     def p_nes_pp_value(self, p):
-        '''nes_pp_value : id
-                        | number
+        '''nes_pp_value : number
                         | STRING'''
         p[0] = p[1]
 
@@ -90,32 +87,24 @@ class PPParser(Ricoh2A0XPPParser):
         return v
 
     def p_nes_pp_mem_statement(self, p):
-        '''nes_pp_mem_statement : PP_RAM '.' PP_END NL
-                                | PP_RAM '.' PP_ORG nes_pp_value NL
-                                | PP_RAM '.' PP_ORG nes_pp_value ',' nes_pp_value NL
-                                | PP_ROM '.' PP_END NL
-                                | PP_ROM '.' PP_ORG nes_pp_value NL
-                                | PP_ROM '.' PP_BANKSIZE nes_pp_value NL
-                                | PP_ROM '.' PP_BANK nes_pp_value NL
-                                | PP_ROM '.' PP_BANK nes_pp_value ',' nes_pp_value NL
-                                | PP_ROM '.' PP_ORG nes_pp_value ',' nes_pp_value NL
-                                | PP_CHR '.' PP_END NL
-                                | PP_CHR '.' PP_BANKSIZE nes_pp_value NL
-                                | PP_CHR '.' PP_LINK filename NL
-                                | PP_CHR '.' PP_LINK filename ',' nes_pp_value NL
-                                | PP_CHR '.' PP_BANK nes_pp_value NL
-                                | PP_CHR '.' PP_BANK nes_pp_value ',' nes_pp_value NL
-                                | PP_SETPAD nes_pp_value NL
-                                | PP_ALIGN nes_pp_value NL'''
-        output = []
-        for i in xrange(1, len(p)):
-            if isinstance(p[i], list):
-                output += p[i]
-            else:
-                output.append(p[i])
-        p[0] = output
-
-        '''
+        '''nes_pp_mem_statement : PP_RAM '.' PP_END
+                                | PP_RAM '.' PP_ORG nes_pp_value
+                                | PP_RAM '.' PP_ORG nes_pp_value ',' nes_pp_value
+                                | PP_ROM '.' PP_END
+                                | PP_ROM '.' PP_ORG nes_pp_value
+                                | PP_ROM '.' PP_BANKSIZE nes_pp_value
+                                | PP_ROM '.' PP_BANK nes_pp_value
+                                | PP_ROM '.' PP_BANK nes_pp_value ',' nes_pp_value
+                                | PP_ROM '.' PP_ORG nes_pp_value ',' nes_pp_value
+                                | PP_CHR '.' PP_END
+                                | PP_CHR '.' PP_BANKSIZE nes_pp_value
+                                | PP_CHR '.' PP_LINK filename
+                                | PP_CHR '.' PP_LINK filename ',' nes_pp_value
+                                | PP_CHR '.' PP_BANK nes_pp_value
+                                | PP_CHR '.' PP_BANK nes_pp_value ',' nes_pp_value
+                                | PP_SETPAD nes_pp_value
+                                | PP_ALIGN nes_pp_value'''
+        
         nes = Session().get_target()
         if p[1] in ('ram', 'rom', 'chr'):
             if p[3] in ('org', 'bank'):
@@ -147,36 +136,14 @@ class PPParser(Ricoh2A0XPPParser):
         elif p[1] == 'align':
             nes.set_alignment(self._clean_value(p[2]))
 
-        if len(p) == 4:
+        if len(p) == 3:
             p[0] = ('nes_pp_mem_statement', p[1], p[2])
-        elif len(p) == 5:
+        elif len(p) == 4:
             p[0] = ('nes_pp_mem_statement', p[1], p[3])
-        elif len(p) == 6:
+        elif len(p) == 5:
             p[0] = ('nes_pp_mem_statement', p[1], p[3], p[4])
-        elif len(p) == 8:
+        elif len(p) == 7:
             p[0] = ('nes_pp_mem_statement', p[1], p[3], p[4], p[6])
-        '''
-
-    def p_nes_pp_ines_statement(self, p):
-        '''nes_pp_ines_statement : PP_INES '.' PP_OFF NL
-                                 | PP_INES '.' PP_MAPPER nes_pp_value NL
-                                 | PP_INES '.' PP_MIRRORING nes_pp_value NL
-                                 | PP_INES '.' PP_FOURSCREEN nes_pp_value NL
-                                 | PP_INES '.' PP_BATTERY nes_pp_value NL
-                                 | PP_INES '.' PP_TRAINER nes_pp_value NL
-                                 | PP_INES '.' PP_PRGREPEAT nes_pp_value NL
-                                 | PP_INES '.' PP_CHRREPEAT nes_pp_value NL'''
-        value = None
-        if p[3] == 'off':
-            value = True
-        else:
-            # strip quotes off if they exist
-            value = self._clean_value(p[4])
-
-        # store the ines setting in the target
-        Session().get_target()[p[3]] = value
-
-        #p[0] = ('nes_pp_ines_statement', p[3], value)
 
     # must have a p_error rule
     def p_error(self, p):
