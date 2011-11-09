@@ -100,6 +100,7 @@ JS_ZAPPERTRIGGER	include/platform/nes/nes_io.h	27;"	d
 Lexer	hlakit/common/lexer.py	/^class Lexer(object):$/;"	c
 Lexer	hlakit/cpu/mos6502/lexer.py	/^class Lexer(CommonLexer):$/;"	c
 Lexer	hlakit/cpu/ricoh2A0X/lexer.py	/^class Lexer(MOS6502Lexer):$/;"	c
+Lexer	hlakit/platform/nes/lexer.py	/^class Lexer(Ricoh2A0XLexer):$/;"	c
 MMC5	include/platform/nes/nes_mappers.h	/^enum MMC5 {$/;"	g
 MOS6502	hlakit/cpu/mos6502/mos6502.py	/^class MOS6502(Target):$/;"	c
 MULT_RESULT	include/platform/nes/nes_mappers.h	/^    MULT_RESULT     = 0x5205,  \/\/ could be read using 16 bit macros$/;"	e	enum:MMC5
@@ -130,7 +131,6 @@ PPGraph	hlakit/common/ppgraph.py	/^class PPGraph(object):$/;"	c
 PPLexer	hlakit/common/pplexer.py	/^class PPLexer(object):$/;"	c
 PPLexer	hlakit/cpu/mos6502/pplexer.py	/^class PPLexer(CommonPPLexer):$/;"	c
 PPLexer	hlakit/cpu/ricoh2A0X/pplexer.py	/^class PPLexer(MOS6502PPLexer):$/;"	c
-PPLexer	hlakit/platform/nes/lexer.py	/^class PPLexer(Ricoh2A0XLexer):$/;"	c
 PPLexer	hlakit/platform/nes/pplexer.py	/^class PPLexer(Ricoh2A0XPPLexer):$/;"	c
 PPMacro	hlakit/common/ppmacro.py	/^class PPMacro(object):$/;"	c
 PPParser	hlakit/common/ppparser.py	/^class PPParser(object):$/;"	c
@@ -262,7 +262,7 @@ __init__	hlakit/cpu/ricoh2A0X/pplexer.py	/^    def __init__(self):$/;"	m	class:P
 __init__	hlakit/cpu/ricoh2A0X/ppparser.py	/^    def __init__(self, tokens=[]):$/;"	m	class:PPParser
 __init__	hlakit/cpu/ricoh2A0X/ricoh2A0X.py	/^    def __init__(self):$/;"	m	class:Ricoh2A0X
 __init__	hlakit/platform/generic/generic.py	/^    def __init__(self, cpu=None):$/;"	m	class:Generic
-__init__	hlakit/platform/nes/lexer.py	/^    def __init__(self):$/;"	m	class:PPLexer
+__init__	hlakit/platform/nes/lexer.py	/^    def __init__(self):$/;"	m	class:Lexer
 __init__	hlakit/platform/nes/nes.py	/^    def __init__(self, cpu=None):$/;"	m	class:NES
 __init__	hlakit/platform/nes/parser.py	/^    def __init__(self, tokens=[]):$/;"	m	class:Parser
 __init__	hlakit/platform/nes/pplexer.py	/^    def __init__(self):$/;"	m	class:PPLexer
@@ -555,7 +555,7 @@ interrupt	examples/6502/lynx/main.s	/^interrupt irq()$/;"	l
 is_debug	hlakit/common/session.py	/^    def is_debug(self):$/;"	m	class:Session
 is_enabled	hlakit/common/ppparser.py	/^    def is_enabled(self):$/;"	m	class:PPParser
 is_graph	hlakit/common/session.py	/^    def is_graph(self):$/;"	m	class:Session
-lexer	hlakit/common/session.py	/^    def lexer(self):$/;"	m	class:Session
+lexer	hlakit/common/session.py	/^    def lexer(self, debug=False):$/;"	m	class:Session
 lexer	hlakit/cpu/mos6502/mos6502.py	/^    def lexer(self):$/;"	m	class:MOS6502
 lexer	hlakit/platform/generic/generic.py	/^    def lexer(self):$/;"	m	class:Generic
 lexer	hlakit/platform/nes/nes.py	/^    def lexer(self):$/;"	m	class:NES
@@ -613,7 +613,7 @@ mul_x_a	include/cpu/6502/std_math.h	/^inline mul_x_a( dest, multipiler )$/;"	f
 neg	include/cpu/6502/std_math.h	/^inline neg(number)$/;"	f
 neg_16	include/cpu/6502/std_math.h	/^inline neg_16(number)$/;"	f
 neg_a	include/cpu/6502/std_math.h	/^inline neg_a()$/;"	f
-nes_preprocessor	hlakit/platform/nes/lexer.py	/^    nes_preprocessor = {$/;"	v	class:PPLexer
+nes_preprocessor	hlakit/platform/nes/lexer.py	/^    nes_preprocessor = {$/;"	v	class:Lexer
 nes_preprocessor	hlakit/platform/nes/pplexer.py	/^    nes_preprocessor = {$/;"	v	class:PPLexer
 nes_reset	include/platform/nes/nes_system.h	/^inline nes_reset()$/;"	f
 new_symbol	hlakit/common/symboltable.py	/^    def new_symbol(self, name, value, namespace=None):$/;"	m	class:SymbolTable
@@ -629,28 +629,38 @@ or_x	include/cpu/6502/std_bitwise.h	/^inline or_x(dest,mask)$/;"	f
 or_x_a	include/cpu/6502/std_bitwise.h	/^inline or_x_a(dest)$/;"	f
 or_y	include/cpu/6502/std_bitwise.h	/^inline or_y(dest,mask)$/;"	f
 or_y_a	include/cpu/6502/std_bitwise.h	/^inline or_y_a(dest)$/;"	f
+p_address	hlakit/common/parser.py	/^    def p_address(self, p):$/;"	m	class:Parser
+p_array_length	hlakit/common/parser.py	/^    def p_array_length(self, p):$/;"	m	class:Parser
+p_assignment_statement	hlakit/common/parser.py	/^    def p_assignment_statement(self, p):$/;"	m	class:Parser
 p_base_statement	hlakit/common/ppparser.py	/^    def p_base_statement(self, p):$/;"	m	class:PPParser
 p_base_token	hlakit/common/ppparser.py	/^    def p_base_token(self, p):$/;"	m	class:PPParser
 p_common_statement	hlakit/common/parser.py	/^    def p_common_statement(self, p):$/;"	m	class:Parser
 p_common_statement	hlakit/common/ppparser.py	/^    def p_common_statement(self, p):$/;"	m	class:PPParser
 p_common_token	hlakit/common/parser.py	/^    def p_common_token(self, p):$/;"	m	class:Parser
+p_core_pp_statement	hlakit/common/parser.py	/^    def p_core_pp_statement(self, p):$/;"	m	class:Parser
+p_core_statement	hlakit/common/parser.py	/^    def p_core_statement(self, p):$/;"	m	class:Parser
 p_cpu_statement	hlakit/cpu/mos6502/parser.py	/^    def p_cpu_statement(self, p):$/;"	m	class:Parser
 p_cpu_statement	hlakit/cpu/mos6502/ppparser.py	/^    def p_cpu_statement(self, p):$/;"	m	class:PPParser
+p_empty	hlakit/common/parser.py	/^    def p_empty(self, p):$/;"	m	class:Parser
 p_error	hlakit/common/parser.py	/^    def p_error(self, p):$/;"	m	class:Parser
 p_error	hlakit/common/ppparser.py	/^    def p_error(self, p):$/;"	m	class:PPParser
 p_error	hlakit/cpu/mos6502/parser.py	/^    def p_error(self, p):$/;"	m	class:Parser
 p_error	hlakit/cpu/mos6502/ppparser.py	/^    def p_error(self, p):$/;"	m	class:PPParser
 p_error	hlakit/platform/nes/parser.py	/^    def p_error(self, p):$/;"	m	class:Parser
 p_error	hlakit/platform/nes/ppparser.py	/^    def p_error(self, p):$/;"	m	class:PPParser
+p_filename	hlakit/common/parser.py	/^    def p_filename(self, p):$/;"	m	class:Parser
 p_filename	hlakit/common/ppparser.py	/^    def p_filename(self, p):$/;"	m	class:PPParser
 p_hash_statement	hlakit/common/ppparser.py	/^    def p_hash_statement(self, p):$/;"	m	class:PPParser
 p_id	hlakit/common/ppparser.py	/^    def p_id(self, p):$/;"	m	class:PPParser
+p_id_list	hlakit/common/parser.py	/^    def p_id_list(self, p):$/;"	m	class:Parser
 p_immediate	hlakit/common/ppparser.py	/^    def p_immediate(self, p):$/;"	m	class:PPParser
+p_label	hlakit/common/parser.py	/^    def p_label(self, p):$/;"	m	class:Parser
 p_mos6502_pp_statement	hlakit/cpu/mos6502/ppparser.py	/^    def p_mos6502_pp_statement(self, p):$/;"	m	class:PPParser
 p_mos6502_statement	hlakit/cpu/mos6502/parser.py	/^    def p_mos6502_statement(self, p):$/;"	m	class:Parser
 p_mos6502_statement	hlakit/cpu/mos6502/ppparser.py	/^    def p_mos6502_statement(self, p):$/;"	m	class:PPParser
 p_mos6502_token	hlakit/cpu/mos6502/parser.py	/^    def p_mos6502_token(self, p):$/;"	m	class:Parser
 p_mos6502_token	hlakit/cpu/mos6502/ppparser.py	/^    def p_mos6502_token(self, p):$/;"	m	class:PPParser
+p_name	hlakit/common/parser.py	/^    def p_name(self, p):$/;"	m	class:Parser
 p_nes_pp_ines_statement	hlakit/platform/nes/ppparser.py	/^    def p_nes_pp_ines_statement(self, p):$/;"	m	class:PPParser
 p_nes_pp_mem_statement	hlakit/platform/nes/parser.py	/^    def p_nes_pp_mem_statement(self, p):$/;"	m	class:Parser
 p_nes_pp_mem_statement	hlakit/platform/nes/ppparser.py	/^    def p_nes_pp_mem_statement(self, p):$/;"	m	class:PPParser
@@ -658,6 +668,7 @@ p_nes_pp_statement	hlakit/platform/nes/parser.py	/^    def p_nes_pp_statement(se
 p_nes_pp_statement	hlakit/platform/nes/ppparser.py	/^    def p_nes_pp_statement(self, p):$/;"	m	class:PPParser
 p_nes_pp_value	hlakit/platform/nes/parser.py	/^    def p_nes_pp_value(self, p):$/;"	m	class:Parser
 p_nes_pp_value	hlakit/platform/nes/ppparser.py	/^    def p_nes_pp_value(self, p):$/;"	m	class:PPParser
+p_number	hlakit/common/parser.py	/^    def p_number(self, p):$/;"	m	class:Parser
 p_number	hlakit/common/ppparser.py	/^    def p_number(self, p):$/;"	m	class:PPParser
 p_platform_statement	hlakit/platform/nes/parser.py	/^    def p_platform_statement(self, p):$/;"	m	class:Parser
 p_platform_statement	hlakit/platform/nes/ppparser.py	/^    def p_platform_statement(self, p):$/;"	m	class:PPParser
@@ -682,12 +693,22 @@ p_program	hlakit/cpu/mos6502/parser.py	/^    def p_program(self, p):$/;"	m	class
 p_program	hlakit/cpu/mos6502/ppparser.py	/^    def p_program(self, p):$/;"	m	class:PPParser
 p_program	hlakit/platform/nes/parser.py	/^    def p_program(self, p):$/;"	m	class:Parser
 p_program	hlakit/platform/nes/ppparser.py	/^    def p_program(self, p):$/;"	m	class:PPParser
+p_shared	hlakit/common/parser.py	/^    def p_shared(self, p):$/;"	m	class:Parser
+p_struct_body	hlakit/common/parser.py	/^    def p_struct_body(self, p):$/;"	m	class:Parser
+p_struct_member	hlakit/common/parser.py	/^    def p_struct_member(self, p):$/;"	m	class:Parser
+p_struct_members	hlakit/common/parser.py	/^    def p_struct_members(self, p):$/;"	m	class:Parser
+p_struct_statement	hlakit/common/parser.py	/^    def p_struct_statement(self, p):$/;"	m	class:Parser
+p_struct_values	hlakit/common/parser.py	/^    def p_struct_values(self, p):$/;"	m	class:Parser
+p_type_statement	hlakit/common/parser.py	/^    def p_type_statement(self, p):$/;"	m	class:Parser
+p_typedef_statement	hlakit/common/parser.py	/^    def p_typedef_statement(self, p):$/;"	m	class:Parser
+p_value_statement	hlakit/common/parser.py	/^    def p_value_statement(self, p):$/;"	m	class:Parser
+p_variable_statement	hlakit/common/parser.py	/^    def p_variable_statement(self, p):$/;"	m	class:Parser
 pal0	include/platform/nes/nes_video.h	/^    PALENT pal0,$/;"	m	struct:PALETTE_
 pal1	include/platform/nes/nes_video.h	/^    pal1,$/;"	m	struct:PALETTE_
 pal2	include/platform/nes/nes_video.h	/^    pal2,$/;"	m	struct:PALETTE_
 parse_args	hlakit/common/session.py	/^    def parse_args(self, args=[]):$/;"	m	class:Session
 parse_command_line	utils/lnx_creator.py	/^def parse_command_line(args=[]):$/;"	f
-parser	hlakit/common/session.py	/^    def parser(self):$/;"	m	class:Session
+parser	hlakit/common/session.py	/^    def parser(self, debug=False):$/;"	m	class:Session
 parser	hlakit/cpu/mos6502/mos6502.py	/^    def parser(self):$/;"	m	class:MOS6502
 parser	hlakit/platform/generic/generic.py	/^    def parser(self):$/;"	m	class:Generic
 parser	hlakit/platform/nes/nes.py	/^    def parser(self):$/;"	m	class:NES
@@ -832,7 +853,7 @@ t_ID	hlakit/common/lexer.py	/^    def t_ID(self, t):$/;"	m	class:Lexer
 t_ID	hlakit/common/pplexer.py	/^    def t_ID(self, t):$/;"	m	class:PPLexer
 t_ID	hlakit/cpu/mos6502/lexer.py	/^    def t_ID(self, t):$/;"	m	class:Lexer
 t_ID	hlakit/cpu/mos6502/pplexer.py	/^    def t_ID(self, t):$/;"	m	class:PPLexer
-t_ID	hlakit/platform/nes/lexer.py	/^    def t_ID(self, t):$/;"	m	class:PPLexer
+t_ID	hlakit/platform/nes/lexer.py	/^    def t_ID(self, t):$/;"	m	class:Lexer
 t_ID	hlakit/platform/nes/pplexer.py	/^    def t_ID(self, t):$/;"	m	class:PPLexer
 t_ID	hlalex.py	/^def t_ID(t):$/;"	f
 t_KILO	hlakit/common/lexer.py	/^    t_KILO      = r'(0|[1-9][0-9]*)[kK]'$/;"	v	class:Lexer
@@ -881,7 +902,7 @@ tokens	hlakit/cpu/mos6502/lexer.py	/^             + list(set(opcodes.values()))$
 tokens	hlakit/cpu/mos6502/pplexer.py	/^             + list(set(mos6502_preprocessor.values()))$/;"	v	class:PPLexer
 tokens	hlakit/cpu/ricoh2A0X/lexer.py	/^    tokens = MOS6502Lexer.tokens$/;"	v	class:Lexer
 tokens	hlakit/cpu/ricoh2A0X/pplexer.py	/^    tokens = MOS6502PPLexer.tokens$/;"	v	class:PPLexer
-tokens	hlakit/platform/nes/lexer.py	/^           + list(set(nes_preprocessor.values()))$/;"	v	class:PPLexer
+tokens	hlakit/platform/nes/lexer.py	/^           + list(set(nes_preprocessor.values()))$/;"	v	class:Lexer
 tokens	hlakit/platform/nes/pplexer.py	/^             + list(set(nes_preprocessor.values()))$/;"	v	class:PPLexer
 tokens	hlalex.py	/^tokens = [  'STRING', $/;"	v
 toss16	include/cpu/6502/std_stack.h	/^inline toss16()$/;"	f

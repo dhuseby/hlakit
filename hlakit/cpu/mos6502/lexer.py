@@ -126,7 +126,6 @@ class Lexer(CommonLexer):
 
     # 6502 tokens list
     tokens = CommonLexer.tokens \
-             + list(set(registers.values())) \
              + list(set(conditionals.values())) \
              + list(set(opcodes.values()))
 
@@ -135,11 +134,6 @@ class Lexer(CommonLexer):
         r'[a-zA-Z_][\w]*'
 
         value = t.value.lower()
-
-        t.type = self.registers.get(value, None) # check for conditionals
-        if t.type != None:
-            t.value = value
-            return t
 
         t.type = self.conditionals.get(value, None) # check for conditionals
         if t.type != None:

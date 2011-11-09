@@ -28,6 +28,7 @@ or implied, of David Huseby.
 """
 
 from session import Session
+from types import Types
 
 class Lexer(object):
 
@@ -120,19 +121,27 @@ class Lexer(object):
     def t_ID(self, t):
         r'[a-zA-Z_][\w]*'
 
-        value = t.value.lower()
-
-        t.type = self.preprocessor.get(value, None) # check for preprocessor words
+        # case insensitive
+        t.type = self.preprocessor.get(t.value.lower(), None) # check for preprocessor words
         if t.type != None:
-            t.value = value
+            t.value = t.value.lower()
+            t.lexer.look_ahead_token = t
             return t
 
-        t.type = self.reserved.get(value, None) # check for reserved words
+        # case sensitive
+        t.type = self.reserved.get(t.value, None) # check for reserved words
         if t.type != None:
-            t.value = value
+            t.lexer.look_ahead_token = t
             return t
-           
-        t.type = 'ID'
+
+        # case sensitive, check to see if this is a type name
+        shape = Types().lookup_type(t.value)
+        if shape != None:
+            t.type = 'TYPE'
+        else:
+            t.type = 'ID'
+
+        t.lexer.look_ahead_token = t
         return t
 
     def t_COMMENT(self, t):

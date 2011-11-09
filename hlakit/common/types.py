@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import generators
-
 """
 HLAKit
 Copyright (c) 2010-2011 David Huseby. All rights reserved.
@@ -15,7 +12,7 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY `AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY DAVID HUSEBY ``AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL DAVID HUSEBY OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
@@ -31,28 +28,44 @@ or implied, of David Huseby.
 """
 
 import os
-import sys
-import optparse
-import pprint
-from hlakit.common.session import Session, CommandLineError
-from hlakit.common.types import Types
+import copy
 
-def main():
-    try:
-        session = Session()
-        session.parse_args(sys.argv[1:])
-        pp = session.preprocess()
-        cc = session.compile(pp)
-        for c in cc:
-            print "%s:" % c[0]
-            pprint.pprint(c[3])
-        print '%s' % Types()
-    except CommandLineError, e:
-        return 0
+class Types(object):
 
-    print "Done!"
-    return 1
+    _shared_state = {}
 
-if __name__ == "__main__":
-    
-    sys.exit(main())
+    def __new__(cls, *a, **k):
+        obj = object.__new__(cls, *a, **k)
+        obj.__dict__ = cls._shared_state
+        return obj
+
+    def new_type(self, name, shape):
+        if getattr(self, '_types', None) is None:
+            self._types = {}
+
+        if self._types.has_key(name):
+            raise Exception('overriding existing type %s...' % name)
+
+        self._types[name] = shape
+
+    def update_type(self, name, new_shape):
+        if getattr(self, '_types', None) is None:
+            self._types = {}
+
+        if not self._types.has_key(name):
+            raise Exception('trying to update unknown type %s...' % name)
+
+        self._types[name] = new_shape
+
+    def lookup_type(self, name):
+        if getattr(self, '_types', None) is None:
+            self._types = {}
+
+        return self._types.get(name, None)
+
+    def __str__(self):
+        s = "Types:\n"
+        for (k, v) in self._types.iteritems():
+            s += '\t%s: %s\n' % (k, v)
+        return s
+

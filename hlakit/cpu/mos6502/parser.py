@@ -42,7 +42,8 @@ class Parser(CommonParser):
     def p_cpu_statement(self, p):
         '''cpu_statement : common_statement
                          | mos6502_statement'''
-        p[0] = p[1]
+        if p[1] != None:
+            p[0] = p[1]
 
     def p_mos6502_statement(self, p):
         '''mos6502_statement : mos6502_token
@@ -50,10 +51,7 @@ class Parser(CommonParser):
         super(Parser, self).p_common_statement(p)
 
     def p_mos6502_token(self, p):
-        '''mos6502_token : A
-                         | X
-                         | Y
-                         | IS
+        '''mos6502_token : IS
                          | HAS
                          | NO
                          | NOT

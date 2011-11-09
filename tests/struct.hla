@@ -1,0 +1,23 @@
+struct time
+{
+	byte ticks
+	byte seconds
+	byte minutes
+	byte hours
+}
+
+typedef struct time t
+
+typedef struct foo { byte blah } bar
+
+bar b = { 1 }
+
+typedef struct player_
+{
+	byte x, y
+	byte health
+	byte experience
+	pointer inventory
+} player
+
+player me

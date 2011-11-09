@@ -1,0 +1,16 @@
+byte A1 :$2000
+shared byte B1
+byte C1 = 5
+byte D1 :$3000 = 1
+shared byte E1 :0x4000
+shared byte F1 = 2
+shared byte G1 :%10010000 = 5
+
+struct time
+{
+	byte ticks
+	byte seconds
+	byte minutes
+	byte hours
+} foo
+
