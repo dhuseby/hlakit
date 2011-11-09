@@ -147,6 +147,7 @@ class Parser(Ricoh2A0XParser):
 
     # must have a p_error rule
     def p_error(self, p):
-        print "Syntax error in input! File: %s, Line: %s" % (Session().get_cur_file(), p.lineno)
+        if p != None:
+            print "Syntax error in input! File: %s, Line: %s" % (Session().get_cur_file(), p.lineno)
         import pdb; pdb.set_trace()
 

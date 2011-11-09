@@ -42,6 +42,9 @@ def main():
         session.parse_args(sys.argv[1:])
         pp = session.preprocess()
         cc = session.compile(pp)
+        for c in cc:
+            print "%s:" % c[0]
+            pprint.pprint(c[3])
     except CommandLineError, e:
         return 0
 
