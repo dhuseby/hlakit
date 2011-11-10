@@ -1,0 +1,31 @@
+inline do_something(foo, bar, baz)
+{
+	return
+}
+
+interrupt.start noreturn main()
+{
+	if(no carry)
+	{
+		ScrollUp()
+	}
+	else
+	{
+		ScrollDown()
+	}
+}
+
+function foo()
+{
+	txa
+	ldx $d010
+	ldy $02
+	bpl $2d
+	adc $c001,x
+	inc $f001,y
+	lda $01,x
+	jmp ($0001,x)
+	jmp ($fffd)
+	asl ($15,x)
+	lsr ($2a),y
+}

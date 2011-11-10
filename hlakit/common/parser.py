@@ -53,7 +53,10 @@ class Parser(object):
         '''common_statement : core_statement
                             | core_pp_statement
                             | typedef_statement
-                            | variable_statement'''
+                            | variable_statement
+                            | function_statement
+                            | interrupt_statement
+                            | macro_statement'''
         if p[1] != None:
             p[0] = p[1]
 
@@ -80,6 +83,62 @@ class Parser(object):
                 p[0] = p[1] + p[2]
             else:
                 p[0] = p[1] + [ p[2] ]
+
+    def p_interrupt_statement(self, p):
+        '''interrupt_statement : INTERRUPT intr_type noreturn ID '(' ')' '{' function_body '}' '''
+        #                    name  body  noreturn type
+        p[0] = ('interrupt', p[4], p[8], p[3],    p[2])
+
+    # interrupt types are CPU/platform specific
+    def p_intr_type(self, p):
+        '''intr_type :'''
+        pass
+
+    def p_macro_statement(self, p):
+        '''macro_statement : INLINE ID '(' id_list ')' '{' function_body '}' '''
+        #                name  body  params
+        p[0] = ('macro', p[2], p[7], p[4])
+
+    def p_function_statement(self, p):
+        '''function_statement : FUNCTION noreturn ID '(' ')' '{' function_body '}' '''
+        #                   name  body  noreturn
+        p[0] = ('function', p[3], p[7], p[2])
+
+    def p_function_body(self, p):
+        '''function_body : function_body_statement
+                         | function_body function_body_statement'''
+        if len(p) == 2:
+            if p[1] is None:
+                p[0] = []
+            else:
+                p[0] = [ p[1] ]
+        else:
+            if p[2] is None:
+                p[0] = p[1]
+            else:
+                p[0] = p[1] + [ p[2] ]
+
+    def p_function_body_statement(self, p):
+        '''function_body_statement : RETURN
+                                   | empty'''
+        if p[1] != None:
+            p[0] = p[1]
+
+    def p_function_call(self, p):
+        '''function_call : ID '(' ')' 
+                         | ID '(' id_list ')' '''
+        #TODO: look up function by name to figure out if it is a macro or
+        #      a function.  if it is a macro, return the body of the macro
+        #      with the parameters replaced in the macro body.
+        if len(p) == 4:
+            p[0] = ('function_call', p[1], None)
+        else:
+            p[0] = ('function_call', p[1], p[3] )
+
+    def p_noreturn(self, p):
+        '''noreturn : NORETURN
+                    | empty'''
+        p[0] = (p[1] == 'noreturn')
 
     def p_typedef_statement(self, p):
         '''typedef_statement : TYPEDEF type_statement seen_typedef ID
@@ -370,11 +429,6 @@ class Parser(object):
                         | ID
                         | WS
                         | NL
-                        | NORETURN
-                        | RETURN
-                        | INLINE
-                        | FUNCTION
-                        | INTERRUPT
                         | LO
                         | HI
                         | SIZEOF

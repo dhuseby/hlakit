@@ -57,6 +57,13 @@ class Lexer(CommonLexer):
         'equal':        'EQUAL'
     }
 
+    # interrupt types
+    interrupt_types = {
+        'start':        'START',
+        'nmi':          'NMI',
+        'irq':          'IRQ'
+    }
+
     # registers
     registers = {
         'a':            'A',
@@ -126,6 +133,7 @@ class Lexer(CommonLexer):
 
     # 6502 tokens list
     tokens = CommonLexer.tokens \
+             + list(set(interrupt_types.values())) \
              + list(set(conditionals.values())) \
              + list(set(opcodes.values()))
 
@@ -134,6 +142,11 @@ class Lexer(CommonLexer):
         r'[a-zA-Z_][\w]*'
 
         value = t.value.lower()
+
+        t.type = self.interrupt_types.get(value, None) # check for interrupt type
+        if t.type != None:
+            t.value = value
+            return t
 
         t.type = self.conditionals.get(value, None) # check for conditionals
         if t.type != None:
