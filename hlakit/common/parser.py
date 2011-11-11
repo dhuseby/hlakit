@@ -88,6 +88,7 @@ class Parser(object):
         '''interrupt_statement : INTERRUPT intr_type noreturn ID '(' ')' '{' function_body '}' '''
         #                    name  body  noreturn type
         p[0] = ('interrupt', p[4], p[8], p[3],    p[2])
+        SymbolTable().new_symbol(p[4], p[0])
 
     # interrupt types are CPU/platform specific
     def p_intr_type(self, p):
@@ -98,11 +99,13 @@ class Parser(object):
         '''macro_statement : INLINE ID '(' id_list ')' '{' function_body '}' '''
         #                name  body  params
         p[0] = ('macro', p[2], p[7], p[4])
+        SymbolTable().new_symbol(p[2], p[0])
 
     def p_function_statement(self, p):
         '''function_statement : FUNCTION noreturn ID '(' ')' '{' function_body '}' '''
         #                   name  body  noreturn
         p[0] = ('function', p[3], p[7], p[2])
+        SymbolTable().new_symbol(p[3], p[0])
 
     def p_function_body(self, p):
         '''function_body : function_body_statement
@@ -126,14 +129,19 @@ class Parser(object):
 
     def p_function_call(self, p):
         '''function_call : ID '(' ')' 
-                         | ID '(' id_list ')' '''
-        #TODO: look up function by name to figure out if it is a macro or
-        #      a function.  if it is a macro, return the body of the macro
-        #      with the parameters replaced in the macro body.
+                         | ID '(' param_list ')' '''
+        fn = SymbolTable().lookup_symbol(p[1])
+        if fn is None:
+            raise Exception('calling undeclared function: %s' % p[1])
+
         if len(p) == 4:
-            p[0] = ('function_call', p[1], None)
-        else:
-            p[0] = ('function_call', p[1], p[3] )
+            p[0] = ('%s_call' % fn[0], p[1], None)
+        elif len(p) == 5:
+            if fn[0] != 'macro':
+                raise Exception('only inline macros can have parameters')
+            if len(fn[3]) != len(p[3]):
+                raise Exception('missing parameters in call to macro %s' % p[1])
+            p[0] = ('macro_call', p[1], p[3] )
 
     def p_noreturn(self, p):
         '''noreturn : NORETURN
@@ -376,6 +384,53 @@ class Parser(object):
         elif len(p) == 4:
             p[0] = p[1] + [ ('id', p[3]) ]
 
+    def p_param_list(self, p):
+        '''param_list : param
+                      | param_list ',' param'''
+        if len(p) == 2:
+            p[0] = [ p[1] ]
+        elif len(p) == 4:
+            p[0] = p[1] + [ p[3] ]
+
+    def p_param(self, p):
+        '''param : selector
+                 | HASH immediate_expression'''
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = p[2]
+
+    precedence = (
+        ('left', '+', '-'),
+        ('left', '*', '/')
+    )
+
+    def p_immediate_expression(self, p):
+        '''immediate_expression : immediate_expression '+' immediate_expression
+                                | immediate_expression '-' immediate_expression
+                                | immediate_expression '*' immediate_expression
+                                | immediate_expression '/' immediate_expression
+                                | '(' immediate_expression ')'
+                                | immediate_fn
+                                | value
+                                | number'''
+        if len(p) == 2:
+            p[0] = p[1]
+        elif len(p) == 4:
+            if p[1] == '(':
+                p[0] = p[1]
+            else:
+                p[0] = (p[2], p[1], p[3])
+
+
+    def p_immediate_fn(self, p):
+        '''immediate_fn : LO '(' immediate_expression ')'
+                        | HI '(' immediate_expression ')'
+                        | NYLO '(' immediate_expression ')'
+                        | NYHI '(' immediate_expression ')'
+                        | SIZEOF '(' immediate_expression ')' '''
+        p[0] = (p[1], p[3])
+
     def p_number(self, p):
         '''number : DECIMAL
                   | KILO
@@ -388,6 +443,19 @@ class Parser(object):
         '''filename : STRING
                     | BSTRING'''
         p[0] = p[1]
+
+    def p_value(self, p):
+        '''value : number
+                 | selector'''
+        p[0] = p[1]
+
+    def p_selector(self, p):
+        '''selector : ID
+                    | selector '.' ID'''
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = ''.join(p[1:])
 
 
     def p_common_token(self, p):

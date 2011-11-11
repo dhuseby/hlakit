@@ -63,16 +63,10 @@ class PPParser(object):
                     p[0] = ('program', p[1][1] + [ p[2] ])
 
     def p_common_statement(self, p):
-        '''common_statement : hash_statement
+        '''common_statement : pp_statement
                             | pp_block_statement
                             | base_statement'''
         if self.is_enabled() and p[1] != None:
-            p[0] = p[1]
-
-    def p_hash_statement(self, p):
-        '''hash_statement : immediate
-                          | pp_statement'''
-        if p[1] != None:
             p[0] = p[1]
 
     def p_pp_statement(self, p):
@@ -178,6 +172,8 @@ class PPParser(object):
     def p_pp_define(self, p):
         '''pp_define : PP_DEFINE ID NL
                      | PP_DEFINE ID pp_define_body
+                     | PP_DEFINE ID number NL
+                     | PP_DEFINE ID STRING NL
                      | PP_DEFINE ID '(' pp_define_params ')' pp_define_body'''
 
         name = p[2]
@@ -185,8 +181,10 @@ class PPParser(object):
         params = None
 
         if len(p) == 4:
+            if p[3] != '\n':
+                value = p[3]
+        elif len(p) == 5:
             value = p[3]
-            #p[0] = ('pp_define', p[2], p[3])
         elif len(p) == 7:
             value = p[6]
             params = p[4]
@@ -311,33 +309,6 @@ class PPParser(object):
                     | BSTRING'''
         p[0] = p[1]
 
-    def p_immediate(self, p):
-        '''immediate : HASH number
-                     | HASH ID
-                     | HASH '~' '(' ID ')'
-                     | HASH '(' ID ')' '''
-        pre = []
-        post = []
-        key = None
-        if len(p) == 3:
-            pre = [ p[1] ]
-            key = p[2]
-        elif len(p) == 5:
-            pre = p[1:2]
-            post = p[4:]
-            key = p[3]
-        elif len(p) == 6:
-            pre = p[1:3]
-            post = p[5:]
-            key = p[4]
-
-        macro = SymbolTable().lookup_symbol(key)
-        if macro:
-            imm = pre + macro.value + post
-            return ''.join(imm)
-
-        return ''.join(p[1:])
-
     def p_base_token(self, p):
         '''base_token     : number
                           | id
@@ -345,6 +316,7 @@ class PPParser(object):
                           | STRING
                           | WS
                           | NL
+                          | HASH
                           | '.'
                           | '+'
                           | '-'

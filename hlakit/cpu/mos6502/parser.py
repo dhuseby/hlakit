@@ -110,6 +110,8 @@ class Parser(CommonParser):
 
     def p_switch_statement(self, p):
         '''switch_statement : SWITCH '(' REG '.' ID ')' '{' switch_body '}' '''
+        if p[5].lower() not in ('a','x','y'):
+            raise Exception('invalid switch register')
         p[0] = ('switch', p[8], p[5])
 
     def p_switch_body(self, p):
@@ -215,33 +217,33 @@ class Parser(CommonParser):
         p[0] = p[1]
 
     def p_immediate(self, p):
-        '''immediate : HASH number'''
-        p[0] = ('immediate', p[2])
+        '''immediate : param'''
+        p[0] = ('immediate', p[1])
 
     def p_indirect(self, p):
-        '''indirect : '(' number ')' '''
+        '''indirect : '(' value ')' '''
         p[0] = ('indirect', p[2])
 
     def p_abs_zp_r(self, p):
-        '''abs_zp_r : number'''
+        '''abs_zp_r : value'''
         #TODO: detect if the operand is absolute, zero page, or relative
         #      based on the operand and the number value
         p[0] = ('absolute', p[1])
 
     def p_abs_zp_idx(self, p):
-        '''abs_zp_idx : number ',' ID'''
+        '''abs_zp_idx : value ',' ID'''
         if p[3].lower() not in ('x', 'y'):
             raise Exception('invalid register name in absolute, indexed operand')
         p[0] = ('abs_idx', p[1], p[3])
 
     def p_abs_zp_ind(self, p):
-        '''abs_zp_ind : '(' number ',' ID ')' '''
+        '''abs_zp_ind : '(' value ',' ID ')' '''
         if p[4].lower() != 'x':
             raise Exception('not using X register in absolute indexed indirect operand')
         p[0] = ('abs_ind', p[2], p[4])
 
     def p_zp_ind(self, p):
-        '''zp_ind : '(' number ')' ',' ID'''
+        '''zp_ind : '(' value ')' ',' ID'''
         if p[5].lower() != 'y':
             raise Exception('not using Y register in zp indirect indexed operand')
         p[0] = ('zp_ind', p[2], p[5])

@@ -1,7 +1,30 @@
+inline assign_16i(a, b)
+{
+}
+
+function jsrind_f() {}
+
+inline jsrind_imd(pproc)
+{
+	lda #lo(pproc)
+	ora #hi(pproc)
+	if(not zero)
+	{
+		assign_16i(_jsrind_temp, pproc.blah)
+		jsrind_f()
+	}
+}
+
+
 inline do_something(foo, bar, baz)
 {
-	return
+	ldx foo.bar.blah
+	ldy bar
+	bpl baz
 }
+
+function ScrollUp() {}
+function ScrollDown() {}
 
 interrupt.start noreturn main()
 {

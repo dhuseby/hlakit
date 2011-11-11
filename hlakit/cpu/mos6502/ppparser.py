@@ -27,6 +27,7 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
+from hlakit.common.session import Session
 from hlakit.common.ppparser import PPParser as CommonPPParser
 
 class PPParser(CommonPPParser):

@@ -1,0 +1,5 @@
+#define BLAH $32
+inline foo(pproc)
+{
+	lda #sizeof(BLAH)
+}

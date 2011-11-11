@@ -55,6 +55,8 @@ class Lexer(object):
         'interrupt':    'INTERRUPT',
         'lo':           'LO',
         'hi':           'HI',
+        'nylo':         'NYLO',
+        'nyhi':         'NYHI',
         'sizeof':       'SIZEOF',
         'if':           'IF',
         'else':         'ELSE',

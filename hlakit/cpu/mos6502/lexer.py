@@ -37,24 +37,24 @@ class Lexer(CommonLexer):
         'has':          'HAS',
         'no':           'NO',
         'not':          'NOT',
-        'plus' :        'POSITIVE',
-        'positive':     'POSITIVE',
-        'minus':        'NEGATIVE',
-        'negative':     'NEGATIVE',
-        'greater':      'GREATER',
-        'less':         'LESS',
-        'overflow':     'OVERFLOW',
-        'carry':        'CARRY',
-        'nonzero':      'TRUE',
-        'set':          'TRUE',
-        'true':         'TRUE',
-        '1':            'TRUE',
-        'zero':         'FALSE',
-        'unset':        'FALSE',
-        'false':        'FALSE',
-        '0':            'FALSE',
-        'clear':        'FALSE',
-        'equal':        'EQUAL'
+        'plus' :        'POSITIVE',     # N = 0
+        'positive':     'POSITIVE',     # N = 0
+        'minus':        'NEGATIVE',     # N = 1
+        'negative':     'NEGATIVE',     # N = 1
+        'greater':      'GREATER',      # N = 0, Z = 0, C = 1
+        'less':         'LESS',         # N = 1, Z = 0, C = 0
+        'overflow':     'OVERFLOW',     # V = 1
+        'carry':        'CARRY',        # C = 1
+        'nonzero':      'TRUE',         # Z = 0
+        'set':          'TRUE',         # Z = 0
+        'true':         'TRUE',         # Z = 0
+        '1':            'TRUE',         # Z = 0
+        'zero':         'FALSE',        # Z = 1
+        'unset':        'FALSE',        # Z = 1
+        'false':        'FALSE',        # Z = 1
+        '0':            'FALSE',        # Z = 1
+        'clear':        'FALSE',        # Z = 1
+        'equal':        'EQUAL'         # N = 0, Z = 1, C = 1
     }
 
     # interrupt types
