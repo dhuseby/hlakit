@@ -2,7 +2,8 @@
 #ifdef FOO
 #define A 1
 #define B ((1 + 2) * 5)
-#define C (x, y, z) ((x + y), * z)
+#define C (x, y, z) ((x + y) \ 
+					* z)
 #include "foo.h"
 byte foo = 1
 #else

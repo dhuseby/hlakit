@@ -63,42 +63,28 @@ class PPParser(object):
                     p[0] = ('program', p[1][1] + [ p[2] ])
 
     def p_common_statement(self, p):
-        '''common_statement : pp_statement
-                            | pp_block_statement
+        '''common_statement : pp_block_statement
+                            | pp_statement
                             | base_statement'''
         if self.is_enabled() and p[1] != None:
             p[0] = p[1]
-
-    def p_pp_statement(self, p):
-        '''pp_statement : HASH pp_include
-                        | HASH pp_incbin
-                        | HASH pp_define
-                        | HASH pp_undef
-                        | HASH pp_msg '''
-        p[0] = p[2]
 
     def p_pp_block_statement(self, p):
         '''pp_block_statement : pp_block_start pp_block_body pp_block_else pp_block_body pp_block_end
                               | pp_block_start pp_block_body pp_block_end'''
         if len(p) == 4:
-            if Session().is_debug():
-                p[0] = ('pp_block_statement', [ p[1], ('pp_block_body', p[2]), p[3] ])
-            else:
-                if p[2] is None:
-                    return
-                p[0] = p[2]
+            if p[2] is None:
+                return
+            p[0] = p[2]
         elif len(p) == 6:
-            if Session().is_debug():
-                p[0] = ('pp_block_statement', [ p[1], ('pp_block_body', p[2]), p[3], ('pp_block_body', p[4]), p[5] ])
+            if p[2] is None:
+                p[0] = p[4]
             else:
-                if p[2] is None:
-                    p[0] = p[4]
-                else:
-                    p[0] = p[2]
+                p[0] = p[2]
 
     def p_pp_block_start(self, p):
-        '''pp_block_start : HASH PP_IFDEF ID NL
-                          | HASH PP_IFNDEF ID NL '''
+        '''pp_block_start : PPIFDEF ID NL
+                          | PPIFNDEF ID NL '''
 
         # only execute the logic if we're enabled
         if self.is_enabled():
@@ -117,7 +103,7 @@ class PPParser(object):
         p[0] = ('pp_block_start', p[2], p[3])
 
     def p_pp_block_else(self, p):
-        '''pp_block_else : HASH PP_ELSE NL '''
+        '''pp_block_else : PPELSE NL '''
 
         if len(self._enabled) == 1:
             print "ERROR: unmatched #else"
@@ -137,7 +123,7 @@ class PPParser(object):
         p[0] = ('pp_block_else', p[2])
 
     def p_pp_block_end(self, p):
-        '''pp_block_end : HASH PP_ENDIF NL '''
+        '''pp_block_end : PPENDIF NL '''
 
         if len(self._enabled) == 1:
             print "ERROR: unmatched #endif"
@@ -151,6 +137,7 @@ class PPParser(object):
     def p_pp_block_body(self, p):
         '''pp_block_body : common_statement
                          | pp_block_body common_statement'''
+
         if self.is_enabled():
             if len(p) == 2:
                 if p[1] is None:
@@ -169,32 +156,34 @@ class PPParser(object):
                 else:
                     p[0] = p[1] + [ p[2] ]
 
+    def p_pp_statement(self, p):
+        '''pp_statement : pp_include NL
+                        | pp_incbin NL
+                        | pp_define NL
+                        | pp_undef NL
+                        | pp_msg NL'''
+        p[0] = p[1]
+
     def p_pp_define(self, p):
-        '''pp_define : PP_DEFINE ID NL
-                     | PP_DEFINE ID pp_define_body
-                     | PP_DEFINE ID number NL
-                     | PP_DEFINE ID STRING NL
-                     | PP_DEFINE ID '(' pp_define_params ')' pp_define_body'''
+        '''pp_define : PPDEFINE ID pp_define_body
+                     | PPDEFINE ID '(' pp_define_params ')' pp_define_body'''
 
         name = p[2]
         value = []
         params = None
 
-        if len(p) == 4:
-            if p[3] != '\n':
-                value = p[3]
-        elif len(p) == 5:
+        if len(p) == 5:
             value = p[3]
-        elif len(p) == 7:
+        elif len(p) == 8:
             value = p[6]
             params = p[4]
-            #p[0] = ('pp_define_macro', p[2], p[4], p[6])
 
         SymbolTable().new_symbol( name, PPMacro(name, value, params) )
 
     def p_pp_define_params(self, p):
         '''pp_define_params : ID
                             | pp_define_params ',' ID'''
+
         if len(p) == 2:
             if p[1] is None:
                 p[0] = []
@@ -213,8 +202,14 @@ class PPParser(object):
                 p[0] = p[1] + [ p[3] ]
 
     def p_pp_define_body(self, p):
-        '''pp_define_body : common_statement
-                          | pp_define_body BS NL common_statement'''
+        '''pp_define_body : pp_block_statement
+                          | pp_statement
+                          | pp_define_body_statement '''
+        p[0] = p[1]
+
+    def p_pp_define_body_statement(self, p):
+        ''' pp_define_body_statement : pp_define_body_token
+                                     | pp_define_body pp_define_body_token'''
         if len(p) == 2:
             if p[1] is None:
                 p[0] = []
@@ -223,22 +218,50 @@ class PPParser(object):
                 p[0] = p[1]
             else:
                 p[0] = [ p[1] ]
-        elif len(p) == 5:
-            if p[4] is None:
+        elif len(p) == 3:
+            if p[2] is None:
                 p[0] = p[1]
                 return
-            if isinstance(p[4], list):
-                p[0] = p[1] + p[4]
+            if isinstance(p[2], list):
+                p[0] = p[1] + p[2]
             else:
-                p[0] = p[1] + [ p[4] ]
+                p[0] = p[1] + [ p[2] ]
+
+    def p_pp_define_body_token(self, p):
+        '''pp_define_body_token : number
+                                | ID
+                                | STRING
+                                | HASH
+                                | '.'
+                                | '+'
+                                | '-'
+                                | '*'
+                                | '/'
+                                | '~'
+                                | '!'
+                                | '%'
+                                | '>'
+                                | '<'
+                                | '='
+                                | '&'
+                                | '^'
+                                | '|'
+                                | '{'
+                                | '}'
+                                | '('
+                                | ')'
+                                | '['
+                                | ']'
+                                | ':'
+                                | ',' '''
+        p[0] = p[1]
 
     def p_pp_undef(self, p):
-        '''pp_undef : PP_UNDEF ID NL'''
+        '''pp_undef : PPUNDEF ID'''
         SymbolTable().del_symbol(p[2])
-        #p[0] = ('pp_undef', p[2])
 
     def p_pp_include(self, p):
-        '''pp_include : PP_INCLUDE filename NL'''
+        '''pp_include : PPINCLUDE filename'''
 
         # resolve the file name path
         #print "Including %s from: %s, line: %s" % (p[2][1:-1], Session().get_cur_file(), p.lexer.lineno)
@@ -253,22 +276,18 @@ class PPParser(object):
         if p is None or prg is None:
             import pdb; pdb.set_trace()
 
-        if Session().is_debug():
-            p[0] = ('pp_include', fpath, prg[1])
-        else:
-            p[0] = prg[1]
+        p[0] = prg[1]
 
     def p_pp_msg(self, p):
-        '''pp_msg : PP_TODO STRING NL
-                  | PP_WARNING STRING NL
-                  | PP_ERROR STRING NL
-                  | PP_FATAL STRING NL'''
+        '''pp_msg : PPTODO STRING
+                  | PPWARNING STRING
+                  | PPERROR STRING
+                  | PPFATAL STRING'''
         msg = '%s: %s' % (p[1].upper(), p[2])
         print msg
-        p[0] = ('pp_msg', msg)
 
     def p_pp_incbin(self, p):
-        '''pp_incbin : PP_INCBIN filename NL'''
+        '''pp_incbin : PPINCBIN filename'''
 
         # resolve the file name path
         fpath = Session().get_file_path(p[2][1:-1], (p[2][0] == '<'))
@@ -312,9 +331,7 @@ class PPParser(object):
     def p_base_token(self, p):
         '''base_token     : number
                           | id
-                          | PP_ELSE
                           | STRING
-                          | WS
                           | NL
                           | HASH
                           | '.'
@@ -353,4 +370,5 @@ class PPParser(object):
     # must have a p_error rule
     def p_error(self, p):
         print "Syntax error in input! File: %s, Line: %s" % (Session().get_cur_file(), p.lineno)
+        import pdb; pdb.set_trace()
 

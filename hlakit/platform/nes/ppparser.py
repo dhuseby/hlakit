@@ -35,29 +35,36 @@ class PPParser(Ricoh2A0XPPParser):
     def __init__(self, tokens=[]):
         super(PPParser, self).__init__(tokens)
 
+    def _clean_value(self, val):
+        v = val
+
+        # macro replacements cause values to be lists of tokens
+        if isinstance(v, list):
+            tmp = ''
+            for i in v:
+                tmp += '%s ' % i
+            v = tmp
+
+        # strip whitespace and brackets
+        v = v.strip("\n\t\r '\"><")
+
+        return v
+
     def p_program(self, p):
-        '''program : platform_statement
-                   | program platform_statement'''
-
-        '''
-        nes = Session().get_target()
-
-        if nes.has_block_started() and nes.get_cur_block()['start'] is None:
-            nes.set_block_start(len(p[1][1]) - 1)
-
-        if nes.has_block_ended():
-            nes.set_block_end(len(p[1][1]))
-            nes.reset_block()
-        '''
-
+        '''program : common_statement
+                   | program common_statement'''
         # call base class implementation
         super(PPParser, self).p_program(p)
 
-    def p_platform_statement(self, p):
-        '''platform_statement : cpu_statement
-                              | nes_pp_statement'''
+    def p_common_statement(self, p):
+        '''common_statement : pp_statement
+                            | pp_block_statement
+                            | base_statement
+                            | mos6502_pp_statement
+                            | nes_pp_statement'''
         if self.is_enabled() and p[1] != None:
             p[0] = p[1]
+
 
     def p_nes_pp_statement(self, p):
         '''nes_pp_statement : HASH nes_pp_mem_statement
@@ -74,39 +81,24 @@ class PPParser(Ricoh2A0XPPParser):
                         | STRING'''
         p[0] = p[1]
 
-    def _clean_value(self, val):
-        v = val
-
-        # macro replacements cause values to be lists of tokens
-        if isinstance(v, list):
-            tmp = ''
-            for i in v:
-                tmp += '%s ' % i
-            v = tmp
-
-        # strip whitespace and brackets
-        v = v.strip("\n\t\r '\"><")
-
-        return v
-
     def p_nes_pp_mem_statement(self, p):
-        '''nes_pp_mem_statement : PP_RAM '.' PP_END NL
-                                | PP_RAM '.' PP_ORG nes_pp_value NL
-                                | PP_RAM '.' PP_ORG nes_pp_value ',' nes_pp_value NL
-                                | PP_ROM '.' PP_END NL
-                                | PP_ROM '.' PP_ORG nes_pp_value NL
-                                | PP_ROM '.' PP_BANKSIZE nes_pp_value NL
-                                | PP_ROM '.' PP_BANK nes_pp_value NL
-                                | PP_ROM '.' PP_BANK nes_pp_value ',' nes_pp_value NL
-                                | PP_ROM '.' PP_ORG nes_pp_value ',' nes_pp_value NL
-                                | PP_CHR '.' PP_END NL
-                                | PP_CHR '.' PP_BANKSIZE nes_pp_value NL
-                                | PP_CHR '.' PP_LINK filename NL
-                                | PP_CHR '.' PP_LINK filename ',' nes_pp_value NL
-                                | PP_CHR '.' PP_BANK nes_pp_value NL
-                                | PP_CHR '.' PP_BANK nes_pp_value ',' nes_pp_value NL
-                                | PP_SETPAD nes_pp_value NL
-                                | PP_ALIGN nes_pp_value NL'''
+        '''nes_pp_mem_statement : PPRAMEND NL
+                                | PPRAMORG nes_pp_value NL
+                                | PPRAMORG nes_pp_value ',' nes_pp_value NL
+                                | PPROMEND NL
+                                | PPROMORG nes_pp_value NL
+                                | PPROMBANKSIZE nes_pp_value NL
+                                | PPROMBANK nes_pp_value NL
+                                | PPROMBANK nes_pp_value ',' nes_pp_value NL
+                                | PPROMORG nes_pp_value ',' nes_pp_value NL
+                                | PPCHREND NL
+                                | PPCHRBANKSIZE nes_pp_value NL
+                                | PPCHRLINK filename NL
+                                | PPCHRLINK filename ',' nes_pp_value NL
+                                | PPCHRBANK nes_pp_value NL
+                                | PPCHRBANK nes_pp_value ',' nes_pp_value NL
+                                | PPSETPAD nes_pp_value NL
+                                | PPALIGN nes_pp_value NL'''
         output = []
         for i in xrange(1, len(p)):
             if isinstance(p[i], list):
@@ -115,71 +107,28 @@ class PPParser(Ricoh2A0XPPParser):
                 output.append(p[i])
         p[0] = output
 
-        '''
-        nes = Session().get_target()
-        if p[1] in ('ram', 'rom', 'chr'):
-            if p[3] in ('org', 'bank'):
-                if nes.has_block_started():
-                    t = nes.get_cur_block()['type']
-                    if t != None and t != p[1]:
-                        raise Exception('WARNING: unclosed %s block at file: %s, line: %s, included from: %s' % (t, Session().get_cur_file(), p.lexer.lineno, Session()._cur_file))
-                else:
-                    nes.start_block(p[1])
-                if nes.get_cur_block()['type'] is None:
-                    nes.set_block_type(p[1])
-
-            if p[3] == 'org':
-                nes.set_block_org(self._clean_value(p[4]))
-                if len(p) == 8:
-                    nes.set_block_maxsize(self._clean_value([6]))
-            elif p[3] == 'bank':
-                nes.set_block_bank(self._clean_value(p[4]))
-                if len(p) == 8:
-                    nes.set_banksize(self._clean_value(p[6]))
-            elif p[3] == 'banksize':
-                nes.set_banksize(self._clean_value(p[1]), self._clean_value(p[4]))
-            elif p[3] == 'link':
-                nes.set_block_link(p[4])
-            elif p[3] == 'end':
-                nes.end_block()
-        elif p[1] == 'setpad':
-            nes.set_padding(self._clean_value(p[2]))
-        elif p[1] == 'align':
-            nes.set_alignment(self._clean_value(p[2]))
-
-        if len(p) == 4:
-            p[0] = ('nes_pp_mem_statement', p[1], p[2])
-        elif len(p) == 5:
-            p[0] = ('nes_pp_mem_statement', p[1], p[3])
-        elif len(p) == 6:
-            p[0] = ('nes_pp_mem_statement', p[1], p[3], p[4])
-        elif len(p) == 8:
-            p[0] = ('nes_pp_mem_statement', p[1], p[3], p[4], p[6])
-        '''
-
     def p_nes_pp_ines_statement(self, p):
-        '''nes_pp_ines_statement : PP_INES '.' PP_OFF NL
-                                 | PP_INES '.' PP_MAPPER nes_pp_value NL
-                                 | PP_INES '.' PP_MIRRORING nes_pp_value NL
-                                 | PP_INES '.' PP_FOURSCREEN nes_pp_value NL
-                                 | PP_INES '.' PP_BATTERY nes_pp_value NL
-                                 | PP_INES '.' PP_TRAINER nes_pp_value NL
-                                 | PP_INES '.' PP_PRGREPEAT nes_pp_value NL
-                                 | PP_INES '.' PP_CHRREPEAT nes_pp_value NL'''
+        '''nes_pp_ines_statement : PPINESOFF NL
+                                 | PPINESMAPPER nes_pp_value NL
+                                 | PPINESMIRRORING nes_pp_value NL
+                                 | PPINESFOURSCREEN nes_pp_value NL
+                                 | PPINESBATTERY nes_pp_value NL
+                                 | PPINESTRAINER nes_pp_value NL
+                                 | PPINESPRGREPEAT nes_pp_value NL
+                                 | PPINESCHRREPEAT nes_pp_value NL'''
         value = None
-        if p[3] == 'off':
+        if len(p) == 3:
             value = True
         else:
             # strip quotes off if they exist
-            value = self._clean_value(p[4])
+            value = self._clean_value(p[2])
 
         # store the ines setting in the target
-        Session().get_target()[p[3]] = value
-
-        #p[0] = ('nes_pp_ines_statement', p[3], value)
+        Session().get_target()[p[1]] = value
 
     # must have a p_error rule
     def p_error(self, p):
         print "Syntax error in input! File: %s, Line: %s" % (Session().get_cur_file(), p.lineno)
         import pdb; pdb.set_trace()
+
 

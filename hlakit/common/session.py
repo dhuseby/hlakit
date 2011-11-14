@@ -334,6 +334,8 @@ class Session(object):
                     output.append(' '.join(line))
                     inline = False
             else:
+                if isinstance(p, tuple):
+                    import pdb; pdb.set_trace()
                 if len(p.strip()) > 0:
                     line = []
                     line.append(p)

@@ -36,67 +36,22 @@ class PPParser(CommonPPParser):
         super(PPParser, self).__init__(tokens)
 
     def p_program(self, p):
-        '''program : cpu_statement
-                   | program cpu_statement'''
+        '''program : common_statement
+                   | program common_statement'''
         # call base class implementation
         super(PPParser, self).p_program(p)
 
-    def p_cpu_statement(self, p):
-        '''cpu_statement : common_statement
-                         | mos6502_statement
-                         | mos6502_pp_statement'''
+    def p_common_statement(self, p):
+        '''common_statement : pp_statement
+                            | pp_block_statement
+                            | base_statement
+                            | mos6502_pp_statement'''
         if self.is_enabled() and p[1] != None:
             p[0] = p[1]
 
     def p_mos6502_pp_statement(self, p):
-        '''mos6502_pp_statement : HASH PP_INTERRUPT '.' PP_START id NL
-                                | HASH PP_INTERRUPT '.' PP_NMI id NL
-                                | HASH PP_INTERRUPT '.' PP_IRQ id NL'''
+        '''mos6502_pp_statement : PPINTSTART id NL
+                                | PPINTNMI id NL
+                                | PPINTIRQ id NL'''
         pass
-        #if self.is_enabled():
-        #    p[0] = ('mos6502_pp_statement', p[4], p[5])
-
-    def p_pp_block_body(self, p):
-        '''pp_block_body : cpu_statement
-                         | pp_block_body cpu_statement'''
-        # call the base class implementation
-        super(PPParser, self).p_pp_block_body(p)
-
-    def p_pp_define_body(self, p):
-        '''pp_define_body : cpu_statement
-                          | pp_define_body BS NL cpu_statement'''
-        # call the base class implementation
-        super(PPParser, self).p_pp_define_body(p)
-
-    def p_mos6502_statement(self, p):
-        '''mos6502_statement : mos6502_token
-                             | mos6502_statement mos6502_token'''
-        if len(p) == 2:
-            if p[1] is None:
-                p[0] = []
-                return
-            if isinstance(p[1], list):
-                p[0] = p[1]
-            else:
-                p[0] = [ p[1] ]
-        elif len(p) == 3:
-            if p[2] is None:
-                p[0] = p[1]
-                return
-            if isinstance(p[2], list):
-                p[0] = p[1] + p[2]
-            else:
-                p[0] = p[1] + [ p[2] ]
-
-    def p_mos6502_token(self, p):
-        '''mos6502_token  : PP_INTERRUPT
-                          | PP_START
-                          | PP_NMI
-                          | PP_IRQ'''
-        p[0] = p[1]
-
-    # must have a p_error rule
-    def p_error(self, p):
-        print "Syntax error in input! File: %s, Line: %s" % (Session().get_cur_file(), p.lineno)
-        import pdb; pdb.set_trace()
 

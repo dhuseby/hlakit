@@ -31,31 +31,14 @@ from hlakit.common.pplexer import PPLexer as CommonPPLexer
 
 class PPLexer(CommonPPLexer):
 
-    # 6502 specific preprocessors
-    mos6502_preprocessor = {
-        'interrupt':    'PP_INTERRUPT',
-        'start':        'PP_START',
-        'nmi':          'PP_NMI',
-        'irq':          'PP_IRQ'
-    }
-
     # 6502 tokens list
-    tokens = CommonPPLexer.tokens \
-             + list(set(mos6502_preprocessor.values()))
+    tokens = CommonPPLexer.tokens + \
+             [ 'PPINTSTART',
+               'PPINTNMI',
+               'PPINTIRQ' ]
 
-    # identifier
-    def t_ID(self, t):
-        r'[a-zA-Z_][\w]*'
+    t_PPINTSTART    = r'\#(?i)[\t ]*interrupt\.start'
+    t_PPINTNMI      = r'\#(?i)[\t ]*interrupt\.nmi'
+    t_PPINTIRQ      = r'\#(?i)[\t ]*interrupt\.irq'
 
-        value = t.value.lower()
-
-        t.type = self.mos6502_preprocessor.get(value, None) # check for preprocessor words
-        if t.type != None:
-            t.value = value
-            return t
-
-        return super(PPLexer, self).t_ID(t)
-
-    def __init__(self):
-        super(PPLexer, self).__init__()
 

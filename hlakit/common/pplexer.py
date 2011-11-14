@@ -33,23 +33,19 @@ from symboltable import SymbolTable
 
 class PPLexer(object):
 
-    # basic preprocessor tokens
-    preprocessor = {
-        'define':       'PP_DEFINE',
-        'undef':        'PP_UNDEF',
-        'ifdef':        'PP_IFDEF',
-        'ifndef':       'PP_IFNDEF',
-        'else':         'PP_ELSE',
-        'endif':        'PP_ENDIF',
-        'include':      'PP_INCLUDE',
-        'incbin':       'PP_INCBIN',
-        'todo':         'PP_TODO',
-        'warning':      'PP_WARNING',
-        'error':        'PP_ERROR',
-        'fatal':        'PP_FATAL'
-    }
-
-    rtokens     = [ 'HASH',
+    tokens      = [ 'PPDEFINE',
+                    'PPUNDEF',
+                    'PPIFDEF',
+                    'PPIFNDEF',
+                    'PPELSE',
+                    'PPENDIF',
+                    'PPINCLUDE',
+                    'PPINCBIN',
+                    'PPTODO',
+                    'PPWARNING',
+                    'PPERROR',
+                    'PPFATAL',
+                    'HASH',
                     'STRING',
                     'BSTRING',
                     'DECIMAL',
@@ -58,18 +54,29 @@ class PPLexer(object):
                     'HEXS',
                     'BINARY',
                     'ID',
-                    'WS',
-                    'NL',
-                    'BS' ] 
-
-    # the tokens list
-    tokens      = rtokens \
-                + list(set(preprocessor.values()))
+                    'NL' ] 
 
     literals    = '.+-*/~!%><=&^|{}()[]:,'
 
+    # basic conditional compile directives
+    t_PPDEFINE  = r'\#(?i)[\t ]*define'
+    t_PPUNDEF   = r'\#(?i)[\t ]*undef'
+    t_PPIFDEF   = r'\#(?i)[\t ]*ifdef'
+    t_PPIFNDEF  = r'\#(?i)[\t ]*ifndef'
+    t_PPELSE    = r'\#(?i)[\t ]*else'
+    t_PPENDIF   = r'\#(?i)[\t ]*endif'
+
+    # basic include directives
+    t_PPINCLUDE = r'\#(?i)[\t ]*include'
+    t_PPINCBIN  = r'\#(?i)[\t ]*incbin'
+
+    # common messaging directives
+    t_PPTODO    = r'\#(?i)[\t ]*todo'
+    t_PPWARNING = r'\#(?i)[\t ]*warning'
+    t_PPERROR   = r'\#(?i)[\t ]*error'
+    t_PPFATAL   = r'\#(?i)[\t ]*fatal'
+
     t_HASH      = r'\#'
-    t_BS        = r'\\'
     t_STRING    = r'\"(\\.|[^\"])*\"'
     t_BSTRING   = r'\<(\\.|[^\>])*\>'
     t_DECIMAL   = r'\b(0|[1-9][0-9]*)\b'
@@ -77,6 +84,11 @@ class PPLexer(object):
     t_HEXC      = r'0x[0-9a-fA-F]+'
     t_HEXS      = r'\$[0-9a-fA-F]+'
     t_BINARY    = r'%[01]+'
+
+    def t_PPCONT(self, t):
+        r'\\[\t\r ]*\n'
+        t.lexer.lineno += t.value.count('\n')
+        # eat preprocessor line continuations
 
     def t_NL(self, t):
         r'\n+'
@@ -94,15 +106,6 @@ class PPLexer(object):
 
     def t_ID(self, t):
         r'[a-zA-Z_][\w]*'
-
-        value = t.value.lower()
-
-        t.type = self.preprocessor.get(value, None) # check for preprocessor words
-        if t.type != None:
-            t.value = value
-            return t
-
-        t.type = 'ID'
         return t
 
     def t_error(self, t):
@@ -110,7 +113,4 @@ class PPLexer(object):
         t.value = t.value[0]
         t.lexer.skip(1)
         return t
-
-    def __init__(self):
-        pass
 
