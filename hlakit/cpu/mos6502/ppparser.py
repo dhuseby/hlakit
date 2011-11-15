@@ -42,10 +42,11 @@ class PPParser(CommonPPParser):
         super(PPParser, self).p_program(p)
 
     def p_common_statement(self, p):
-        '''common_statement : pp_statement
-                            | pp_block_statement
+        '''common_statement : pp_block_statement
+                            | pp_statement
                             | base_statement
-                            | mos6502_pp_statement'''
+                            | mos6502_pp_statement
+                            | empty_statement'''
         if self.is_enabled() and p[1] != None:
             p[0] = p[1]
 

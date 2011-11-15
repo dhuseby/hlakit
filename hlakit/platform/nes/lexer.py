@@ -36,38 +36,38 @@ class Lexer(Ricoh2A0XLexer):
        stream of text.  However, the #ines preprocessor statements were handled
        during the preprocess stage and don't need to be handled here.'''
 
-    # NES specific preprocessors
-    nes_preprocessor = {
-        'ram': 'PP_RAM',
-        'rom': 'PP_ROM',
-        'org': 'PP_ORG',
-        'end': 'PP_END',
-        'banksize': 'PP_BANKSIZE',
-        'bank': 'PP_BANK',
-        'setpad': 'PP_SETPAD',
-        'align': 'PP_ALIGN',
-        'chr': 'PP_CHR',
-        'link': 'PP_LINK',
-    }
-
     # NES tokens list
     tokens = Ricoh2A0XLexer.tokens \
-           + list(set(nes_preprocessor.values()))
+           + [ 'PPRAMORG',
+               'PPRAMEND',
+               'PPROMORG',
+               'PPROMBANK',
+               'PPROMBANKSIZE',
+               'PPROMEND',
+               'PPCHRBANK',
+               'PPCHRBANKSIZE',
+               'PPCHRLINK',
+               'PPCHREND',
+               'PPSETPAD',
+               'PPALIGN' ]
 
-    # identifier
-    def t_ID(self, t):
-        r'[a-zA-Z_][\w]*'
+    # NES compile time pre-processor directives
+    t_PPRAMORG          = r'\#(?i)[\t ]*ram\.org'
+    t_PPRAMEND          = r'\#(?i)[\t ]*ram\.end'
 
-        value = t.value.lower()
+    t_PPROMORG          = r'\#(?i)[\t ]*rom\.org'
+    t_PPROMBANK         = r'\#(?i)[\t ]*rom\.bank'
+    t_PPROMBANKSIZE     = r'\#(?i)[\t ]*rom\.banksize'
+    t_PPROMEND          = r'\#(?i)[\t ]*rom\.end'
 
-        t.type = self.nes_preprocessor.get(value, None) # check for preprocessor words
-        if t.type != None:
-            t.value = value
-            return t
+    t_PPCHRBANK         = r'\#(?i)[\t ]*chr\.bank'
+    t_PPCHRBANKSIZE     = r'\#(?i)[\t ]*chr\.banksize'
+    t_PPCHRLINK         = r'\#(?i)[\t ]*chr\.link'
+    t_PPCHREND          = r'\#(?i)[\t ]*chr\.end'
 
-        return super(Lexer, self).t_ID(t)
+    t_PPSETPAD          = r'\#(?i)[\t ]*setpad'
+    t_PPALIGN           = r'\#(?i)[\t ]*align'
 
     def __init__(self):
         super(Lexer, self).__init__()
-
 

@@ -35,20 +35,10 @@ class Parser(CommonParser):
         self.tokens = tokens
 
     def p_program(self, p):
-        '''program : cpu_statement
-                   | program cpu_statement'''
+        '''program : empty
+                   | common_statement
+                   | program common_statement'''
         super(Parser, self).p_program(p)
-
-    def p_cpu_statement(self, p):
-        '''cpu_statement : common_statement'''
-        if p[1] != None:
-            p[0] = p[1]
-
-    def p_intr_type(self, p):
-        '''intr_type : '.' START
-                     | '.' NMI
-                     | '.' IRQ'''
-        p[0] = p[2]
 
     def p_function_body_statement(self, p):
         '''function_body_statement : assembly_statement
@@ -109,8 +99,8 @@ class Parser(CommonParser):
             p[0] = ('forever', p[3])
 
     def p_switch_statement(self, p):
-        '''switch_statement : SWITCH '(' REG '.' ID ')' '{' switch_body '}' '''
-        if p[5].lower() not in ('a','x','y'):
+        '''switch_statement : SWITCH '(' REG ')' '{' switch_body '}' '''
+        if p[5].lower() not in ('reg.a','reg.x','reg.y'):
             raise Exception('invalid switch register')
         p[0] = ('switch', p[8], p[5])
 

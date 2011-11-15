@@ -29,6 +29,8 @@ or implied, of David Huseby.
 
 from symboltable import SymbolTable
 from types import Types
+from arraytype import ArrayType
+from structtype import StructType
 
 class Parser(object):
 
@@ -36,7 +38,8 @@ class Parser(object):
         self.tokens = tokens
     
     def p_program(self, p):
-        '''program : common_statement
+        '''program : empty
+                   | common_statement
                    | program common_statement'''
         if len(p) == 2:
             if p[1] is None:
@@ -61,8 +64,8 @@ class Parser(object):
             p[0] = p[1]
 
     def p_core_pp_statement(self, p):
-        '''core_pp_statement : HASH PP_INCBIN filename'''
-        print "Including binary file: %s..." % p[3]
+        '''core_pp_statement : PPINCBIN filename'''
+        print "Including binary file: %s..." % p[2]
 
     def p_core_statement(self, p):
         '''core_statement : common_token
@@ -85,15 +88,10 @@ class Parser(object):
                 p[0] = p[1] + [ p[2] ]
 
     def p_interrupt_statement(self, p):
-        '''interrupt_statement : INTERRUPT intr_type noreturn ID '(' ')' '{' function_body '}' '''
-        #                    name  body  noreturn type
-        p[0] = ('interrupt', p[4], p[8], p[3],    p[2])
-        SymbolTable().new_symbol(p[4], p[0])
-
-    # interrupt types are CPU/platform specific
-    def p_intr_type(self, p):
-        '''intr_type :'''
-        pass
+        '''interrupt_statement : INTERRUPT noreturn ID '(' ')' '{' function_body '}' '''
+        #             name  body  noreturn
+        p[0] = (p[1], p[3], p[7], p[2])
+        SymbolTable().new_symbol(p[3], p[0])
 
     def p_macro_statement(self, p):
         '''macro_statement : INLINE ID '(' id_list ')' '{' function_body '}' '''
@@ -149,37 +147,17 @@ class Parser(object):
         p[0] = (p[1] == 'noreturn')
 
     def p_typedef_statement(self, p):
-        '''typedef_statement : TYPEDEF type_statement seen_typedef ID
-                             | TYPEDEF type_statement seen_typedef ID '[' number ']' '''
+        '''typedef_statement : TYPEDEF type_statement ID
+                             | TYPEDEF type_statement ID '[' number ']' '''
         # we need to update the type alias if it is an array
-        if len(p) == 8:
-            shape = Types().lookup_type(p[4])
-            Types().update_type(p[4], ('alias', shape[1], p[6]) )
+        orig = Types().lookup_type(p[2])
+        if len(p) == 4:
+            # register the type with the new name
+            Types().new_type(p[3], orig)
 
-    def p_seen_typedef(self, p):
-        '''seen_typedef :'''
-
-        # get the type_statement from the parser's sym stack
-        type_name = p.parser.symstack[-1].value
-        type_shape = None
-        if isinstance(type_name, tuple):
-            type_shape = type_name[2]
-            type_name = ' '.join(type_name[0:2])
-
-        if type_shape != None:
-            # this is a typedef with an inline struct shape...we need to declare the
-            # struct type first before we can alias it
-            Types().new_type(type_name, ('type', type_shape, None))
-
-        # this is a normal alias
-        # the lexer's look ahead token should be an ID that is the type's new name
-        next_token = p.lexer.look_ahead_token
-        if next_token.type == 'ID':
-            Types().new_type(next_token.value, ('alias', type_name, None))
-
-    def p_struct_statement(self, p):
-        '''struct_statement : STRUCT ID struct_body '''
-        p[0] = ('struct', p[2], p[3])
+        elif len(p) == 7:
+            # declare a new array type with the original type as the record type
+            Types().new_type(p[3], ArrayType(p[3], orig, p[5]))
 
     def _size_values(self, val):
         lengths = self._size_value(val)
@@ -238,29 +216,9 @@ class Parser(object):
         '''variable_statement : shared type_statement name address assignment_statement
                               | shared type_statement name array_lengths address assignment_statement'''
 
-        type_name = p[2]
-        if isinstance(p[2], tuple):
-            type_name = ' '.join(p[2][0:2])
-
         if len(p) == 6:
-            if p[3] is None:
-                # this is a struct type declaration
-                Types().new_type(type_name, ('type', p[2][2], None) )
-            else:
-                if isinstance(p[2], tuple):
-                    # type is a struct...
-                    struct_shape = p[2][2]
-                    if struct_shape is None:
-                        if Types().lookup_type(type_name) is None:
-                            raise Exception('unknown struct type: %s' % type_name)
-                    else:
-                        if Types().lookup_type(type_name) != None:
-                            raise Exception('redeclaration of struct type: %s' % type_name)
-                        # need to create the type entry
-                        Types().new_type(type_name, ('type', struct_shape, None) )
-    
-                #                   name  type       array  array len  shared  address  value
-                p[0] = ('variable', p[3], type_name, False, None,      p[1],   p[4],    p[5])
+            #                   name  type  array  array len  shared  address  value
+            p[0] = ('variable', p[3], p[2], False, None,      p[1],   p[4],    p[5])
         elif len(p) == 7:
             arrlen = p[4]
             sizes = False
@@ -271,8 +229,8 @@ class Parser(object):
                     raise Exception('dynamic sized array declared without a value')
                 arrlen = self._size_values(p[6])
 
-            #                   name    type       array  array len  shared  address  value
-            p[0] = ('variable', p[3],   type_name, True,  arrlen,    p[1],   p[5],    p[6])
+            #                   name  type  array  array len  shared  address  value
+            p[0] = ('variable', p[3], p[2], True,  arrlen,    p[1],   p[5],    p[6])
 
     def p_shared(self, p):
         '''shared : SHARED
@@ -313,9 +271,9 @@ class Parser(object):
             p[0] = p[2]
 
     def p_value_statement(self, p):
-        '''value_statement : number
+        '''value_statement : '{' struct_values '}'
                            | STRING
-                           | '{' struct_values '}' '''
+                           | immediate_expression'''
         if len(p) == 2:
             p[0] = p[1]
         elif len(p) == 4:
@@ -354,8 +312,10 @@ class Parser(object):
             p[0] = ('label', p[1])
 
     def p_type_statement(self, p):
-        '''type_statement : TYPE
-                          | struct_statement'''
+        '''type_statement : TYPE struct_body'''
+        if p[2] != None:
+            # inline struct declaration so create the type
+            Types().new_type(p[1], StructType(p[1], p[2]))
         p[0] = p[1]
 
     def p_struct_body(self, p):
@@ -368,21 +328,23 @@ class Parser(object):
         '''struct_members : struct_member
                           | struct_members struct_member'''
         if len(p) == 2:
-            p[0] = [ p[1] ]
+            p[0] = p[1]
         elif len(p) == 3:
-            p[0] = p[1] + [ p[2] ]
+            p[0] = p[1] + p[2]
 
     def p_struct_member(self, p):
         '''struct_member : type_statement id_list'''
-        p[0] = ('member', p[1], p[2])
+        p[0] = []
+        for i in p[2]:
+            p[0].append( (i, p[1]) )
 
     def p_id_list(self, p):
         '''id_list : ID
                    | id_list ',' ID'''
         if len(p) == 2:
-            p[0] = [ ('id', p[1]) ]
+            p[0] = [ p[1] ]
         elif len(p) == 4:
-            p[0] = p[1] + [ ('id', p[3]) ]
+            p[0] = p[1] + [ p[3] ]
 
     def p_param_list(self, p):
         '''param_list : param
@@ -396,7 +358,7 @@ class Parser(object):
         '''param : selector
                  | HASH immediate_expression'''
         if len(p) == 2:
-            p[0] = p[1]
+            p[0] = ('selector', p[1])
         else:
             p[0] = p[2]
 
@@ -453,10 +415,9 @@ class Parser(object):
         '''selector : ID
                     | selector '.' ID'''
         if len(p) == 2:
-            p[0] = p[1]
+            p[0] = [ p[1] ]
         else:
-            p[0] = ''.join(p[1:])
-
+            p[0] = p[1] + [ p[2] ]
 
     def p_common_token(self, p):
         '''common_token : '.'
@@ -508,7 +469,6 @@ class Parser(object):
                         | SWITCH
                         | CASE
                         | DEFAULT
-                        | REG
                         | NEAR
                         | FAR '''
         if p[1] != '\n':

@@ -57,18 +57,19 @@ class PPParser(Ricoh2A0XPPParser):
         super(PPParser, self).p_program(p)
 
     def p_common_statement(self, p):
-        '''common_statement : pp_statement
-                            | pp_block_statement
+        '''common_statement : pp_block_statement
+                            | pp_statement
                             | base_statement
                             | mos6502_pp_statement
-                            | nes_pp_statement'''
+                            | nes_pp_statement
+                            | empty_statement'''
         if self.is_enabled() and p[1] != None:
             p[0] = p[1]
 
 
     def p_nes_pp_statement(self, p):
-        '''nes_pp_statement : HASH nes_pp_mem_statement
-                            | HASH nes_pp_ines_statement'''
+        '''nes_pp_statement : nes_pp_mem_statement
+                            | nes_pp_ines_statement'''
         if self.is_enabled() and p[2] != None:
             if isinstance(p[2], list):
                 p[0] = [ p[1] ] + p[2]

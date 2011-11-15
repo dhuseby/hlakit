@@ -32,27 +32,14 @@ from types import Types
 
 class Lexer(object):
 
-    # incbin is handled in the compiler phase
-    preprocessor = {
-        'incbin':       'PP_INCBIN',
-    }
-
     # hla reserved tokens
     reserved = {
-        'byte':         'TYPE',
-        'char':         'TYPE',
-        'bool':         'TYPE',
-        'word':         'TYPE',
-        'dword':        'TYPE',
-        'pointer':      'TYPE',
-        'struct':       'STRUCT',
         'typedef':      'TYPEDEF',
         'shared':       'SHARED',
         'noreturn':     'NORETURN',
         'return':       'RETURN',
         'inline':       'INLINE',
         'function':     'FUNCTION',
-        'interrupt':    'INTERRUPT',
         'lo':           'LO',
         'hi':           'HI',
         'nylo':         'NYLO',
@@ -66,12 +53,13 @@ class Lexer(object):
         'switch':       'SWITCH',
         'case':         'CASE',
         'default':      'DEFAULT',
-        'reg':          'REG',
         'near':         'NEAR',
         'far':          'FAR'
         }
 
-    rtokens = [ 'STRING', 
+    rtokens = [ 'PPINCBIN',
+                'INTERRUPT',
+                'STRING', 
                 'BSTRING',
                 'DECIMAL', 
                 'KILO', 
@@ -91,11 +79,12 @@ class Lexer(object):
 
     # the tokens list
     tokens      = rtokens \
-                + list(set(preprocessor.values())) \
                 + list(set(reserved.values()))
 
     literals    = '.+-*/~!%><=&^|{}()[]:,'
 
+    t_PPINCBIN  = r'\#(?i)[\t ]*incbin'
+    t_INTERRUPT = r'interrupt'
     t_HASH      = r'\#'
     t_STRING    = r'\"(\\.|[^\"])*\"'
     t_BSTRING   = r'\<(\\.|[^\>])*\>'
@@ -120,30 +109,26 @@ class Lexer(object):
         r'\s+'
         # eat whitespace
 
+    def t_STRUCT(self, t):
+        r'struct[\t ]+[a-zA-Z_][\w]*'
+        t.type = 'TYPE'
+        return t
+
     def t_ID(self, t):
         r'[a-zA-Z_][\w]*'
-
-        # case insensitive
-        t.type = self.preprocessor.get(t.value.lower(), None) # check for preprocessor words
-        if t.type != None:
-            t.value = t.value.lower()
-            t.lexer.look_ahead_token = t
-            return t
 
         # case sensitive
         t.type = self.reserved.get(t.value, None) # check for reserved words
         if t.type != None:
-            t.lexer.look_ahead_token = t
+            return t
+        
+        # case sensitive lookup to check for type name
+        tr = Types().lookup_type(t.value)
+        if tr != None:
+            t.type = 'TYPE'
             return t
 
-        # case sensitive, check to see if this is a type name
-        shape = Types().lookup_type(t.value)
-        if shape != None:
-            t.type = 'TYPE'
-        else:
-            t.type = 'ID'
-
-        t.lexer.look_ahead_token = t
+        t.type = 'ID'
         return t
 
     def t_COMMENT(self, t):

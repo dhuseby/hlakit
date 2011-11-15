@@ -27,33 +27,20 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of David Huseby.
 """
 
-# ------------------------------------------------------------------
-# Macro object
-#
-# This object holds information about preprocessor macros
-#
-#    .name      - Macro name (string)
-#    .value     - Macro value (a list of tokens)
-#    .arglist   - List of argument names
-#    .variadic  - Boolean indicating whether or not variadic macro
-#    .vararg    - Name of the variadic parameter
-#
-# When a macro is created, the macro replacement token sequence is
-# pre-scanned and used to create patch lists that are later used
-# during macro expansion
-# ------------------------------------------------------------------
+from type_ import Type_
 
-class PPMacro(object):
-    def __init__(self, name, value, arglist=None, variadic=False):
-        self.name = name
-        self.value = value
-        self.arglist = arglist
-        self.variadic = variadic
-        if variadic:
-            self.vararg = arglist[-1]
+class StructType(Type_):
+
+    def __init__(self, name, members=[]):
+        # init base class
+        super(StructType, self).__init__(name)
+
+        # store members
+        self.members = members
 
     def __str__(self):
-        if self.arglist is None:
-            return '%s => %s' % (self.name, self.value)
+        ms = []
+        for m in self.members:
+            ms.append( '%s %s' % (m[1], m[0]) )
+        return '%s { %s }' % (self.name, ', '.join(ms))
 
-        return '%s(%s) => %s' % (self.name, ', '.join(self.arglist), self.value)

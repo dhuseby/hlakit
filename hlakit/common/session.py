@@ -34,6 +34,7 @@ import cStringIO
 import ply.lex as lex
 import ply.yacc as yacc
 from ppgraph import PPGraph
+from hlakit.common.symboltable import SymbolTable
 
 HLAKIT_VERSION = "0.8"
 
@@ -407,6 +408,9 @@ class Session(object):
          1: the pre-processor tuple with AST ('program', [ ...tokens... ])
          2: the pre-processor output
         '''
+
+        # reset the symbol table before beginning compilation
+        SymbolTable().reset_state()
 
         output = []
         try:

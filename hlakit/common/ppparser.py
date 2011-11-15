@@ -65,9 +65,15 @@ class PPParser(object):
     def p_common_statement(self, p):
         '''common_statement : pp_block_statement
                             | pp_statement
-                            | base_statement'''
+                            | base_statement
+                            | empty_statement'''
         if self.is_enabled() and p[1] != None:
             p[0] = p[1]
+
+    def p_empty_statement(self, p):
+        '''empty_statement : NL
+                           | empty_statement NL'''
+        pass
 
     def p_pp_block_statement(self, p):
         '''pp_block_statement : pp_block_start pp_block_body pp_block_else pp_block_body pp_block_end
@@ -172,9 +178,9 @@ class PPParser(object):
         value = []
         params = None
 
-        if len(p) == 5:
+        if len(p) == 4:
             value = p[3]
-        elif len(p) == 8:
+        elif len(p) == 7:
             value = p[6]
             params = p[4]
 
@@ -362,6 +368,7 @@ class PPParser(object):
         '''id : ID'''
         macro = SymbolTable().lookup_symbol(p[1])
         if macro:
+            print "Replacing %s with %s" % (p[1], macro.value)
             p[0] = macro.value
             return
 

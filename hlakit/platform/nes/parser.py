@@ -36,9 +36,11 @@ class Parser(Ricoh2A0XParser):
         super(Parser, self).__init__(tokens)
 
     def p_program(self, p):
-        '''program : platform_statement
+        '''program : empty
+                   | platform_statement
                    | program platform_statement'''
 
+        '''
         nes = Session().get_target()
 
         if nes.has_block_started() and nes.get_cur_block()['start'] is None:
@@ -47,29 +49,27 @@ class Parser(Ricoh2A0XParser):
         if nes.has_block_ended():
             nes.set_block_end(len(p[1][1]))
             nes.reset_block()
+        '''
 
         # call base class implementation
         super(Parser, self).p_program(p)
 
     def p_platform_statement(self, p):
-        '''platform_statement : cpu_statement
+        '''platform_statement : common_statement
                               | nes_pp_statement'''
         if p[1] != None:
             p[0] = p[1]
 
-    def p_nes_pp_statement(self, p):
-        '''nes_pp_statement : HASH nes_pp_mem_statement'''
-        if p[2] != None:
-            if isinstance(p[2], list):
-                p[0] = [ p[1] ] + p[2]
-            else:
-                p[0] = p[1:]
-
     # no id necessary because macros have been expanded already
     def p_nes_pp_value(self, p):
         '''nes_pp_value : number
-                        | STRING'''
-        p[0] = p[1]
+                        | filename
+                        | number ',' number
+                        | filename ',' number'''
+        if len(p) == 2:
+            p[0] = [ p[1], None ]
+        else:
+            p[0] = [ p[1], p[3] ]
 
     def _clean_value(self, val):
         v = val
@@ -86,25 +86,21 @@ class Parser(Ricoh2A0XParser):
 
         return v
 
-    def p_nes_pp_mem_statement(self, p):
-        '''nes_pp_mem_statement : PP_RAM '.' PP_END
-                                | PP_RAM '.' PP_ORG nes_pp_value
-                                | PP_RAM '.' PP_ORG nes_pp_value ',' nes_pp_value
-                                | PP_ROM '.' PP_END
-                                | PP_ROM '.' PP_ORG nes_pp_value
-                                | PP_ROM '.' PP_BANKSIZE nes_pp_value
-                                | PP_ROM '.' PP_BANK nes_pp_value
-                                | PP_ROM '.' PP_BANK nes_pp_value ',' nes_pp_value
-                                | PP_ROM '.' PP_ORG nes_pp_value ',' nes_pp_value
-                                | PP_CHR '.' PP_END
-                                | PP_CHR '.' PP_BANKSIZE nes_pp_value
-                                | PP_CHR '.' PP_LINK filename
-                                | PP_CHR '.' PP_LINK filename ',' nes_pp_value
-                                | PP_CHR '.' PP_BANK nes_pp_value
-                                | PP_CHR '.' PP_BANK nes_pp_value ',' nes_pp_value
-                                | PP_SETPAD nes_pp_value
-                                | PP_ALIGN nes_pp_value'''
-        
+    def p_nes_pp_statement(self, p):
+        '''nes_pp_statement : PPRAMORG nes_pp_value
+                            | PPRAMEND
+                            | PPROMORG nes_pp_value
+                            | PPROMBANK nes_pp_value
+                            | PPROMBANKSIZE nes_pp_value
+                            | PPROMEND
+                            | PPCHRBANK nes_pp_value
+                            | PPCHRBANKSIZE nes_pp_value
+                            | PPCHRLINK nes_pp_value
+                            | PPCHREND
+                            | PPSETPAD nes_pp_value
+                            | PPALIGN nes_pp_value'''
+       
+        '''
         nes = Session().get_target()
         if p[1] in ('ram', 'rom', 'chr'):
             if p[3] in ('org', 'bank'):
@@ -135,15 +131,12 @@ class Parser(Ricoh2A0XParser):
             nes.set_padding(self._clean_value(p[2]))
         elif p[1] == 'align':
             nes.set_alignment(self._clean_value(p[2]))
+        '''
 
         if len(p) == 3:
-            p[0] = ('nes_pp_mem_statement', p[1], p[2])
-        elif len(p) == 4:
-            p[0] = ('nes_pp_mem_statement', p[1], p[3])
-        elif len(p) == 5:
-            p[0] = ('nes_pp_mem_statement', p[1], p[3], p[4])
-        elif len(p) == 7:
-            p[0] = ('nes_pp_mem_statement', p[1], p[3], p[4], p[6])
+            p[0] = ('nes_pp_statement', p[1], p[2])
+        else:
+            p[0] = ('nes_pp_statement', p[1], [])
 
     # must have a p_error rule
     def p_error(self, p):

@@ -39,23 +39,23 @@ class Types(object):
         obj.__dict__ = cls._shared_state
         return obj
 
-    def new_type(self, name, shape):
+    def new_type(self, name, t):
         if getattr(self, '_types', None) is None:
             self._types = {}
 
         if self._types.has_key(name):
             raise Exception('overriding existing type %s...' % name)
 
-        self._types[name] = shape
+        self._types[name] = t
 
-    def update_type(self, name, new_shape):
+    def update_type(self, name, t):
         if getattr(self, '_types', None) is None:
             self._types = {}
 
         if not self._types.has_key(name):
             raise Exception('trying to update unknown type %s...' % name)
 
-        self._types[name] = new_shape
+        self._types[name] = t
 
     def lookup_type(self, name):
         if getattr(self, '_types', None) is None:

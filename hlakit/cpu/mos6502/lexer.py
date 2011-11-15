@@ -28,8 +28,19 @@ or implied, of David Huseby.
 """
 
 from hlakit.common.lexer import Lexer as CommonLexer
+from hlakit.common.types import Types
+from hlakit.common.basetype import BaseType
 
 class Lexer(CommonLexer):
+
+    # base types
+    types = {
+        'byte':         'TYPE',
+        'char':         'TYPE',
+        'bool':         'TYPE',
+        'word':         'TYPE',
+        'pointer':      'TYPE'
+    }
 
     # 6502 conditional tokens 
     conditionals = {
@@ -55,20 +66,6 @@ class Lexer(CommonLexer):
         '0':            'FALSE',        # Z = 1
         'clear':        'FALSE',        # Z = 1
         'equal':        'EQUAL'         # N = 0, Z = 1, C = 1
-    }
-
-    # interrupt types
-    interrupt_types = {
-        'start':        'START',
-        'nmi':          'NMI',
-        'irq':          'IRQ'
-    }
-
-    # registers
-    registers = {
-        'a':            'A',
-        'x':            'X',
-        'y':            'Y'
     }
 
     # opcodes
@@ -133,9 +130,16 @@ class Lexer(CommonLexer):
 
     # 6502 tokens list
     tokens = CommonLexer.tokens \
-             + list(set(interrupt_types.values())) \
+             + list(set(types.values())) \
              + list(set(conditionals.values())) \
-             + list(set(opcodes.values()))
+             + list(set(opcodes.values())) \
+             + [ 'REG' ]
+
+    # registers on the 6502
+    t_REG = r'(?i)reg\.(a|x|y)'
+
+    # override t_INTERRUPT to be 6502 specific
+    t_INTERRUPT = r'interrupt\.(start|nmi|irq)'
 
     # identifier
     def t_ID(self, t):
@@ -143,16 +147,13 @@ class Lexer(CommonLexer):
 
         value = t.value.lower()
 
-        t.type = self.interrupt_types.get(value, None) # check for interrupt type
-        if t.type != None:
-            t.value = value
-            return t
-
+        # case insensitive
         t.type = self.conditionals.get(value, None) # check for conditionals
         if t.type != None:
             t.value = value
             return t
- 
+
+        # case insensitive
         t.type = self.opcodes.get(value, None) # check for opcode words
         if t.type != None:
             t.value = value
@@ -162,4 +163,8 @@ class Lexer(CommonLexer):
 
     def __init__(self):
         super(Lexer, self).__init__()
+
+        # build the type records for the basic types
+        for t in self.types.iterkeys():
+            Types().new_type(t, BaseType(t))
 

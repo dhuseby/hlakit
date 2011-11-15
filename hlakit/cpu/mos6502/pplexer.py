@@ -37,8 +37,8 @@ class PPLexer(CommonPPLexer):
                'PPINTNMI',
                'PPINTIRQ' ]
 
-    t_PPINTSTART    = r'\#(?i)[\t ]*interrupt\.start'
-    t_PPINTNMI      = r'\#(?i)[\t ]*interrupt\.nmi'
-    t_PPINTIRQ      = r'\#(?i)[\t ]*interrupt\.irq'
+    t_PPINTSTART    = r'\#(?i)[\t ]*interrupt[\t ]*\.[\t ]*start'
+    t_PPINTNMI      = r'\#(?i)[\t ]*interrupt[\t ]*\.[\t ]*nmi'
+    t_PPINTIRQ      = r'\#(?i)[\t ]*interrupt[\t ]*\.[\t ]*irq'
 
 

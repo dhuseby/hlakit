@@ -2,7 +2,7 @@ typedef byte foo
 typedef pointer bar[2]
 typedef struct player_
 {
-	byte xpos, ypos
+	byte x, y
 	byte health
 	byte experience
 	pointer inventory
