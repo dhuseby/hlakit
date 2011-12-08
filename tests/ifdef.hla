@@ -1,4 +1,5 @@
 #define FOO
+#undef FOO
 #ifdef FOO
 #define A 1
 #define B ((1 + 2) * 5)
