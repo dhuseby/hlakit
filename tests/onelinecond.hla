@@ -1,0 +1,9 @@
+function foo()
+{
+	if(set)
+		ldx #1
+	else {
+		ldy #2
+		lda #3
+	}
+}

@@ -1,0 +1,28 @@
+inline compare_16_16(x,y) {}
+inline GetScrollTODiv(x,y) {}
+inline ScrollUp() {}
+inline ScrollDown() {}
+
+function foo()
+{
+	lda scrollTo.flags
+	if(set) 
+	{
+		compare_16_16(screen.y, scrollTo.y)
+		if(not equal) 
+		{
+			GetScrollTODiv(screen.y, scrollTo.y)
+			if(carry) 
+			{
+				ScrollUp()
+			} 
+			else 
+			{
+				if(no carry)
+					ScrollDown()
+					ScrollUp()
+			}
+		}
+	}
+}
+

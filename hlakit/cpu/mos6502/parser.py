@@ -61,9 +61,15 @@ class Parser(CommonParser):
         '''if_statement : IF '(' conditional_clause ')' function_body_statement else_statement
                         | IF '(' conditional_clause ')' '{' function_body '}' else_statement '''
         if len(p) == 7:
-            p[0] = ('if', [ p[5] ], p[3], p[6])
+            if p[6] is None:
+                p[0] = ('if', p[3], [ p[5] ])
+            else:
+                p[0] = ('if', p[3], [ p[5] ], p[6])
         else:
-            p[0] = ('if', p[6], p[3], p[8])
+            if p[8] is None:
+                p[0] = ('if', p[3], p[6])
+            else:
+                p[0] = ('if', p[3], p[6], p[8])
 
     def p_else_statement(self, p):
         '''else_statement : ELSE function_body_statement
@@ -78,17 +84,17 @@ class Parser(CommonParser):
         '''while_statement : WHILE '(' conditional_clause ')' function_body_statement
                            | WHILE '(' conditional_clause ')' '{' function_body '}' '''
         if len(p) == 6:
-            p[0] = ('while', p[5], p[3])
+            p[0] = ('while', p[3], p[5])
         else:
-            p[0] = ('while', p[6], p[3])
+            p[0] = ('while', p[3], p[6])
 
     def p_do_while_statement(self, p):
         '''do_while_statement : DO function_body_statement WHILE '(' conditional_clause ')'
                               | DO '{' function_body '}' WHILE '(' conditional_clause ')' '''
         if len(p) == 7:
-            p[0] = ('do_while', p[2], p[5])
+            p[0] = ('do_while', p[5], p[2])
         else:
-            p[0] = ('do_while', p[3], p[7])
+            p[0] = ('do_while', p[7], p[3])
 
     def p_forever_statement(self, p):
         '''forever_statement : FOREVER function_body_statement
@@ -100,9 +106,9 @@ class Parser(CommonParser):
 
     def p_switch_statement(self, p):
         '''switch_statement : SWITCH '(' REG ')' '{' switch_body '}' '''
-        if p[5].lower() not in ('reg.a','reg.x','reg.y'):
+        if p[3].lower() not in ('reg.a','reg.x','reg.y'):
             raise Exception('invalid switch register')
-        p[0] = ('switch', p[8], p[5])
+        p[0] = ('switch', p[3], p[8])
 
     def p_switch_body(self, p):
         '''switch_body : switch_block
