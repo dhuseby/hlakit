@@ -35,12 +35,6 @@ class PPParser(CommonPPParser):
     def __init__(self, tokens=[]):
         super(PPParser, self).__init__(tokens)
 
-    def p_program(self, p):
-        '''program : common_statement
-                   | program common_statement'''
-        # call base class implementation
-        super(PPParser, self).p_program(p)
-
     def p_common_statement(self, p):
         '''common_statement : pp_block_statement
                             | pp_statement

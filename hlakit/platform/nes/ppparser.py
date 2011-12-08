@@ -50,12 +50,6 @@ class PPParser(Ricoh2A0XPPParser):
 
         return v
 
-    def p_program(self, p):
-        '''program : common_statement
-                   | program common_statement'''
-        # call base class implementation
-        super(PPParser, self).p_program(p)
-
     def p_common_statement(self, p):
         '''common_statement : pp_block_statement
                             | pp_statement
@@ -65,7 +59,6 @@ class PPParser(Ricoh2A0XPPParser):
                             | empty_statement'''
         if self.is_enabled() and p[1] != None:
             p[0] = p[1]
-
 
     def p_nes_pp_statement(self, p):
         '''nes_pp_statement : nes_pp_mem_statement

@@ -95,10 +95,10 @@ class PPParser(object):
         # only execute the logic if we're enabled
         if self.is_enabled():
             # check to see if the symbol is defined
-            defined = (SymbolTable().lookup_symbol(p[3]) != None)
+            defined = (SymbolTable().lookup_symbol(p[2]) != None)
 
             # execute the ifdef/ifndef logic
-            if ((defined == False) and (p[2] == 'ifdef')) or (defined and (p[2] == 'ifndef')):
+            if ((defined == False) and (p[1] == '#ifdef')) or (defined and (p[1] == '#ifndef')):
                 self._enabled.append(False)
             else:
                 self._enabled.append(True)
@@ -106,7 +106,7 @@ class PPParser(object):
             # we're disabled so push a False to track depth while keeping disabled state
             self._enabled.append(False)
 
-        p[0] = ('pp_block_start', p[2], p[3])
+        p[0] = ('pp_block_start', p[1], p[2])
 
     def p_pp_block_else(self, p):
         '''pp_block_else : PPELSE NL '''
@@ -126,7 +126,7 @@ class PPParser(object):
             # we're disabled so push a False to track depth while keeping disabled state
             self._enabled.append(False)
 
-        p[0] = ('pp_block_else', p[2])
+        p[0] = ('pp_block_else', p[1])
 
     def p_pp_block_end(self, p):
         '''pp_block_end : PPENDIF NL '''
@@ -138,7 +138,7 @@ class PPParser(object):
         # pop the current state off of the stack
         self._enabled.pop()
 
-        p[0] = ('pp_block_end', p[2])
+        p[0] = ('pp_block_end', p[1])
 
     def p_pp_block_body(self, p):
         '''pp_block_body : common_statement
@@ -171,7 +171,8 @@ class PPParser(object):
         p[0] = p[1]
 
     def p_pp_define(self, p):
-        '''pp_define : PPDEFINE ID pp_define_body
+        '''pp_define : PPDEFINE ID empty
+                     | PPDEFINE ID pp_define_body
                      | PPDEFINE ID '(' pp_define_params ')' pp_define_body'''
 
         name = p[2]
@@ -373,6 +374,10 @@ class PPParser(object):
             return
 
         p[0] = p[1]
+
+    def p_empty(self, p):
+        '''empty : '''
+        pass
 
     # must have a p_error rule
     def p_error(self, p):
