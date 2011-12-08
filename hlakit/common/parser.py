@@ -223,7 +223,7 @@ class Parser(object):
             arrlen = p[4]
             sizes = False
             for l in arrlen:
-                sizes &= (l != None)
+                sizes |= (l != None)
             if sizes is False:
                 if p[6] is None:
                     raise Exception('dynamic sized array declared without a value')
@@ -339,10 +339,14 @@ class Parser(object):
             p[0].append( (i, p[1]) )
 
     def p_id_list(self, p):
-        '''id_list : ID
+        '''id_list : empty
+                   | ID
                    | id_list ',' ID'''
         if len(p) == 2:
-            p[0] = [ p[1] ]
+            if p[1] is None:
+                p[0] = []
+            else:
+                p[0] = [ p[1] ]
         elif len(p) == 4:
             p[0] = p[1] + [ p[3] ]
 
@@ -363,24 +367,50 @@ class Parser(object):
             p[0] = p[2]
 
     precedence = (
+        ('left', '|'),
+        ('left', '^'),
+        ('left', '&'),
+        ('left', 'EQ', 'NE'),
+        ('left', '<', '>', 'LTE', 'GTE'),
+        ('left', 'LSHIFT', 'RSHIFT'),
         ('left', '+', '-'),
-        ('left', '*', '/')
+        ('left', '*', '/', '%'),
+        ('right', '~', '!'),
+        ('right', 'UMINUS', 'UPLUS')
     )
 
     def p_immediate_expression(self, p):
-        '''immediate_expression : immediate_expression '+' immediate_expression
+        '''immediate_expression : immediate_expression '|' immediate_expression
+                                | immediate_expression '^' immediate_expression
+                                | immediate_expression '&' immediate_expression
+                                | immediate_expression EQ immediate_expression
+                                | immediate_expression NE immediate_expression
+                                | immediate_expression '<' immediate_expression
+                                | immediate_expression '>' immediate_expression
+                                | immediate_expression LTE immediate_expression
+                                | immediate_expression GTE immediate_expression
+                                | immediate_expression LSHIFT immediate_expression
+                                | immediate_expression RSHIFT immediate_expression 
+                                | immediate_expression '+' immediate_expression
                                 | immediate_expression '-' immediate_expression
                                 | immediate_expression '*' immediate_expression
                                 | immediate_expression '/' immediate_expression
+                                | immediate_expression '%' immediate_expression
+                                | '~' immediate_expression
+                                | '!' immediate_expression
+                                | '-' immediate_expression %prec UMINUS
+                                | '+' immediate_expression %prec UPLUS
                                 | '(' immediate_expression ')'
                                 | immediate_fn
                                 | value
                                 | number'''
         if len(p) == 2:
             p[0] = p[1]
+        elif len(p) == 3:
+            p[0] = (p[1], p[2])
         elif len(p) == 4:
             if p[1] == '(':
-                p[0] = p[1]
+                p[0] = p[2]
             else:
                 p[0] = (p[2], p[1], p[3])
 
@@ -417,7 +447,7 @@ class Parser(object):
         if len(p) == 2:
             p[0] = [ p[1] ]
         else:
-            p[0] = p[1] + [ p[2] ]
+            p[0] = p[1] + [ p[3] ]
 
     def p_common_token(self, p):
         '''common_token : '.'

@@ -63,11 +63,8 @@ class PPParser(Ricoh2A0XPPParser):
     def p_nes_pp_statement(self, p):
         '''nes_pp_statement : nes_pp_mem_statement
                             | nes_pp_ines_statement'''
-        if self.is_enabled() and p[2] != None:
-            if isinstance(p[2], list):
-                p[0] = [ p[1] ] + p[2]
-            else:
-                p[0] = p[1:]
+        if self.is_enabled() and p[1] != None:
+            p[0] = p[1]
 
     def p_nes_pp_value(self, p):
         '''nes_pp_value : id
