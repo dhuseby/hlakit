@@ -61,7 +61,7 @@ interrupt.start main()
 
     Turn_Video_Off()
 
-    vram_write_string_inl(NAME_TABLE_0_ADDRESS+(15*32+10), strHello)
+    vram_write_string_inl(#(NAME_TABLE_0_ADDRESS+(15*32+10)), strHello)
     vram_clear_address()
 
     assign(palcol, #COLOUR.YELLOW)

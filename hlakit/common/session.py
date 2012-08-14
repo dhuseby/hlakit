@@ -71,6 +71,11 @@ class Session(object):
             'class': 'Ricoh2A0X',
             'desc': 'NES PAL CPU'
         }
+        #'5A22': {
+        #    'module': 'cpu.ricoh5A22',
+        #    'class': 'Ricoh5A22',
+        #    'desc': 'SNES CPU'
+        #},
         #'z80': {
         #    'module': 'cpu.z80',
         #    'class': 'Z80',
@@ -100,12 +105,18 @@ class Session(object):
             'cpu': [ '2A03', '2A07' ],
             'desc': 'Nintendo Entertainment System'
         },
+        #'snes': {
+        #    'module': 'platform.snes',
+        #    'class': 'SNES',
+        #    'cpu': [ '5A22' ],
+        #    'desc': 'Super Nintendo Entertainment System'
+        #},
         #'lynx': {
         #    'module': 'platform.lynx',
         #    'class': 'Lynx',
         #    'cpu': '6502',
         #    'desc': 'Atari Lynx Portable System'
-        #}
+        #},
         #'gameboy': {
         #    'module': 'platform.gameboy',
         #    'class': 'GameBoy',

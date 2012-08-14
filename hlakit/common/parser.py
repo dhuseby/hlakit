@@ -129,17 +129,24 @@ class Parser(object):
         '''function_call : ID '(' ')' 
                          | ID '(' param_list ')' '''
         fn = SymbolTable().lookup_symbol(p[1])
-        if fn is None:
-            raise Exception('calling undeclared function: %s' % p[1])
+        # allow calls to undefined functions...we'll fix them up later
+        #if fn is None:
+        #    raise Exception('calling undeclared function: %s' % p[1])
 
         if len(p) == 4:
-            p[0] = ('%s_call' % fn[0], p[1], None)
+            if fn is None:
+                p[0] = ('unknown_call', p[1], None)
+            else:
+                p[0] = ('%s_call' % fn[0], p[1], None)
         elif len(p) == 5:
-            if fn[0] != 'macro':
-                raise Exception('only inline macros can have parameters')
-            if len(fn[3]) != len(p[3]):
-                raise Exception('missing parameters in call to macro %s' % p[1])
-            p[0] = ('macro_call', p[1], p[3] )
+            if fn is None:
+                p[0] = ('unknown_call', p[1], p[3])
+            else:
+                if fn[0] != 'macro':
+                    raise Exception('only inline macros can have parameters')
+                if len(fn[3]) != len(p[3]):
+                    raise Exception('missing parameters in call to macro %s' % p[1])
+                p[0] = ('macro_call', p[1], p[3] )
 
     def p_noreturn(self, p):
         '''noreturn : NORETURN
@@ -359,7 +366,7 @@ class Parser(object):
             p[0] = p[1] + [ p[3] ]
 
     def p_param(self, p):
-        '''param : selector
+        '''param : immediate_expression
                  | HASH immediate_expression'''
         if len(p) == 2:
             p[0] = ('selector', p[1])
@@ -443,11 +450,16 @@ class Parser(object):
 
     def p_selector(self, p):
         '''selector : ID
-                    | selector '.' ID'''
+                    | selector '.' ID
+                    | selector '+' number
+                    | selector '-' number'''
         if len(p) == 2:
             p[0] = [ p[1] ]
         else:
-            p[0] = p[1] + [ p[3] ]
+            if p[2] == '.':
+                p[0] = p[1] + [ p[3] ]
+            else:
+                p[0] = p[1] + [ p[2], p[3] ]
 
     def p_common_token(self, p):
         '''common_token : '.'

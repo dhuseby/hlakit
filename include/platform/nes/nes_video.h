@@ -239,7 +239,7 @@ inline ppu_ctl0_test( mask )
  */
 inline ppu_enable_nmi(mask)
 {
-    ppu_ctl0_set(CR_NMI)
+    ppu_ctl0_set(#CR_NMI)
 }
 
 /******************************************************************************
@@ -247,7 +247,7 @@ inline ppu_enable_nmi(mask)
  */
 inline ppu_disable_nmi()
 {
-    ppu_ctl0_clear(CR_NMI)
+    ppu_ctl0_clear(#CR_NMI)
 }
 
 
@@ -271,7 +271,7 @@ inline ppu_turn_off()
 inline ppu_turn_on_draw()
 {
     ppu_enable_nmi()
-    ppu_ctl1_set(CR_SPRITESVISIBLE|CR_BACKVISIBLE)
+    ppu_ctl1_set(#(CR_SPRITESVISIBLE|CR_BACKVISIBLE))
 }
 
 /******************************************************************************
@@ -280,7 +280,7 @@ inline ppu_turn_on_draw()
 inline ppu_turn_off_draw()
 {
     ppu_disable_nmi()
-    ppu_ctl1_clear(CR_SPRITESVISIBLE|CR_BACKVISIBLE)
+    ppu_ctl1_clear(#(CR_SPRITESVISIBLE|CR_BACKVISIBLE))
 }
 
 /******************************************************************************
@@ -288,7 +288,7 @@ inline ppu_turn_off_draw()
  */
 inline ppu_set_nametable(nametable)
 {
-    ppu_ctl0_adjust(CR_NAMETABLEBITS, nametable)
+    ppu_ctl0_adjust(#CR_NAMETABLEBITS, nametable)
 }
 
 /******************************************************************************
@@ -296,7 +296,7 @@ inline ppu_set_nametable(nametable)
  */
 inline ppu_xor_nametable()
 {
-    ppu_ctl0_xor(CR_NAMETABLEBITS)
+    ppu_ctl0_xor(#CR_NAMETABLEBITS)
 }
 
 
@@ -363,7 +363,7 @@ inline ppu_ctl1_test( mask )
  */
 inline ppu_set_palette_intensity(newbits)
 {
-    ppu_ctl1_adjust(CR_PALETTEINTENSITY, newbits)
+    ppu_ctl1_adjust(#CR_PALETTEINTENSITY, newbits)
 }
 
 /******************************************************************************

@@ -43,6 +43,7 @@ class Parser(CommonParser):
     def p_function_body_statement(self, p):
         '''function_body_statement : assembly_statement
                                    | conditional_statement
+                                   | function_body_label_statement
                                    | function_call
                                    | RETURN
                                    | empty'''
@@ -56,6 +57,11 @@ class Parser(CommonParser):
                                  | forever_statement
                                  | switch_statement'''
         p[0] = p[1]
+
+    def p_function_body_label_statemen(self, p ):
+        '''function_body_label_statement : ID ':' '''
+        if len(p) == 3:
+            p[0] = ('label', p[1])
 
     def p_if_statement(self, p):
         '''if_statement : IF '(' conditional_clause ')' function_body_statement else_statement
@@ -140,7 +146,8 @@ class Parser(CommonParser):
             p[0] = p[3]
 
     def p_assembly_statement(self, p):
-        '''assembly_statement : opcode operands'''
+        '''assembly_statement : opcode operands
+                              | zopcode empty'''
         p[0] = ('asm', p[1], p[2])
 
     def p_opcode(self, p):
@@ -154,52 +161,55 @@ class Parser(CommonParser):
                   | BMI
                   | BNE
                   | BPL
-                  | BRK
                   | BVC
                   | BVS
-                  | CLC
-                  | CLD
-                  | CLI
-                  | CLV
                   | CMP
                   | CPX
                   | CPY
                   | DEC
-                  | DEX
-                  | DEY
                   | EOR
                   | INC
-                  | INX
-                  | INY
                   | JMP
                   | JSR
                   | LDA
                   | LDX
                   | LDY
                   | LSR
-                  | NOP
                   | ORA
-                  | PHA
-                  | PHP
-                  | PLA
-                  | PLP
                   | ROL
                   | ROR
-                  | RTI
-                  | RTS
                   | SBC
-                  | SEC
-                  | SED
-                  | SEI
                   | STA
                   | STX
-                  | STY
-                  | TAX
-                  | TAY
-                  | TSX
-                  | TXA
-                  | TXS
-                  | TYA '''
+                  | STY '''
+        p[0] = p[1]
+
+    def p_zopcode(self, p):
+        '''zopcode : BRK
+                   | CLC
+                   | CLD
+                   | CLI
+                   | CLV
+                   | DEX
+                   | DEY
+                   | INX
+                   | INY
+                   | NOP
+                   | PHA
+                   | PHP
+                   | PLA
+                   | PLP
+                   | RTI
+                   | RTS
+                   | SEC
+                   | SED
+                   | SEI
+                   | TAX
+                   | TAY
+                   | TSX
+                   | TXA
+                   | TXS 
+                   | TYA '''
         p[0] = p[1]
 
     def p_operands(self, p):
