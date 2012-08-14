@@ -96,7 +96,7 @@ class Session(object):
         'generic': {
             'module': 'platform.generic',
             'class': 'Generic',
-            'cpu': None,
+            'cpu': [ '6502' ],
             'desc': 'Generic platform, turns off platform-specific features'
         },
         'nes': {
@@ -147,10 +147,6 @@ class Session(object):
                  'directives and implies the cpu so you don\'t have to specify the cpu.')
         parser.add_option('-I', '--include', action="append", default=[], dest='include',
             help='specify directories to search for include files')
-        parser.add_option('--pp', action='store_true', dest='output_pp', default=False,
-            help='outputs the preprocessed input to stdout')
-        parser.add_option('--cc', action='store_true', dest='output_cc', default=False,
-            help='outputs the compiled token names to stdout')
         parser.add_option('-g', '--debug', action='store_true', dest='debug', default=False,
             help='outputs some debug output')
         parser.add_option('-d', '--graph', action='store_true', dest='graph', default=False,
@@ -160,36 +156,39 @@ class Session(object):
 
         self._opts_parser = parser
 
-
-    def _initialize_target(self, args):
+    def _parse_args( self, args ):
         self._options = None
         self._args = None
         self._target = None
 
         # actually parse the args
         (self._options, self._args) = self.get_opts_parser().parse_args(args)
-
-        # make sure that if the platform is 'generic' that they specified a cpu
-        if (self._options.platform == 'generic') and (self._options.cpu == ''):
-            raise CommandLineError('With the generic platform you must specify ' \
-                                   'a CPU with the --cpu switch.\n\n' \
-                                   'The supported CPUs are:\n' \
-                                   '\t%s\n' % '\n\t'.join(self.CPU))
-
-        # if they specified a platform, then look up the module
-        # and class name and instantiate an instance of the target
+       
+        # get the platform name
         platform = self._options.platform.lower()
 
+        # make sure the platform is valid
         if not self.PLATFORM.has_key(platform):
             raise CommandLineError('You specified an unknown platform name.\n\n' \
                                    'The supported platforms are:\n' \
                                    '\t%s\n' % '\n\t'.join(self.PLATFORM))
 
-        if isinstance(self.PLATFORM[platform]['cpu'], list) and \
-           (self._options.cpu not in self.PLATFORM[platform]['cpu']):
-            raise CommandLineError('You specified the %s platform but chose the wrong CPU.\n' \
-                                   'The supported cpu\'s for the %s platform are:\n' \
-                                   '\t%s\n' % (platform, platform, '\n\t'.join(self.PLATFORM[platform]['cpu'])))
+        # make sure that if the platform is 'generic' that they specified a cpu
+        if platform == 'generic':
+            if self._options.cpu == '':
+                raise CommandLineError('With the generic platform you must specify ' \
+                                       'a CPU with the --cpu switch.\n\n' \
+                                       'The supported CPUs are:\n' \
+                                       '\t%s\n' % '\n\t'.join(self.CPU))
+            elif self._options.cpu not in self.PLATFORM[platform]['cpu']:
+                raise CommandLineError('You specified the %s platform but chose the wrong CPU.\n' \
+                                       'The supported cpu\'s for the %s platform are:\n' \
+                                       '\t%s\n' % (platform, platform, '\n\t'.join(self.PLATFORM[platform]['cpu'])))
+
+    def initialize_target(self):
+        # if they specified a platform, then look up the module
+        # and class name and instantiate an instance of the target
+        platform = self._options.platform.lower()
 
         # get the platform data
         platform_class = self.PLATFORM[platform]['class']
@@ -203,12 +202,13 @@ class Session(object):
     def parse_args(self, args=[]):
         try:
             self._build_parser()
-            self._initialize_target(args)
+            self._parse_args( args )
+
         except CommandLineError, e:
             print >> sys.stderr, 'ERROR: %s' % e
             p = self._opts_parser
             if p:
-                p.print_help()
+                p.print_help(file=sys.stderr)
             raise e
 
     def get_cpu_spec(self, cpu):
@@ -354,6 +354,10 @@ class Session(object):
                     inline = True
         return ('program', output)
 
+    def go():
+        pass
+
+    """
     def preprocess_file(self, f, debug=False):
         pp_lexer = self.pp_lexer(debug)
         pp_parser = self.pp_parser(debug)
@@ -432,5 +436,6 @@ class Session(object):
             import pdb; pdb.set_trace()
 
         return output
+    """
 
 

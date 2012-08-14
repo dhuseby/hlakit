@@ -40,72 +40,58 @@ class CommandLineOptionsTester(unittest.TestCase):
     This class aggregates all of the tests for parsing command line options.
     """
     def setUp(self):
-        pass
+        self.old_stderr = sys.stderr
+        sys.stderr = open(os.devnull, 'w')
 
     def tearDown(self):
-        pass
-
-    def testNoParameters(self):
-        try:
-            # make sure this throws 
-            session = Session()
-            session.parse_args([])
-            self.assertTrue(False)
-        except CommandLineError, e:
-            return
-        self.assetTrue(False)
+        sys.stderr.close()
+        sys.stderr = self.old_stderr
 
     def testBogusCPU(self):
-        try:
-            session = Session()
-            session.parse_args(['--cpu=blah'])
-            self.assertTrue(False)
-        except CommandLineError, e:
-            return
-        self.assetTrue(False)
-
+        session = Session()
+        self.assertRaises(CommandLineError, session.parse_args, ['--cpu=blah'])
+    
     def testBogusPlatform(self):
-        try:
-            session = Session()
-            session.parse_args(['--platform=blah'])
-            self.assertTrue(False)
-        except CommandLineError, e:
-            return
-        self.assetTrue(False)
-
-    def testGenericPlatform(self):
-        try:
-            session = Session()
-            session.parse_args(['--platform=generic'])
-            self.assertTrue(False)
-        except CommandLineError, e:
-            return
-        self.assetTrue(False)
-
+        session = Session()
+        self.assertRaises(CommandLineError, session.parse_args, ['--platform=blah'])
+    
     def testGeneric6502Platform(self):
         session = Session()
         session.parse_args(['--cpu=6502'])
-        self.assertTrue(isinstance(session._target, Generic))
-        self.assertTrue(isinstance(session._target._cpu, MOS6502))
+        session.initialize_target()
+        self.assertIsInstance(session._target, Generic)
+        self.assertIsInstance(session._target._cpu, MOS6502)
 
-    def testSingleFile(self):
+    def testGenericPlatform(self):
         session = Session()
-        session.parse_args(['--cpu=6502', 'foo.s'])
-        self.assertEquals(session.get_args()[0], 'foo.s')
-
-    def testMultipleFiles(self):
-        session = Session()
-        session.parse_args(['--cpu=6502', 'bar.s', 'foo.s'])
-        self.assertEquals(session.get_args()[0], 'bar.s')
-        self.assertEquals(session.get_args()[1], 'foo.s')
+        self.assertRaises(CommandLineError, session.parse_args, ['--platform=generic'])
 
     def testI(self):
         session = Session()
         session.parse_args(['--cpu=6502', '-Itests'])
+        self.assertIsInstance(session.get_include_dirs(), list)
         self.assertEquals(session.get_include_dirs(), ['tests'])
 
     def testInclude(self):
         session = Session()
         session.parse_args(['--cpu=6502', '--include=tests'])
+        self.assertIsInstance(session.get_include_dirs(), list)
         self.assertEquals(session.get_include_dirs(), ['tests'])
+
+    def testMultipleFiles(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', 'bar.s', 'foo.s'])
+        self.assertIsInstance(session.get_args(), list)
+        self.assertEquals(session.get_args()[0], 'bar.s')
+        self.assertEquals(session.get_args()[1], 'foo.s')
+
+    def testNoParameters(self):
+        session = Session()
+        self.assertRaises(CommandLineError, session.parse_args, [])
+
+    def testSingleFile(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', 'foo.s'])
+        self.assertIsInstance(session.get_args(), list)
+        self.assertEquals(session.get_args()[0], 'foo.s')
 

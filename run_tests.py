@@ -32,31 +32,21 @@ or implied, of David Huseby.
 
 import os
 import sys
-import optparse
-import pprint
-from hlakit.common.session import Session, CommandLineError
-from hlakit.common.types import Types
+import random
+import unittest
+from tests.session import CommandLineOptionsTester
 
 def main():
+    # turn off stderr output
+    sys.stderr = open(os.devnull, 'w')
     try:
-        session = Session()
-        session.parse_args(sys.argv[1:])
-        session.initialize_target()
-        session.go()
-        '''
-        pp = session.preprocess()
-        cc = session.compile(pp)
-        for c in cc:
-            print "%s:" % c[0]
-            pprint.pprint(c[3])
-        print '%s' % Types()
-        '''
-    except CommandLineError, e:
+        session_suite = unittest.TestLoader().loadTestsFromTestCase( CommandLineOptionsTester )
+        unittest.TextTestRunner( verbosity=2 ).run( session_suite )
+    except:
         return 0
 
     print "Done!"
     return 1
 
 if __name__ == "__main__":
-    
     sys.exit(main())
