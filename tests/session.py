@@ -32,8 +32,11 @@ import sys
 import unittest
 from cStringIO import StringIO
 from hlakit.common.session import Session, CommandLineError
+from hlakit.common.types import Types
 from hlakit.platform.generic import Generic
 from hlakit.cpu.mos6502 import MOS6502
+from hlakit.platform.nes import NES
+from hlakit.cpu.ricoh2A0X import Ricoh2A0X
 
 class CommandLineOptionsTester(unittest.TestCase):
     """
@@ -54,27 +57,61 @@ class CommandLineOptionsTester(unittest.TestCase):
     def testBogusPlatform(self):
         session = Session()
         self.assertRaises(CommandLineError, session.parse_args, ['--platform=blah'])
-    
+   
+    def testCPUA(self):
+        session = Session()
+        session.parse_args(['--platform=NES', '--cpu=2A03'])
+        session.initialize_target()
+        self.assertIsInstance(session._target, NES)
+        self.assertEqual(session._target._cpu, '2a03')
+
+    def testCPUB(self):
+        session = Session()
+        session.parse_args(['--platform=NES', '--cpu=2A07'])
+        session.initialize_target()
+        self.assertIsInstance(session._target, NES)
+        self.assertEqual(session._target._cpu, '2a07')
+
+    def testDebug(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', '--debug'])
+        self.assertTrue(session.is_debug())
+
+    def testDebugShort(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', '-g'])
+        self.assertTrue(session.is_debug())
+
+    def testDraw(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', '--draw_graph'])
+        self.assertTrue(session.is_graph())
+
+    def testDrawShort(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', '-d'])
+        self.assertTrue(session.is_graph())
+
     def testGeneric6502Platform(self):
         session = Session()
         session.parse_args(['--cpu=6502'])
         session.initialize_target()
         self.assertIsInstance(session._target, Generic)
-        self.assertIsInstance(session._target._cpu, MOS6502)
+        self.assertEqual(session._target._cpu, '6502')
 
     def testGenericPlatform(self):
         session = Session()
         self.assertRaises(CommandLineError, session.parse_args, ['--platform=generic'])
 
-    def testI(self):
-        session = Session()
-        session.parse_args(['--cpu=6502', '-Itests'])
-        self.assertIsInstance(session.get_include_dirs(), list)
-        self.assertEquals(session.get_include_dirs(), ['tests'])
-
     def testInclude(self):
         session = Session()
         session.parse_args(['--cpu=6502', '--include=tests'])
+        self.assertIsInstance(session.get_include_dirs(), list)
+        self.assertEquals(session.get_include_dirs(), ['tests'])
+
+    def testIncludeShort(self):
+        session = Session()
+        session.parse_args(['--cpu=6502', '-Itests'])
         self.assertIsInstance(session.get_include_dirs(), list)
         self.assertEquals(session.get_include_dirs(), ['tests'])
 

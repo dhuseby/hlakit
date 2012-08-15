@@ -39,6 +39,10 @@ class Types(object):
         obj.__dict__ = cls._shared_state
         return obj
 
+    @staticmethod
+    def reset():
+        _shared_state = {}
+
     def new_type(self, name, t):
         if getattr(self, '_types', None) is None:
             self._types = {}

@@ -38,6 +38,8 @@ class Generic(Target):
 
         super(Generic, self).__init__()
 
+        self._cpu = cpu
+
         cpu_spec = Session().get_cpu_spec(cpu)
         if not cpu_spec:
             raise CommandLineError("unknown CPU type: %s" % cpu)
@@ -49,17 +51,17 @@ class Generic(Target):
         cpu_ctor = getattr(cpu_symbols, cpu_class)
 
         # initialize the target
-        self._cpu = cpu_ctor()
+        self._cpu_obj = cpu_ctor()
 
     def lexer(self):
-        return self._cpu.lexer()
+        return self._cpu_obj.lexer()
 
     def parser(self):
-        return self._cpu.parser()
+        return self._cpu_obj.parser()
 
     def pp_lexer(self):
-        return self._cpu.pp_lexer()
+        return self._cpu_obj.pp_lexer()
 
     def pp_parser(self):
-        return self._cpu.pp_parser()
+        return self._cpu_obj.pp_parser()
 

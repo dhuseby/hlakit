@@ -149,10 +149,8 @@ class Session(object):
             help='specify directories to search for include files')
         parser.add_option('-g', '--debug', action='store_true', dest='debug', default=False,
             help='outputs some debug output')
-        parser.add_option('-d', '--graph', action='store_true', dest='graph', default=False,
+        parser.add_option('-d', '--draw_graph', action='store_true', dest='graph', default=False,
             help='outputs a graph of the ast')
-        parser.add_option('-o', dest='output_file', default=None,
-            help='specify the name of the output file')
 
         self._opts_parser = parser
 
