@@ -4,48 +4,44 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>HLAKit by Wookie</title>
-
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="javascripts/scale.fix.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
   </head>
   <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/Wookie/hlakit">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/Wookie/hlakit/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/Wookie/hlakit/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
     <div class="wrapper">
-      <header class="without-description">
-        <h1>HLAKit</h1>
-        <p></p>
-        <p class="view"><a href="https://github.com/Wookie/hlakit">View the Project on GitHub <small>Wookie/hlakit</small></a></p>
-        <ul>
-          <li><a href="https://github.com/Wookie/hlakit/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/Wookie/hlakit/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/Wookie/hlakit">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
+
       <section>
-        <h1>
-<a name="h1-header" class="anchor" href="#h1-header"><span class="octicon octicon-link"></span></a>H1 Header</h1>
+        <div id="title">
+          <h1>HLAKit</h1>
+          <p></p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/Wookie">Wookie</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
 
-<h2>
-<a name="h2-header" class="anchor" href="#h2-header"><span class="octicon octicon-link"></span></a>H2 Header</h2>
+        <h2>
+<a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h2>
 
-<h3>
-<a name="h3-header" class="anchor" href="#h3-header"><span class="octicon octicon-link"></span></a>H3 Header</h3>
-
-<h4>
-<a name="h4-header" class="anchor" href="#h4-header"><span class="octicon octicon-link"></span></a>H4 Header</h4>
-
-<h5>
-<a name="h5-header" class="anchor" href="#h5-header"><span class="octicon octicon-link"></span></a>H5 Header</h5>
-
-<h3>
-<a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h3>
-
-<p><a href="https://github.com/Wookie/hlakit">HLAKit</a> is a new compiler for a language based on <a href="http://neshla.sourceforge.net/">NESHLA</a> (NES High Level Assembler) by Brian Provinciano.  The <a href="http://neshla.sourceforge.net/">NESHLA</a> compiler is a Windows-only application targeted only at the NES system and has lots of NES-specific features in both the language and the standard library.  I <a href="http://bitbucket.org/wookie/neshla">ported the original NESHLA to Linux</a> in 2009 with the idea of extending it, but I soon decided it would be better to start from scratch in Python. HLAKit aims to be a compiler for a more general HLA (high level assembly) language targeted at as many old video game consoles and computers as possible.</p>
+<p><a href="https://github.com/Wookie/hlakit">HLAKit</a> is a new compiler for a language based on <a href="http://neshla.sourceforge.net/">NESHLA</a> (NES High Level Assembler) by Brian Provinciano.  The NESHLA compiler is a Windows-only application targeted only at the NES system and has lots of NES-specific features in both the language and the standard library.  I <a href="http://bitbucket.org/wookie/neshla">ported the original NESHLA to Linux</a> in 2009 with the idea of extending it, but I soon decided it would be better to start from scratch in Python. HLAKit aims to be a compiler for a more general HLA (high level assembly) language targeted at as many old video game consoles and computers as possible.</p>
 
 <p>The HLAKit compiler is implemented using the <a href="http://www.dabeaz.com/ply/">PLY</a> Python module to handle all of the scanning and parsing.  The goal is to structure the compiler in such a way that all platform/CPU specific pieces of the language are modular and swappable.  Currently, the list of platform and/or CPU specific parts includes: assembly opcodes, register names, if/while test values, and preprocessor directives.  These will be explained in more detail later on.</p>
 
@@ -63,11 +59,8 @@
 
 <p>That's it.  You'll have to read the rest of the documentation to learn the language and how to use the compiler.</p>
       </section>
+
     </div>
-    <footer>
-      <p>Project maintained by <a href="https://github.com/Wookie">Wookie</a></p>
-      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
-    </footer>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
               <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
