@@ -69,14 +69,10 @@
 
 <p>The HLAKit language supports "preprocessor" directives just like a standard C compiler.  However, the "preprocessor" in HLAKit is much more flexible and extensible.  It is more accurate to think of the "preprocessor" directives as "immediate mode" instructions that get executed while the compiler is working.  The C preprocessor is really only useful for conditional compiles and limited macro-based substitution.  The HLAKit preprocessor does all of that but is also extensible for CPU and/or platform extensions.  Things like specifying memory banks, currently address, specifying ROM names, and outputting messages are all things found in the HLAKit preprocessor.</p>
 
+<p>The rest of this section covers the preprocessor directives that are always valid, regardless of the CPU or platform specified.</p>
+
 <h3>
-<a name="the-common-preprocessor-directives" class="anchor" href="#the-common-preprocessor-directives"><span class="octicon octicon-link"></span></a>The Common Preprocessor Directives</h3>
-
-<p>This section covers the preprocessor directives that are always valid, regardless of the CPU or platform specified.</p>
-
-<h4>
-<a name="define" class="anchor" href="#define"><span class="octicon octicon-link"></span></a><code>#define</code>
-</h4>
+<a name="define" class="anchor" href="#define"><span class="octicon octicon-link"></span></a>Define</h3>
 
 <p>Syntax:</p>
 
@@ -101,9 +97,8 @@
 #define DEBUG_BUILD
 </code></pre>
 
-<h4>
-<a name="undef" class="anchor" href="#undef"><span class="octicon octicon-link"></span></a><code>#undef</code>
-</h4>
+<h3>
+<a name="undef" class="anchor" href="#undef"><span class="octicon octicon-link"></span></a>Undef</h3>
 
 <p>Syntax:</p>
 
