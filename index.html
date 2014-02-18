@@ -39,22 +39,7 @@
         </div>
 
         <h1>
-<a name="h1-title" class="anchor" href="#h1-title"><span class="octicon octicon-link"></span></a>H1 Title</h1>
-
-<h2>
-<a name="h2-title" class="anchor" href="#h2-title"><span class="octicon octicon-link"></span></a>H2 Title</h2>
-
-<h3>
-<a name="h3-title" class="anchor" href="#h3-title"><span class="octicon octicon-link"></span></a>H3 Title</h3>
-
-<h4>
-<a name="h4-title" class="anchor" href="#h4-title"><span class="octicon octicon-link"></span></a>H4 Title</h4>
-
-<h5>
-<a name="h5-title" class="anchor" href="#h5-title"><span class="octicon octicon-link"></span></a>H5 Title</h5>
-
-<h2>
-<a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h2>
+<a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h1>
 
 <p><a href="https://github.com/Wookie/hlakit">HLAKit</a> is a new compiler for a language based on <a href="http://neshla.sourceforge.net/">NESHLA</a> (NES High Level Assembler) by Brian Provinciano.  The NESHLA compiler is a Windows-only application targeted only at the NES system and has lots of NES-specific features in both the language and the standard library.  I <a href="http://bitbucket.org/wookie/neshla">ported the original NESHLA to Linux</a> in 2009 with the idea of extending it, but I soon decided it would be better to start from scratch in Python. HLAKit aims to be a compiler for a more general HLA (high level assembly) language targeted at as many old video game consoles and computers as possible.</p>
 
@@ -62,8 +47,8 @@
 
 <p>Why do this?  An HLA language gives a nice balance between structured programming and assembly language.  It allows you to program using functions, structs, named variables, if-else blocks and loops while still preserving precise, cycle-counted control over the machine.  Unlike C, the HLA understood by the HLAKit compiler uses assembly for the body of functions.  When you are coding for old, 8-bit and 16-bit computers that have precise timing requirements, assembly language is the only way to be sure you are getting the most out of the machine.</p>
 
-<h3>
-<a name="quick-start-for-the-impatient" class="anchor" href="#quick-start-for-the-impatient"><span class="octicon octicon-link"></span></a>Quick Start for the Impatient</h3>
+<h2>
+<a name="quick-start-for-the-impatient" class="anchor" href="#quick-start-for-the-impatient"><span class="octicon octicon-link"></span></a>Quick Start for the Impatient</h2>
 
 <p>The fastest way to get started with HLAKit is to clone the repo and install it.</p>
 
@@ -73,6 +58,66 @@
 </pre></div>
 
 <p>That's it.  You'll have to read the rest of the documentation to learn the language and how to use the compiler.</p>
+
+<h1>
+<a name="the-language" class="anchor" href="#the-language"><span class="octicon octicon-link"></span></a>The Language</h1>
+
+<p>The language that the HLAKit compiler understands has many similarities with the C language.  Code blocks and structs are surrounded by curly braces <code>{ }</code> and the conditional statements look very similar to what you see in C.  That's where the similarities end though.  The goal of the language is to make writing assembly applications just a tiny bit easier by supporting some of the higher level constructs found in C.  When writing code in the HLAKit language, you will be writing mostly assembly.  But instead of using labels everywhere and hand coding tests and jumps, you can rely on function calls and higher level conditional constructs like <code>if(set) {} else {}</code>.  One of the things to remember with this language is that the preprocessor directives, conditional tests, and assembly opcodes are all CPU and/or platform dependent.  So know your machine.</p>
+
+<h2>
+<a name="the-preprocessor" class="anchor" href="#the-preprocessor"><span class="octicon octicon-link"></span></a>The Preprocessor</h2>
+
+<p>The HLAKit language supports "preprocessor" directives just like a standard C compiler.  However, the "preprocessor" in HLAKit is much more flexible and extensible.  It is more accurate to think of the "preprocessor" directives as "immediate mode" instructions that get executed while the compiler is working.  The C preprocessor is really only useful for conditional compiles and limited macro-based substitution.  The HLAKit preprocessor does all of that but is also extensible for CPU and/or platform extensions.  Things like specifying memory banks, currently address, specifying ROM names, and outputting messages are all things found in the HLAKit preprocessor.</p>
+
+<h3>
+<a name="the-common-preprocessor-directives" class="anchor" href="#the-common-preprocessor-directives"><span class="octicon octicon-link"></span></a>The Common Preprocessor Directives</h3>
+
+<p>This section covers the preprocessor directives that are always valid, regardless of the CPU or platform specified.</p>
+
+<h4>
+<a name="define" class="anchor" href="#define"><span class="octicon octicon-link"></span></a><code>#define</code>
+</h4>
+
+<p>Syntax:</p>
+
+<pre><code>#define LABEL [VALUE]
+</code></pre>
+
+<p>The <code>#define</code> directive is used to both define variables in the preprocessor symbol table, but also to assign values which are used for substitution.  They are included in the language to reduce code duplication and enhance readability.</p>
+
+<p>Examples:</p>
+
+<pre><code>// defining boolean true/false integers
+#define TRUE 1
+#define FALSE 0
+
+// defining a string
+#define PROGRAM_VERSION "Version 1.0"
+
+// defining a bitmask
+#define ST_VBLANK %10000000
+
+// defining for conditional compile
+#define DEBUG_BUILD
+</code></pre>
+
+<h4>
+<a name="undef" class="anchor" href="#undef"><span class="octicon octicon-link"></span></a><code>#undef</code>
+</h4>
+
+<p>Syntax:</p>
+
+<pre><code>#undef [LABEL]
+</code></pre>
+
+<p>The <code>#undef</code> directive deletes a symbol from the preprocessor symbol table.</p>
+
+<p>Examples:</p>
+
+<pre><code>// undefining previously defined integers
+#undef TRUE
+#undef FALSE
+</code></pre>
       </section>
 
     </div>
