@@ -62,7 +62,11 @@
 <h1>
 <a name="the-language" class="anchor" href="#the-language"><span class="octicon octicon-link"></span></a>The Language</h1>
 
-<p>The language that the HLAKit compiler understands has many similarities with the C language.  Code blocks and structs are surrounded by curly braces <code>{ }</code> and the conditional statements look very similar to what you see in C.  That's where the similarities end though.  The goal of the language is to make writing assembly applications just a tiny bit easier by supporting some of the higher level constructs found in C.  When writing code in the HLAKit language, you will be writing mostly assembly.  But instead of using labels everywhere and hand coding tests and jumps, you can rely on function calls and higher level conditional constructs like <code>if(set) {} else {}</code>.  One of the things to remember with this language is that the preprocessor directives, conditional tests, and assembly opcodes are all CPU and/or platform dependent.  So know your machine.</p>
+<p>The language that the HLAKit compiler understands has many similarities with the C language.  Code blocks and structs are surrounded by curly braces <code>{ }</code> and the conditional statements look very similar to what you see in C.  That's where the similarities end though.  The goal of the language is to make writing assembly applications just a tiny bit easier by supporting some of the higher level constructs found in C.  When writing code in the HLAKit language, you will be writing mostly assembly.  But instead of using labels everywhere and hand coding tests and jumps, you can rely on function calls and higher level conditional constructs like <code>if(set) {} else {}</code>.</p>
+
+<p>Throughout this documentation you will see used, the terms "target", "family", "platform", and "CPU".  For a lot of old hardware, there is a family of machines with slightly different technical specifications and CPU's.  For instance, the Apple II family of computers has nine different varieties--or platforms.  Some of the platforms came with one of several different CPU's.  The platform specifies the set of peripherals, memory layout, and available CPU's.  In a family of machines, there is a platform for each major, distict combination of peripherals and memory layout.  From the software perspective, if the only thing that changes is the CPU, then a new platform is not warranted.  The Apple IIe originally shipped with a standard 6502 but the later "enhanced" version had a 65C02.  Even though the chips on the motherboard changed significantly, along with the CPU, from the software perspective, the two machines are identical except for the CPU change.  Therefore the Apple IIe and the enhanced version are the same platform.</p>
+
+<p>A "target" is the combination of family, platform, and CPU.  In the HLAKit world, the way a target is specified is:  --.  When the HLAKit compiler runs, it is compiling for a specific target.  Some examples are AppleII-e-65C02, NES-NTSC-2A03, Gameboy-DMG-LR35902, and Gameboy-GBC-LR35902.  One of the things to remember with this language is that many of the preprocessor directives, conditional tests, and assembly opcodes are platform and/or CPU dependent.  So know what target you are writing for.</p>
 
 <h2>
 <a name="the-preprocessor" class="anchor" href="#the-preprocessor"><span class="octicon octicon-link"></span></a>The Preprocessor</h2>
@@ -112,6 +116,108 @@
 <pre><code>// undefining previously defined integers
 #undef TRUE
 #undef FALSE
+</code></pre>
+
+<h3>
+<a name="ifdef-ifndef-else-and-endif" class="anchor" href="#ifdef-ifndef-else-and-endif"><span class="octicon octicon-link"></span></a>Ifdef, Ifndef, Else, and Endif</h3>
+
+<p>Syntax:</p>
+
+<pre><code>#ifdef LABEL
+#endif
+
+#ifndef LABEL
+#endif
+
+#ifdef LABEL
+#else
+#endif
+
+#ifndef LABLE
+#else
+#endif
+</code></pre>
+
+<p>The conditional directives <code>#ifdef</code>, <code>#ifndef</code>, <code>#else</code>, and <code>#endif</code> are used for conditional compilation and execution of other preprocessor directives.  Each conditional block begins with either <code>#ifdef</code> or <code>#ifndef</code> and ends with either and <code>#else</code> or <code>#endif</code>.</p>
+
+<p>Examples:</p>
+
+<pre><code>#ifdef DEBUG_MODE
+#define PROGRAM_VERSION "Version 1.0 (Debug)"
+#else
+#define PROGRAM_VERSION "Version 1.0 (Release)"
+#endif
+
+#ifndef THISHEADER_H
+#define THISHEADER_H
+// contents of the header
+#endif
+</code></pre>
+
+<h3>
+<a name="todo-warning-error-and-fatal-messages" class="anchor" href="#todo-warning-error-and-fatal-messages"><span class="octicon octicon-link"></span></a>Todo, Warning, Error, and Fatal Messages</h3>
+
+<p>Syntax:</p>
+
+<pre><code>#todo [QUOTED_STRING]
+#warning [QUOTED_STRING]
+#error [QUOTED_STRING]
+#fatal [QUOTED_STRING]
+</code></pre>
+
+<p>The <code>#todo</code>, <code>#warning</code>, <code>#error</code>, and <code>#fatal</code> preprocessor directives are used to output messages, of varying intensities, during compile time.  The <code>#fatal</code> directive will output its message, if any, and halt compiler execution.</p>
+
+<p>Examples:</p>
+
+<pre><code>#ifdef DEBUG_MODE
+#warning "This will not be executable on actual hardware"
+#endif
+
+#todo "Oops, still need to implement this."
+</code></pre>
+
+<h3>
+<a name="include-incbin-and-usepath" class="anchor" href="#include-incbin-and-usepath"><span class="octicon octicon-link"></span></a>Include, Incbin, and Usepath</h3>
+
+<p>Syntax:</p>
+
+<pre><code>#include QUOTED_STRING
+#incbin QUOTED_STRING
+#usepath QUOTED_STRING
+</code></pre>
+
+<p>The <code>#include</code> and <code>#incbin</code> directives tell the compiler to replace the <code>#include</code> or <code>#incbin</code> line with the contents of the specified file and then continue compiling.  The <code>#usepath</code> directive adds a directory to the compiler's list of directories to search for files specified in <code>#include</code> and <code>#incbin</code> directives.</p>
+
+<p>Examples:</p>
+
+<pre><code>#include "nes.h"
+#incbin "sprites.chr"
+</code></pre>
+
+<h2>
+<a name="target-specific-preprocessor-directives" class="anchor" href="#target-specific-preprocessor-directives"><span class="octicon octicon-link"></span></a>Target Specific Preprocessor Directives</h2>
+
+<p>As mentioned above, the HLAKit compiler translate the HLAKit language into a target-specific binary.  To do that, there are many parts of the language that change depending on which family, platform, and CPU are specified in the target.  The preprocessor is one of them.  All target-specific preprocessor directives must use the full target prefix: <code>#&lt;family&gt;.&lt;platform&gt;.&lt;cpu&gt;.&lt;directive&gt;</code> unless the family, platform, and CPU are either specified on the command line or in the code.  </p>
+
+<p>The preprocessor also automatically defines symbols for <code>__FAMILY__</code>, <code>__PLATFORM__</code>, <code>__CPU__</code>, and <code>__TARGET__</code>, that contain the family, platform, CPU and target strings respectively.</p>
+
+<h3>
+<a name="family-platform-and-cpu" class="anchor" href="#family-platform-and-cpu"><span class="octicon octicon-link"></span></a>Family, Platform and CPU</h3>
+
+<p>Syntax:</p>
+
+<pre><code>#family QUOTED_STRING
+#platform QUOTED_STRING
+#cpu QUOTED_STRING
+</code></pre>
+
+<p>Instead of specifying the family, platform, and CPU target on the command line, you may want to use these preprocessor directives to do it in the code.  These allow you to avoid having to type the full <code>#&lt;family&gt;.&lt;platform&gt;.&lt;cpu&gt;.</code> prefix for the target-specific preprocessor directives.  These cannot be used to change the target during an execution of the HLAKit compiler.  If the compiler is configured for one target on the command line and it encounters a different target via the <code>#family</code>, <code>#platform</code>, and <code>#cpu</code> directives in the code, it will exit with an error.</p>
+
+<p>Examples:</p>
+
+<pre><code>#family "NES"
+#platform "NTSC"
+#cpu "2A03"
 </code></pre>
       </section>
 
