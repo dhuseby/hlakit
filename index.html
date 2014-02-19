@@ -219,6 +219,99 @@
 #platform "NTSC"
 #cpu "2A03"
 </code></pre>
+
+<h2>
+<a name="variables-and-types" class="anchor" href="#variables-and-types"><span class="octicon octicon-link"></span></a>Variables and Types</h2>
+
+<p>The HLAKit language has a base set of types that is supported on all targets, although the size, in bytes, for each variable may change based on the specified target.  HLAKit supports a C-like <code>struct</code> construct for complex data types.</p>
+
+<h3>
+<a name="the-basic-types" class="anchor" href="#the-basic-types"><span class="octicon octicon-link"></span></a>The Basic Types</h3>
+
+<table>
+<thead><tr>
+<th>Type</th>
+<th>Size (bytes)</th>
+<th>Range</th>
+<th>Description</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>byte</td>
+<td>1</td>
+<td>0 to 255</td>
+<td>8-bit unsigned</td>
+<td></td>
+</tr>
+<tr>
+<td>char</td>
+<td>1</td>
+<td>-128 to 127</td>
+<td>8-bit signed</td>
+<td></td>
+</tr>
+<tr>
+<td>bool</td>
+<td>1</td>
+<td>0 to 255</td>
+<td>8-bit boolean</td>
+<td>Either zero or non-zero</td>
+</tr>
+<tr>
+<td>word</td>
+<td>2</td>
+<td>0 to 65535</td>
+<td>16-bit unsigned</td>
+<td>16-bit capable CPU's only</td>
+</tr>
+<tr>
+<td>dword</td>
+<td>4</td>
+<td>0 to 4294967295</td>
+<td>32-bit unsigned</td>
+<td>32-bit capable CPU's only</td>
+</tr>
+<tr>
+<td>pointer</td>
+<td>1/2/4</td>
+<td></td>
+<td>8/16/32-bit address</td>
+<td>Platform and CPU specific</td>
+</tr>
+<tr>
+<td>struct</td>
+<td></td>
+<td></td>
+<td>Arbitrary complex type</td>
+<td></td>
+</tr>
+</tbody>
+</table><h3>
+<a name="typedef" class="anchor" href="#typedef"><span class="octicon octicon-link"></span></a>Typedef</h3>
+
+<p>Syntax:</p>
+
+<pre><code>typedef TYPE ALIAS
+</code></pre>
+
+<p>The <code>typedef</code> keyword works exactly like the C <code>typedef</code>.  It creates a type alias.  This is really only useful for reducing how much you type and making code more readable.</p>
+
+<p>Examples:</p>
+
+<pre><code>// standard type alias
+typedef byte BLAH
+
+// array type alias
+typedef char player_name[16]
+
+// struct type alias
+typedef struct
+{
+    byte x
+    byte y
+} coordinates
+</code></pre>
       </section>
 
     </div>
