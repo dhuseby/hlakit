@@ -306,11 +306,77 @@ typedef byte BLAH
 typedef char player_name[16]
 
 // struct type alias
-typedef struct
+typedef struct coords
 {
     byte x
     byte y
 } coordinates
+</code></pre>
+
+<h3>
+<a name="struct" class="anchor" href="#struct"><span class="octicon octicon-link"></span></a>Struct</h3>
+
+<p>Syntax:</p>
+
+<pre><code>struct LABEL
+{
+    TYPE LABEL[, LABEL, ...]
+}
+</code></pre>
+
+<p>The <code>struct</code> keyword is used to create new, complex types that are structured containers of named members.  Structs can contain any number of members of any valid type, including other structs.  The type of a struct member can be any of the basic types or an already declared struct type.</p>
+
+<p>Examples:</p>
+
+<pre><code>struct time
+{
+    byte ticks
+    byte seconds
+    byte minutes
+    byte hours
+}
+
+struct scrollTo
+{
+    byte flags
+    word x, y
+}
+
+struct player
+{
+    byte sprite
+    byte joypad
+    struct move
+    {
+        byte x, y
+        byte amount
+    } move
+    byte anArray[10]
+}
+</code></pre>
+
+<h3>
+<a name="shared" class="anchor" href="#shared"><span class="octicon octicon-link"></span></a>Shared</h3>
+
+<p>The <code>shared</code> keyword is used when declaring new variables and is used to indicate a variable that can be used from multiple execution contexts.  On targets that support interrupts, any variables referenced from both interrupts and the regular code must be declared as <code>shared</code> otherwise the HLAKit compiler will output an error.</p>
+
+<h3>
+<a name="variable-declarations" class="anchor" href="#variable-declarations"><span class="octicon octicon-link"></span></a>Variable Declarations</h3>
+
+<p>Syntax:</p>
+
+<pre><code>[shared] TYPE LABEL [ARRAY_SIZE] [:ADDRESS] [= VALUE]
+</code></pre>
+
+<p>Named variables make coding in assembly much easier.  HLAKit variables are very flexible and do a lot of the hard work for you.</p>
+
+<p>Examples:</p>
+
+<pre><code>byte counter
+byte initialized_counter = 123
+struct coords { byte x, y } myCoords
+struct coords theirCoords = { 5, 6 }
+byte initialized_array[] = { 1, 2, 3, 4, 5 }
 </code></pre>
       </section>
 
