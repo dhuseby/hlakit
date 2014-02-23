@@ -84,9 +84,13 @@ body {
   background: url('../img/bg-grid.png') repeat scroll 0% 0% rgb(233,233,233);
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4, h5 {
   font-weight: 400;
   text-shadow: 0px 1px rgba(255, 255, 255, 0.9);
+}
+
+h2, h3, h4, h5 {
+  margin-top: 1.5em;
 }
 
 p {
@@ -156,7 +160,8 @@ p {
   }
 }
 
-#menu li.nav-header {
+#menu li.nav-header,
+#menu li.nav-header a {
   color: #111;
   font-family: 'Fira Sans', sans-serif;
   font-weight: normal;

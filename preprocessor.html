@@ -1,0 +1,98 @@
+---
+layout: default
+title: HLAKit Language Reference
+---
+
+<div class="page-header">
+  <h1>Preprocessor</h1>
+</div>
+
+<p>The HLAKit language supports preprocessor directives just like a standard C compiler. However, the preprocessor in HLAKit is much more flexible and extensible. It is more accurate to think of the preprocessor directives as immediate mode instructions that get executed while the compiler is working. The C preprocessor is really only useful for conditional compiles and limited macro-based substitution. The HLAKit preprocessor does all of that but is also extensible for target-specific extensions. Things like specifying memory banks, currently address, specifying ROM names, and outputting messages are all things found in the HLAKit preprocessor.</p>
+<p>The rest of this section covers the preprocessor directives that are always valid, regardless of the target specified.</p>
+<h2 id="define">Define<a class="anchor" href="#Define" name="Define"> </a></h2>
+<p>The <code>#define</code> directive is used to both define variables in the preprocessor symbol table, but also to assign values which are used for substitution. They are included in the language to reduce code duplication and enhance readability.</p>
+<h4 id="syntax">Syntax:</h4>
+<pre><code>#define LABEL [VALUE]</code></pre>
+<h4 id="examples">Examples:</h4>
+<pre><code>// defining boolean true/false integers
+#define TRUE 1
+#define FALSE 0
+
+// defining a string
+#define PROGRAM_VERSION &quot;Version 1.0&quot;
+
+// defining a bitmask
+#define ST_VBLANK %10000000
+
+// defining for conditional compile
+#define DEBUG_BUILD</code></pre>
+<h2 id="undef">Undef<a class="anchor" href="#Undef" name="Undef"> </a></h2>
+<p>The <code>#undef</code> directive deletes a symbol from the preprocessor symbol table.</p>
+<h4 id="syntax-1">Syntax:</h4>
+<pre><code>#undef LABEL</code></pre>
+<h4 id="examples-1">Examples:</h4>
+<pre><code>// undefining previously defined integers
+#undef TRUE
+#undef FALSE</code></pre>
+<h2 id="ifdef-ifndef-else-and-endif">Ifdef, Ifndef, Else, and Endif<a class="anchor" href="#Conditionals" name="Conditionals"> </a></h2>
+<p>The conditional directives <code>#ifdef</code>, <code>#ifndef</code>, <code>#else</code>, and <code>#endif</code> are used for conditional compilation and execution of other preprocessor directives. Each conditional block begins with either <code>#ifdef</code> or <code>#ifndef</code> and ends with either and <code>#else</code> or <code>#endif</code>.</p>
+<h4 id="syntax-2">Syntax:</h4>
+<pre><code>#ifdef LABEL
+#endif
+
+#ifndef LABEL
+#endif
+
+#ifdef LABEL
+#else
+#endif
+
+#ifndef LABEL
+#else
+#endif</code></pre>
+<h4 id="examples-2">Examples:</h4>
+<pre><code>#ifdef DEBUG_MODE
+#define PROGRAM_VERSION &quot;Version 1.0 (Debug)&quot;
+#else
+#define PROGRAM_VERSION &quot;Version 1.0 (Release)&quot;
+#endif
+
+#ifndef THISHEADER_H
+#define THISHEADER_H
+// contents of the header
+#endif</code></pre>
+<h2 id="todo-warning-error-and-fatal-messages">Todo, Warning, Error, and Fatal Messages<a class="anchor" href="#Messages" name="Messages"> </a></h2>
+<p>The <code>#todo</code>, <code>#warning</code>, <code>#error</code>, and <code>#fatal</code> preprocessor directives are used to output messages, of varying intensities, during compile time. The <code>#fatal</code> directive will output its message, if any, and halt compiler execution.</p>
+<h4 id="syntax-3">Syntax:</h4>
+<pre><code>#todo [QUOTED_STRING]
+#warning [QUOTED_STRING]
+#error [QUOTED_STRING]
+#fatal [QUOTED_STRING]</code></pre>
+<h4 id="examples-3">Examples:</h4>
+<pre><code>#ifdef DEBUG_MODE
+#warning &quot;This cannot be executable on actual hardware&quot;
+#endif
+
+#todo &quot;Oops, still need to implement this.&quot;</code></pre>
+<h2 id="include-incbin-and-usepath">Include, Incbin, and Usepath<a class="anchor" href="#Include" name="Include"> </a></h2>
+<p>The <code>#include</code> and <code>#incbin</code> directives tell the compiler to replace the <code>#include</code> or <code>#incbin</code> line with the contents of the specified file and then continue compiling. The <code>#usepath</code> directive adds a directory to the compiler's list of directories to search for files specified in <code>#include</code> and <code>#incbin</code> directives.</p>
+<h4 id="syntax-4">Syntax:</h4>
+<pre><code>#include QUOTED_STRING
+#incbin QUOTED_STRING
+#usepath QUOTED_STRING</code></pre>
+<h4 id="examples-4">Examples:</h4>
+<pre><code>#include &quot;nes.h&quot;
+#incbin &quot;sprites.chr&quot;</code></pre>
+<h2 id="target-specific-preprocessor-directives">Target Specific Preprocessor Directives<a class="anchor" href="#Target_Specific" name="Target_Specific"> </a></h2>
+<p>As mentioned above, the HLAKit compiler translate the HLAKit language into a target-specific binary. To do that, there are many parts of the language that change depending on which family, platform, and CPU are specified in the target. The preprocessor is one of them. All target-specific preprocessor directives must use the full target prefix: <code>#&lt;family&gt;.&lt;platform&gt;.&lt;cpu&gt;.&lt;directive&gt;</code> unless the family, platform, and CPU are either specified on the command line or in the code.</p>
+<p>The preprocessor also automatically defines symbols for <code>__FAMILY__</code>, <code>__PLATFORM__</code>, <code>__CPU__</code>, and <code>__TARGET__</code>, that contain the family, platform, CPU and target strings respectively.</p>
+<h3 id="family-platform-and-cpu">Family, Platform and CPU</h3>
+<p>Instead of specifying the family, platform, and CPU target on the command line, you may want to use these preprocessor directives to do it in the code. These allow you to avoid having to type the full <code>#&lt;family&gt;.&lt;platform&gt;.&lt;cpu&gt;.</code> prefix for the target-specific preprocessor directives. These cannot be used to change the target during an execution of the HLAKit compiler. If the compiler is configured for one target on the command line and it encounters a different target via the <code>#family</code>, <code>#platform</code>, and <code>#cpu</code> directives in the code, it will exit with an error.</p>
+<h4 id="syntax-5">Syntax:</h4>
+<pre><code>#family QUOTED_STRING
+#platform QUOTED_STRING
+#cpu QUOTED_STRING</code></pre>
+<h4 id="examples-5">Examples:</h4>
+<pre><code>#family &quot;NES&quot;
+#platform &quot;NTSC&quot;
+#cpu &quot;2A03&quot;</code></pre>
