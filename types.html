@@ -1,0 +1,122 @@
+---
+layout: default
+title: HLAKit Language Reference
+---
+
+<div class="page-header">
+  <h1>Types</h1>
+</div>
+
+<p>The HLAKit language has a base set of types that is supported on all targets, although the size, in bytes, for each variable may change based on the specified target. HLAKit supports a C-like <code>struct</code> construct for complex data types.</p>
+<h2 id="basic-types">Basic Types<a class="anchor" href="#Basic_Types" name="Basic_Types"> </a></h2>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Type</th>
+<th align="left">Size (bytes)</th>
+<th align="left">Range</th>
+<th align="left">Description</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">byte</td>
+<td align="left">1</td>
+<td align="left">0 to 255</td>
+<td align="left">8-bit unsigned</td>
+</tr>
+<tr class="even">
+<td align="left">char</td>
+<td align="left">1</td>
+<td align="left">-128 to 127</td>
+<td align="left">8-bit signed</td>
+</tr>
+<tr class="odd">
+<td align="left">bool</td>
+<td align="left">1</td>
+<td align="left">0 to 255</td>
+<td align="left">8-bit boolean</td>
+<td align="left">Either zero or non-zero</td>
+</tr>
+<tr class="even">
+<td align="left">word</td>
+<td align="left">2</td>
+<td align="left">0 to 65535</td>
+<td align="left">16-bit unsigned</td>
+<td align="left">16-bit capable CPU's only</td>
+</tr>
+<tr class="odd">
+<td align="left">dword</td>
+<td align="left">4</td>
+<td align="left">0 to 4294967295</td>
+<td align="left">32-bit unsigned</td>
+<td align="left">32-bit capable CPU's only</td>
+</tr>
+<tr class="even">
+<td align="left">pointer</td>
+<td align="left">1/2/4</td>
+<td align="left"></td>
+<td align="left">8/16/32-bit address</td>
+<td align="left">Platform and CPU specific</td>
+</tr>
+<tr class="odd">
+<td align="left">struct</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">Arbitrary complex type</td>
+</tr>
+</tbody>
+</table>
+<h2 id="typedef">Typedef<a class="anchor" href="#Typedef" name="Typedef"> </a></h2>
+<p>The <code>typedef</code> keyword works exactly like the C <code>typedef</code>. It creates a type alias. This is really only useful for reducing how much you type and making code more readable.</p>
+<h4 id="syntax">Syntax:</h4>
+<pre><code>typedef TYPE LABEL [ARRAY_SIZE]</code></pre>
+<h4 id="examples">Examples:</h4>
+<pre><code>// standard type alias
+typedef byte BLAH
+
+// array type alias
+typedef char player_name[16]
+
+// struct type alias
+typedef struct coords
+{
+    byte x
+    byte y
+} coordinates</code></pre>
+<h2 id="struct">Struct<a class="anchor" href="#Struct" name="Struct"> </a></h2>
+<p>The <code>struct</code> keyword is used to create new, complex types that are structured containers of named members. Structs can contain any number of members of any valid type, including other structs. The type of a struct member can be any of the basic types or an already declared struct type.</p>
+<h4 id="syntax-1">Syntax:</h4>
+<pre><code>struct LABEL
+{
+    TYPE LABEL[, LABEL, ...]
+}</code></pre>
+<h4 id="examples-1">Examples:</h4>
+<pre><code>struct time
+{
+    byte ticks
+    byte seconds
+    byte minutes
+    byte hours
+}
+
+struct scrollTo
+{
+    byte flags
+    word x, y
+}
+
+struct player
+{
+    byte sprite
+    byte joypad
+    struct move
+    {
+        byte x, y
+        byte amount
+    } move
+    byte anArray[10]
+}</code></pre>
+<h2 id="shared">Shared<a class="anchor" href="#Shared" name="Shared"> </a></h2>
+<p>The <code>shared</code> keyword is used when declaring new variables and is used to indicate a variable that can be used from multiple execution contexts. On targets that support interrupts, any variables referenced from both interrupts and the regular code must be declared as <code>shared</code> otherwise the HLAKit compiler will output an error.</p>
