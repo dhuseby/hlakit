@@ -5,7 +5,7 @@ The HLAKit language supports preprocessor directives just like a standard C comp
 
 The rest of this section covers the preprocessor directives that are always valid, regardless of the target specified.
 
-## Define<a class="anchor" href="#Define" name="Define">&nbsp;</a>
+## Define<a class="anchor" href="#Define" name="Define"></a>
 
 The `#define` directive is used to both define variables in the preprocessor symbol table, but also to assign values which are used for substitution.  They are included in the language to reduce code duplication and enhance readability.
 
@@ -30,7 +30,7 @@ The `#define` directive is used to both define variables in the preprocessor sym
 #define DEBUG_BUILD
 ```
 
-## Undef<a class="anchor" href="#Undef" name="Undef">&nbsp;</a>
+## Undef<a class="anchor" href="#Undef" name="Undef"></a>
 
 The `#undef` directive deletes a symbol from the preprocessor symbol table.
 
@@ -46,7 +46,7 @@ The `#undef` directive deletes a symbol from the preprocessor symbol table.
 #undef FALSE
 ```
 
-## Ifdef, Ifndef, Else, and Endif<a class="anchor" href="#Conditionals" name="Conditionals">&nbsp;</a>
+## Ifdef, Ifndef, Else, and Endif<a class="anchor" href="#Conditionals" name="Conditionals"></a>
 
 The conditional directives `#ifdef`, `#ifndef`, `#else`, and `#endif` are used for conditional compilation and execution of other preprocessor directives.  Each conditional block begins with either `#ifdef` or `#ifndef` and ends with either and `#else` or `#endif`.
 
@@ -81,7 +81,7 @@ The conditional directives `#ifdef`, `#ifndef`, `#else`, and `#endif` are used f
 #endif
 ```
 
-## Todo, Warning, Error, and Fatal Messages<a class="anchor" href="#Messages" name="Messages">&nbsp;</a>
+## Todo, Warning, Error, and Fatal Messages<a class="anchor" href="#Messages" name="Messages"></a>
 
 The `#todo`, `#warning`, `#error`, and `#fatal` preprocessor directives are used to output messages, of varying intensities, during compile time.  The `#fatal` directive will output its message, if any, and halt compiler execution.
 
@@ -102,7 +102,7 @@ The `#todo`, `#warning`, `#error`, and `#fatal` preprocessor directives are used
 #todo "Oops, still need to implement this."
 ```
 
-## Include, Incbin, and Usepath<a class="anchor" href="#Include" name="Include">&nbsp;</a>
+## Include, Incbin, and Usepath<a class="anchor" href="#Include" name="Include"></a>
 
 The `#include` and `#incbin` directives tell the compiler to replace the `#include` or `#incbin` line with the contents of the specified file and then continue compiling.  The `#usepath` directive adds a directory to the compiler's list of directories to search for files specified in `#include` and `#incbin` directives.
 
@@ -119,7 +119,7 @@ The `#include` and `#incbin` directives tell the compiler to replace the `#inclu
 #incbin "sprites.chr"
 ```
 
-## Target Specific Preprocessor Directives<a class="anchor" href="#Target_Specific" name="Target_Specific">&nbsp;</a>
+## Target Specific Preprocessor Directives<a class="anchor" href="#Target_Specific" name="Target_Specific"></a>
 
 As mentioned above, the HLAKit compiler translate the HLAKit language into a target-specific binary.  To do that, there are many parts of the language that change depending on which family, platform, and CPU are specified in the target.  The preprocessor is one of them.  All target-specific preprocessor directives must use the full target prefix: `#<family>.<platform>.<cpu>.<directive>` unless the family, platform, and CPU are either specified on the command line or in the code.  
 

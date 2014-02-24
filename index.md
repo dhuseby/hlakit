@@ -19,7 +19,7 @@ $ sudo python ./setup.py install
 
 That's it.  You'll have to read the rest of the documentation to learn the language and how to use the compiler.
 
-## The Language <a class="anchor" href="#The_Language" name="The_Language">&nbsp;</a>
+## The Language <a class="anchor" href="#The_Language" name="The_Language"></a>
 
 The language that the HLAKit compiler understands has many similarities with the C language.  Code blocks and structs are surrounded by curly braces `{ }` and the conditional statements look very similar to what you see in C.  That's where the similarities end though.  The goal of the language is to make writing assembly applications just a tiny bit easier by supporting some of the higher level constructs found in C.  When writing code in the HLAKit language, you will be writing mostly assembly.  But instead of using labels everywhere and hand coding tests and jumps, you can rely on function calls and higher level conditional constructs like `if(set) {} else {}`.
 

@@ -81,8 +81,4 @@ struct player
 }
 ```
 
-## Shared<a class="anchor" href="#Shared" name="Shared"></a>
-
-The `shared` keyword is used when declaring new variables and is used to indicate a variable that can be used from multiple execution contexts.  On targets that support interrupts, any variables referenced from both interrupts and the regular code must be declared as `shared` otherwise the HLAKit compiler will output an error.
-
 
