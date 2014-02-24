@@ -3,19 +3,19 @@
 
 The HLAKit language has a base set of types that is supported on all targets, although the size, in bytes, for each variable may change based on the specified target.  HLAKit supports a C-like `struct` construct for complex data types.
 
-## Basic Types<a class="anchor" href="#Basic_Types" name="Basic_Types">&nbsp;</a>
+## Basic Types<a class="anchor" href="#Basic_Types" name="Basic_Types"></a>
 
 Type|Size (bytes)|Range|Description|Notes|
 ----|------------|-----|-----------|-----|
-byte|1|0 to 255|8-bit unsigned|
-char|1|-128 to 127|8-bit signed|
-bool|1|0 to 255|8-bit boolean|Either zero or non-zero
-word|2|0 to 65535|16-bit unsigned|16-bit capable CPU's only
-dword|4|0 to 4294967295|32-bit unsigned|32-bit capable CPU's only
-pointer|1/2/4||8/16/32-bit address|Platform and CPU specific
-struct|||Arbitrary complex type|
+byte|1|0 to 255|8-bit unsigned| |
+char|1|-128 to 127|8-bit signed| |
+bool|1|0 to 255|8-bit boolean|Either zero or non-zero|
+word|2|0 to 65535|16-bit unsigned|16-bit capable CPU's only|
+dword|4|0 to 4294967295|32-bit unsigned|32-bit capable CPU's only|
+pointer|1/2/4||8/16/32-bit address|Target specific|
+struct|||Arbitrary complex type| |
 
-## Typedef<a class="anchor" href="#Typedef" name="Typedef">&nbsp;</a>
+## Typedef<a class="anchor" href="#Typedef" name="Typedef"></a>
 
 The `typedef` keyword works exactly like the C `typedef`.  It creates a type alias.  This is really only useful for reducing how much you type and making code more readable.
 
@@ -40,7 +40,7 @@ typedef struct coords
 } coordinates
 ```
 
-## Struct<a class="anchor" href="#Struct" name="Struct">&nbsp;</a>
+## Struct<a class="anchor" href="#Struct" name="Struct"></a>
 
 The `struct` keyword is used to create new, complex types that are structured containers of named members.  Structs can contain any number of members of any valid type, including other structs.  The type of a struct member can be any of the basic types or an already declared struct type.
 
@@ -81,7 +81,7 @@ struct player
 }
 ```
 
-## Shared<a class="anchor" href="#Shared" name="Shared">&nbsp;</a>
+## Shared<a class="anchor" href="#Shared" name="Shared"></a>
 
 The `shared` keyword is used when declaring new variables and is used to indicate a variable that can be used from multiple execution contexts.  On targets that support interrupts, any variables referenced from both interrupts and the regular code must be declared as `shared` otherwise the HLAKit compiler will output an error.
 

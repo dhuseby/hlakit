@@ -8,7 +8,7 @@ title: HLAKit Language Reference
 </div>
 
 <p>The HLAKit language has a base set of types that is supported on all targets, although the size, in bytes, for each variable may change based on the specified target. HLAKit supports a C-like <code>struct</code> construct for complex data types.</p>
-<h2 id="basic-types">Basic Types<a class="anchor" href="#Basic_Types" name="Basic_Types"> </a></h2>
+<h2 id="basic-types">Basic Types<a class="anchor" href="#Basic_Types" name="Basic_Types"></a></h2>
 <table>
 <thead>
 <tr class="header">
@@ -25,12 +25,14 @@ title: HLAKit Language Reference
 <td align="left">1</td>
 <td align="left">0 to 255</td>
 <td align="left">8-bit unsigned</td>
+<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left">char</td>
 <td align="left">1</td>
 <td align="left">-128 to 127</td>
 <td align="left">8-bit signed</td>
+<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left">bool</td>
@@ -58,17 +60,18 @@ title: HLAKit Language Reference
 <td align="left">1/2/4</td>
 <td align="left"></td>
 <td align="left">8/16/32-bit address</td>
-<td align="left">Platform and CPU specific</td>
+<td align="left">Target specific</td>
 </tr>
 <tr class="odd">
 <td align="left">struct</td>
 <td align="left"></td>
 <td align="left"></td>
 <td align="left">Arbitrary complex type</td>
+<td align="left"></td>
 </tr>
 </tbody>
 </table>
-<h2 id="typedef">Typedef<a class="anchor" href="#Typedef" name="Typedef"> </a></h2>
+<h2 id="typedef">Typedef<a class="anchor" href="#Typedef" name="Typedef"></a></h2>
 <p>The <code>typedef</code> keyword works exactly like the C <code>typedef</code>. It creates a type alias. This is really only useful for reducing how much you type and making code more readable.</p>
 <h4 id="syntax">Syntax:</h4>
 <pre><code>typedef TYPE LABEL [ARRAY_SIZE]</code></pre>
@@ -85,7 +88,7 @@ typedef struct coords
     byte x
     byte y
 } coordinates</code></pre>
-<h2 id="struct">Struct<a class="anchor" href="#Struct" name="Struct"> </a></h2>
+<h2 id="struct">Struct<a class="anchor" href="#Struct" name="Struct"></a></h2>
 <p>The <code>struct</code> keyword is used to create new, complex types that are structured containers of named members. Structs can contain any number of members of any valid type, including other structs. The type of a struct member can be any of the basic types or an already declared struct type.</p>
 <h4 id="syntax-1">Syntax:</h4>
 <pre><code>struct LABEL
@@ -118,5 +121,5 @@ struct player
     } move
     byte anArray[10]
 }</code></pre>
-<h2 id="shared">Shared<a class="anchor" href="#Shared" name="Shared"> </a></h2>
+<h2 id="shared">Shared<a class="anchor" href="#Shared" name="Shared"></a></h2>
 <p>The <code>shared</code> keyword is used when declaring new variables and is used to indicate a variable that can be used from multiple execution contexts. On targets that support interrupts, any variables referenced from both interrupts and the regular code must be declared as <code>shared</code> otherwise the HLAKit compiler will output an error.</p>
