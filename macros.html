@@ -1,0 +1,33 @@
+---
+layout: default
+title: HLAKit Language Reference
+---
+
+<div class="page-header">
+  <h1>Macros</h1>
+</div>
+
+<p>Along with functions, the HLAKit language also supports macros. Macros look very similar to functions except that macros start with the <code>inline</code> keyword and can take a list of parameters. Macros are allowed to take paramters because they are expanded inline wherever they are called and the paramters are used for name replacement when the expansion takes place.</p>
+<h4 id="syntax">Syntax:</h4>
+<pre><code>inline LABEL ( PARAMETER_LIST )
+{
+    // macro body
+}</code></pre>
+<h4 id="examples">Examples:</h4>
+<pre><code>inline assign( dest, value )
+{
+    lda value
+    sta dest
+}
+
+function foo()
+{
+    assign( FOO, $0200 )
+}</code></pre>
+<p>When calling a macro in your code, you are not generating a &quot;jump to subroutine&quot; sequence. Instead, the compiler is expanding the macro in-place and then continuing the compilation. The above example function <code>foo</code> will expand to the following:</p>
+<pre><code>funcion foo()
+{
+    lda $0200
+    sta FOO
+}</code></pre>
+<p>Macros are very handy for abstracting out common instruction sequences, making assembly language programming more pleasant and a lot less redundant.</p>

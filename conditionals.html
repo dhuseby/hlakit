@@ -1,0 +1,115 @@
+---
+layout: default
+title: HLAKit Language Reference
+---
+
+<div class="page-header">
+  <h1>Conditionals</h1>
+</div>
+
+<p>One of the most useful features of the HLAKit language is teh ability to use conditional statements to control program flow. They simplify and speed up coding, enhance code readability, and alleviate the need for extensive labeling.</p>
+<p>The majority of conditional branches in assembly language tend to be straight forward jumps, calling for countless labels. The labels cause the code to lose structure and it becomes tedious to understand the flow of execution. HLAKit supports <code>if</code>, <code>else</code>, <code>while</code>, <code>do while</code>, <code>forever</code>, and <code>switch case</code>, expressions. The test statement for each conditional is target specific so you will need to know which kinds of tests you can use on your target.</p>
+<p>Each of the supported conditionals is explained in detail in the following sections.</p>
+<h2 id="if-else">If, Else<a class="anchor" href="#If_Else" name="If_Else"></a></h2>
+<p>The <code>if else</code> conditional allows for conditional execution and an optional alternate block to execute.</p>
+<h4 id="syntax">Syntax:</h4>
+<pre><code>if ( TARGET_TEST_STATEMENT )
+{
+    // body to execute if test is true
+}
+[else
+{
+    // optional body to execute if test is false
+}]</code></pre>
+<p>An example of a 6502 (NES) <code>if else</code> is given below.</p>
+<h4 id="examples">Examples:</h4>
+<pre><code>assign( player.joypad, #0 )
+poll_joystick0()
+and #BUTTON_B
+
+if(set)
+{
+    or( player.joypad, #BUTTON_UP )
+}
+else
+{
+    and_8( player.joypad, #BUTTON_UP)
+}</code></pre>
+<h2 id="while">While<a class="anchor" href="#While" name="While"></a></h2>
+<p>The <code>while</code> conditional creates a loop that executes until the test is no longer true.</p>
+<h4 id="syntax-1">Syntax:</h4>
+<pre><code>while ( TARGET_TEST_STATEMENT )
+{
+    // body to execute while test is true
+}</code></pre>
+<p>An example of a 6502 (NES) <code>while</code> is given below.</p>
+<h4 id="examples-1">Examples:</h4>
+<pre><code>poll_joystick0()
+while(set)
+{
+    // do something
+
+    poll_joystick0()
+}</code></pre>
+<h2 id="do-while">Do, While<a class="anchor" href="#Do_While" name="Do_While"></a></h2>
+<p>The <code>do while</code> conditional creates a loop that executes once first before testing the condition. It will continue to execute as long as the test is true.</p>
+<h4 id="syntax-2">Syntax:</h4>
+<pre><code>do
+{
+    // body to execute while test is true
+} while ( TARGET_TEST_STATEMEN )</code></pre>
+<p>An example of a 6502 (NES) <code>do while</code> is given below.</p>
+<h4 id="example">Example:</h4>
+<pre><code>do
+{
+    lda PPU.STATUS
+} while( is plus )</code></pre>
+<h2 id="forever">Forever<a class="anchor" href="#Forever" name="Forever"></a></h2>
+<p>The <code>forever</code> conditional creates an endless execution loop. It is possible to exit a <code>forever</code> loop using a <code>return</code> if the loop is in a function or by using some other jump instruction to get outside the loop.</p>
+<h4 id="syntax-3">Syntax:</h4>
+<pre><code>forever
+{
+    // body to execute endlessly
+}</code></pre>
+<p>An example of a 6502 (NES) <code>forever</code> loop is given below.</p>
+<h4 id="examples-2">Examples:</h4>
+<pre><code>interrupt.reset main()
+{
+    forever
+    {
+        // main game loop
+    }
+}</code></pre>
+<h2 id="switch-case-default">Switch, Case, Default<a class="anchor" href="#Switch_Case_Default" name="Switch_Case_Default"></a></h2>
+<p>The <code>switch</code> and <code>case</code> conditionals are used to compare a given register with multiple values and execute different sequences of code based on the value of the register. If none of the cases match the value of the register the default block will be executed. If no <code>default</code> case is given, then execution will resume after the <code>switch</code> block.</p>
+<p>Note that unlike C, there is no break keyword. Switch statements in HLAKit are a shorthand for <code>if .. else if .. else</code> sequences. The block of code associated with each <code>case</code> does not fall through to the next <code>case</code>.</p>
+<h4 id="syntax-4">Syntax:</h4>
+<pre><code>switch ( reg.TARGET_REGISTER )
+{
+    case IMMEDIATE
+    {
+        // body of case
+    }
+    [default
+    {
+        // body of optional default case
+    }]
+}</code></pre>
+<p>Each target has its own specific set of registers. The test statement for the <code>switch</code> conditional begins with <code>reg.</code> followed by a target specific register name. An example of a 6502 (NES) <code>switch case default</code> is given below.</p>
+<h4 id="examples-3">Examples:</h4>
+<pre><code>ldx foo
+switch ( reg.x )
+{
+    case #12
+    {
+        lda #23
+        ora bar
+    }
+    case #34
+        lda #12
+
+    default
+    {
+        lda #0
+    }
+}</code></pre>

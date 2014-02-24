@@ -1,0 +1,46 @@
+---
+layout: default
+title: HLAKit Language Reference
+---
+
+<div class="page-header">
+  <h1>Numbers</h1>
+</div>
+
+<p>The HLAKit language supports a number of different types of immediate integer declarations. Below is a table of the valid ways to declare immediate integers.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Type</th>
+<th align="left">Description</th>
+<th align="left">Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">decimal</td>
+<td align="left">A natural number</td>
+<td align="left">123, 3523</td>
+</tr>
+<tr class="even">
+<td align="left">kilo</td>
+<td align="left">Base-2 extension <code>K</code> meaning multiplied by 1024</td>
+<td align="left">1K, 2K, 32K</td>
+</tr>
+<tr class="odd">
+<td align="left">hex (C style)</td>
+<td align="left">Hexadecimal numbers in the <code>0x</code> C style</td>
+<td align="left">0x0200, 0xFF</td>
+</tr>
+<tr class="even">
+<td align="left">hex (asm style)</td>
+<td align="left">Hexadecimal numbers in the <code>$</code> asm style</td>
+<td align="left">$0200, $FF</td>
+</tr>
+<tr class="odd">
+<td align="left">binary</td>
+<td align="left">Binary integers preceded by <code>%</code></td>
+<td align="left">%00000010, %11110000</td>
+</tr>
+</tbody>
+</table>

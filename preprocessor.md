@@ -119,6 +119,42 @@ The `#include` and `#incbin` directives tell the compiler to replace the `#inclu
 #incbin "sprites.chr"
 ```
 
+## Lo, Hi, Nylo, Nyhi<a class="anchor" href="#Lo_Hi_Nylo_Nyhi" name="Lo_Hi_Nylo_Nyhi"></a>
+
+The preprocessor supports extracting portions of immediate values as handy shortcuts that save CPU cycles by doing the masking at compile time.  The `#lo` directive translates to an immediate value equal to the lower byte of the word or the lower word of the dword parameter.  The `#hi` directive translates to an immediate value equal to the upper byte of the word or the upper word of the dword parameter.  The `#nylo` directive translates to an immediate value equal to the lower nybble of the byte parameter.  The `#nyhi` directive translates to an immediate value equal to the upper nybble of the byte parameter.
+
+#### Syntax:
+```
+#lo ( IMMEDIATE )
+#hi ( IMMEDIATE )
+#nylo ( IMMEDIATE )
+#nyhi ( IMMEDIATE )
+```
+
+#### Examples:
+```
+lda #lo($0200)
+ora #hi($0200)
+
+#define FOO %01011010
+lda #nylo(FOO)
+ora #nyhi(FOO)
+```
+
+## Sizeof<a class="anchor" href="#Sizeof" name="Sizeof"></a>
+
+The `#sizeof` directive translates to an immediate value equal to the size of the variable.  The variable must have already been declared when the `#sizeof` is encountered.
+
+#### Syntax:
+```
+#sizeof ( VARIABLE )
+```
+
+#### Examples:
+```
+adc #sizeof(FOO)
+```
+
 ## Target Specific Preprocessor Directives<a class="anchor" href="#Target_Specific" name="Target_Specific"></a>
 
 As mentioned above, the HLAKit compiler translate the HLAKit language into a target-specific binary.  To do that, there are many parts of the language that change depending on which family, platform, and CPU are specified in the target.  The preprocessor is one of them.  All target-specific preprocessor directives must use the full target prefix: `#<family>.<platform>.<cpu>.<directive>` unless the family, platform, and CPU are either specified on the command line or in the code.  

@@ -83,16 +83,36 @@ title: HLAKit Language Reference
 <h4 id="examples-4">Examples:</h4>
 <pre><code>#include &quot;nes.h&quot;
 #incbin &quot;sprites.chr&quot;</code></pre>
+<h2 id="lo-hi-nylo-nyhi">Lo, Hi, Nylo, Nyhi<a class="anchor" href="#Lo_Hi_Nylo_Nyhi" name="Lo_Hi_Nylo_Nyhi"></a></h2>
+<p>The preprocessor supports extracting portions of immediate values as handy shortcuts that save CPU cycles by doing the masking at compile time. The <code>#lo</code> directive translates to an immediate value equal to the lower byte of the word or the lower word of the dword parameter. The <code>#hi</code> directive translates to an immediate value equal to the upper byte of the word or the upper word of the dword parameter. The <code>#nylo</code> directive translates to an immediate value equal to the lower nybble of the byte parameter. The <code>#nyhi</code> directive translates to an immediate value equal to the upper nybble of the byte parameter.</p>
+<h4 id="syntax-5">Syntax:</h4>
+<pre><code>#lo ( IMMEDIATE )
+#hi ( IMMEDIATE )
+#nylo ( IMMEDIATE )
+#nyhi ( IMMEDIATE )</code></pre>
+<h4 id="examples-5">Examples:</h4>
+<pre><code>lda #lo($0200)
+ora #hi($0200)
+
+#define FOO %01011010
+lda #nylo(FOO)
+ora #nyhi(FOO)</code></pre>
+<h2 id="sizeof">Sizeof<a class="anchor" href="#Sizeof" name="Sizeof"></a></h2>
+<p>The <code>#sizeof</code> directive translates to an immediate value equal to the size of the variable. The variable must have already been declared when the <code>#sizeof</code> is encountered.</p>
+<h4 id="syntax-6">Syntax:</h4>
+<pre><code>#sizeof ( VARIABLE )</code></pre>
+<h4 id="examples-6">Examples:</h4>
+<pre><code>adc #sizeof(FOO)</code></pre>
 <h2 id="target-specific-preprocessor-directives">Target Specific Preprocessor Directives<a class="anchor" href="#Target_Specific" name="Target_Specific"></a></h2>
 <p>As mentioned above, the HLAKit compiler translate the HLAKit language into a target-specific binary. To do that, there are many parts of the language that change depending on which family, platform, and CPU are specified in the target. The preprocessor is one of them. All target-specific preprocessor directives must use the full target prefix: <code>#&lt;family&gt;.&lt;platform&gt;.&lt;cpu&gt;.&lt;directive&gt;</code> unless the family, platform, and CPU are either specified on the command line or in the code.</p>
 <p>The preprocessor also automatically defines symbols for <code>__FAMILY__</code>, <code>__PLATFORM__</code>, <code>__CPU__</code>, and <code>__TARGET__</code>, that contain the family, platform, CPU and target strings respectively.</p>
 <h3 id="family-platform-and-cpu">Family, Platform and CPU</h3>
 <p>Instead of specifying the family, platform, and CPU target on the command line, you may want to use these preprocessor directives to do it in the code. These allow you to avoid having to type the full <code>#&lt;family&gt;.&lt;platform&gt;.&lt;cpu&gt;.</code> prefix for the target-specific preprocessor directives. These cannot be used to change the target during an execution of the HLAKit compiler. If the compiler is configured for one target on the command line and it encounters a different target via the <code>#family</code>, <code>#platform</code>, and <code>#cpu</code> directives in the code, it will exit with an error.</p>
-<h4 id="syntax-5">Syntax:</h4>
+<h4 id="syntax-7">Syntax:</h4>
 <pre><code>#family QUOTED_STRING
 #platform QUOTED_STRING
 #cpu QUOTED_STRING</code></pre>
-<h4 id="examples-5">Examples:</h4>
+<h4 id="examples-7">Examples:</h4>
 <pre><code>#family &quot;NES&quot;
 #platform &quot;NTSC&quot;
 #cpu &quot;2A03&quot;</code></pre>

@@ -1,0 +1,58 @@
+---
+layout: default
+title: HLAKit Language Reference
+---
+
+<div class="page-header">
+  <h1>Functions</h1>
+</div>
+
+<p>The HLAKit language supports the declaration of function to help organize your code into manageable chunks. This is part of what makes it a high level assembler. Functions are subroutines that return with a &quot;return from subroutine&quot; instruction and therefor use the target-specific subroutine calling mechanism. One important distinction is that HLAKit functions cannot take any parameters.</p>
+<h4 id="syntax">Syntax:</h4>
+<pre><code>function [noreturn] LABEL()
+{
+    // function body
+}</code></pre>
+<h2 id="return">Return<a class="anchor" href="#Return" name="Return"></a></h2>
+<p>With functions, the generation of the &quot;return from subroutine&quot; instruction is automatic for the end of the function body. However, there are times where you will want to exit a function early. The <code>return</code> keyword can be used to exit a function body early.</p>
+<h4 id="examples">Examples:</h4>
+<pre><code>// an example 6502 function
+function foo()
+{
+    lda 0x0200,x
+    inx
+    ora 0x0200,x
+    if(zero)
+    {
+        return
+    }
+    inx
+}</code></pre>
+<h2 id="noreturn">Noreturn<a class="anchor" href="#Noreturn" name="Noreturn"></a></h2>
+<p>Functions can also have an optional <code>noreturn</code> keyword in the declaration. This suppresses the output of the &quot;return from subroutine&quot; instructions for the function.</p>
+<h4 id="examples-1">Examples:</h4>
+<pre><code>// an example noreturn function
+function noreturn do_game()
+{
+    forever
+    {
+        do_sound()
+        do_input()
+        do_graphics()
+        tick()
+    }
+}</code></pre>
+<h2 id="calling-functions">Calling Functions<a class="anchor" href="#Calling_Functions" name="Calling_Functions"></a></h2>
+<p>Function can be called by their name as they are in other high level languages. The function call will generate the correct jump opcode for the specified target. This typically means a &quot;jump to subroutine&quot; instruction will be generated.</p>
+<h4 id="example">Example:</h4>
+<pre><code>function inc_global()
+{
+    lda 0x0200
+    ina
+    sta 0x0200
+}
+
+function bar()
+{
+    inc_global()
+}</code></pre>
