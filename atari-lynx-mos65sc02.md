@@ -156,7 +156,7 @@ The above example will compile the `main()` function to be located at 0x0200 in 
 #lnx.block_count 256
 #lnx.block_size 2K
 
-// we only have 1 bank
+// select bank 0
 #rom.bank 0
 
 // 1st stage loader goes in block 0, counter 0
@@ -167,12 +167,16 @@ The above example will compile the `main()` function to be located at 0x0200 in 
 #rom.end
 
 // 2nd stage loader goes in block 0, counter 256
-#rom.org 0, 0x0100
+#rom.org
+  // align this block on 256 byte boundary
+  #align 0x0100
   #incbin "2nd_loader.bin"
 #rom.end
 
-// meta data for 2nd stage loader
-#rom.org 0, 0x0200
+// meta data for 2nd stage loader at block 0, counter 512
+#rom.org
+  // align this block on 256 byte boundary
+  #align 0x0100
 
   // the size of the executable
   byte EXE_SIZE_LO_ADDR         = $80
@@ -194,7 +198,7 @@ The above example will compile the `main()` function to be located at 0x0200 in 
   byte CHUNKS_PER_BLOCK_ADDR    = $85
   byte CHUNKS_PER_BLOCK         = __BLOCK_SIZE__ >> 8
 
-  // the cart block where data starts
+  // the cart block where asset database is located
   byte DATA_BLOCK_ADDR          = $86
   byte DATA_BLOCK               = #rom.blockof(DATA)
 
@@ -259,13 +263,21 @@ Tells the HLAKit compiler to not output a standard .lnx header in the output fil
 
 ## Interrupts<a class="anchor" href="#Interrupts" name="Interrupts"></a>
 
-The Atari Lynx supports the same three MOS 6502 interrupts: reset, NMI, and IRQ.  The reset interrupt is also aliased as the "start" interrupt.  The target interrupt keywords for declaring an interrupt are `reset`/`start`, `nmi`, and `irq`.
+Because the Atari Lynx cannot directly address the cart ROM memory, it only supports the plain `interrupt` keyword.  It is up to the programmer to manually set the interrupt address registers at run time.  In practice, only the IRQ interrupt is actually used.  The various timers in the device call the IRQ interrupt when they time out.
 
 #### Syntax:
 ```
-interrupt[.reset|start|nmi|irq] LABEL()
+interrupt LABEL()
 {
     // interrupt handler body
+}
+```
+
+#### Example
+```
+interrupt irq()
+{
+    // handle timer events
 }
 ```
 
