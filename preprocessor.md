@@ -104,7 +104,7 @@ The `#todo`, `#warning`, `#error`, and `#fatal` preprocessor directives are used
 
 ## Include, Incbin, and Usepath<a class="anchor" href="#Include" name="Include"></a>
 
-The `#include` and `#incbin` directives tell the compiler to replace the `#include` or `#incbin` line with the contents of the specified file and then continue compiling.  The `#usepath` directive adds a directory to the compiler's list of directories to search for files specified in `#include` and `#incbin` directives.
+The `#include` and `#incbin` directives tell the compiler to replace the `#include` or `#incbin` line with the contents of the specified file and then continue compiling.  The `#usepath` directive adds a directory to the list of directories the compiler searches for files specified in `#include` and `#incbin` directives.
 
 #### Syntax:
 ```
@@ -147,12 +147,35 @@ The `#sizeof` directive translates to an immediate value equal to the size of th
 
 #### Syntax:
 ```
-#sizeof ( VARIABLE )
+#sizeof ( VALUE | ID )
 ```
 
 #### Examples:
 ```
+// add the size of FOO
 adc #sizeof(FOO)
+
+// initialize variable with the size of a file
+word file_size = #sizeof("foo.bin")
+
+// initialize variable with the size of a function
+function foo() { }
+byte bar = #sizeof(foo)
+```
+
+## Setpad<a class="anchor" href="#Setpad" name="Setpad"></a>
+
+The `#setpad` directive sets the value that will be used to fill unused space in memory blocks.
+
+#### Syntax:
+```
+#setpad VALUE
+```
+
+#### Examples:
+```
+#setpad "PAD"
+#setpad 0xFF
 ```
 
 ## Target Specific Preprocessor Directives<a class="anchor" href="#Target_Specific" name="Target_Specific"></a>

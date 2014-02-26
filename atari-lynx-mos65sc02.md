@@ -24,6 +24,12 @@ Total Size|Block Count|Block Size|Bits|Banks|
 
 Because the Atari Lynx cannot directly address its cartridge ROM, all code compiled for the Atari Lynx has to be linked and located in the 64KB RAM memory area.  However, to build a full Lynx ROM file, the compiled executable has to be stored in the ROM memory area.  This calls for a two-stage process for building an Atari Lynx game.  It also means that branching almost always has to use relative addresses because so that executable data can be loaded into an arbitrary piece of RAM and executed.
 
+The Atari Lynx target initializes several preprocessor variables with the configuration information of the compiler.  This includes the variables: `__TITLE__`, `__MANUFACTURER__`, `__ROTATION__`, `__BANKS__`, `__BLOCK_COUNT__`, and `__BLOCK_SIZE__`.
+
+#### #align NUMBER
+
+Forces the current block to be aligned to the specified boundary.  The argument given must be a power of two.  This is handy for forcing ROM blocks to begin on a cart block boundary.
+
 #### #rom.bank 0|1
 
 Selects which ROM bank the compiler is building.
@@ -36,6 +42,10 @@ Sets the current ROM address by specifying the block number, the block address a
 
 Ends the current block of output.
 
+#### #rom.blockof( LABEL )
+
+The `#rom.blockof` directive translates to the block ROM block number where the given LABEL is located in the ROM.  This is handy for initializing variables with the block number of where data can be found.
+
 #### #ram.org ADDRESS[, MAX_SIZE]
 
 Sets the current RAM address by specifying the address and optional max size for the next block of compiled data.  This is used by the compiler for locating and linking executable code.  The max size is there for checking assumptions about the size of the compiled data.
@@ -44,6 +54,67 @@ Sets the current RAM address by specifying the address and optional max size for
 
 Ends the current block of output.
 
+#### #loader.org [MAX_SIZE]
+
+The Atari Lynx hardware expects that every game cart being with an RSA encrypted block of executable code.  When the Atari Lynx boots, it reads the encrypted data from the game cart, decrypts it and stores the decrypted executable at $0200 in RAM.  After the decryption is done, it jumps to $0200 to execute the code.  The `#loader.org` directive begins a block of data that will be encrypted that the Atari Lynx can decrypt.  The optional max size argument 
+
+Below is a minimal, encrypted, 1st stage loader.  It does the absolute bare minimum to get past the decryption phase.  It only initializes a few hardware registers to get the Lynx into a sane state and then reads in 256 bytes of data directly following the encrypted loader on the game cart.  After reading the 2nd stage loader into RAM, the 1st stage loader executes the 2nd stage loader.
+
+#### Example Loader:
+```
+// turn off .lnx header output
+#lnx.off
+
+byte RCART_0    : $FCB2 // cart read register
+byte IODIR      : $FD8A // I/O direction register
+byte IODAT      : $FD8B // I/O data register
+byte SERCTL     : $FD8C // serial control register
+byte MAPCTL     : $FFF9 // memory map control register
+
+#define 2ND_LOADER  $FB00  // location of 2nd stage loader
+
+// locate loader for 0x0200
+#ram.org 0x0200
+
+function noreturn micro_loader()
+{
+    // 1. enable Mikey access
+    stz MAPCTL
+
+    // 2. init IODIR, force AUDIN to output
+    lda #%00010011
+    sta IODIR
+
+    // 3. set ComLynx to open collector
+    lda #%00000100
+    sta SERCTL
+
+    // 4. power on ROM
+    lda #%00001000
+    sta IODAT
+
+    // 5. read in the 2nd stage loader
+    ldx #0
+    do
+    {
+        lda RCART_0
+        sta 2ND_LOADER,x
+        inx
+    } while(not zero)
+
+    // execute the 2nd stage loader
+    jmp 2ND_LOADER
+}
+
+#ram.end
+```
+
+#### #loader.end
+
+The `#loader.end` directive ends a block of data that will be encrypted using the Atari Lynx encryption scheme.
+
+The above loader example forms the 1st stage of a two stage loader.  The 2nd stage loader actually loads meta data for the game executable and the hardware details of the ROM.  It then uses that information to load the game executable into RAM at the correct location before executing it.
+
 It is likely that you will want to use a Makefile to first compile the code for your Atari Lynx game and then use a separate file to build the final ROM image.  It will take a combination of the following preprocessor directives to specify the correct addressing when doing both stages of the ROM compile.
 
 #### Example Executable:
@@ -51,8 +122,8 @@ It is likely that you will want to use a Makefile to first compile the code for 
 // turn off .lnx header output to get raw binary
 #lnx.off
 
-// specify RAM to be from 0x0200 to the start
-// of the two video buffers at 0xC038
+// locate the main function at 0x0200 in RAM and
+// that it cannot bigger than 0xBE38 bytes.
 #ram.org 0x0200, 0xBE38
 
 function noreturn main()
@@ -62,16 +133,22 @@ function noreturn main()
         // the game
     }
 }
+
+interrupt irq()
+{
+}
+
+#ram.end
 ```
 
-The above example will compile the `main()` function to be located at 0x0200 in RAM and output a raw binary file that does not have the standard .lnx ROM file header.  If the file was called game.hla, the output file would be called game.bin.  We can then use `#incbin` to include the raw binary into the final ROM file.
+The above example will compile the `main()` function to be located at 0x0200 in RAM and output a raw binary file that does not have the standard .lnx ROM file header.  If the file was called game.hla, the output file would be called game.bin.  We can then use `#incbin` to include the raw binary into the final ROM file.  Building a full Atary Lynx ROM image using the two-stage loading scheme, a game executable and a game database is a bit tricky.  Below is a full example.
 
 #### Example ROM:
 ```
 // configure the .lnx file header
 #lnx.version 1
-#lnx.name "My Game"
-#lnx.manufacturer "Me, Myself, and I"
+#lnx.name "Demo Game"
+#lnx.manufacturer "Demo Studio"
 #lnx.rotation "none"
 
 // specify that we have a 512KB cart
@@ -79,10 +156,68 @@ The above example will compile the `main()` function to be located at 0x0200 in 
 #lnx.block_count 256
 #lnx.block_size 2K
 
-// start at bank 0, block 0, counter 0
+// we only have 1 bank
 #rom.bank 0
-#rom.org 0,0,2K
-#incbin "game.bin"
+
+// 1st stage loader goes in block 0, counter 0
+#rom.org 0, 0
+  #loader.org 
+  #incbin "micro_loader.bin"
+  #loader.end
+#rom.end
+
+// 2nd stage loader goes in block 0, counter 256
+#rom.org 0, 0x0100
+  #incbin "2nd_loader.bin"
+#rom.end
+
+// meta data for 2nd stage loader
+#rom.org 0, 0x0200
+
+  // the size of the executable
+  byte EXE_SIZE_LO_ADDR         = $80
+  byte EXE_SIZE_LO              = #lo(#sizeof("game.bin"))
+  byte EXE_SIZE_HI_ADDR         = $81
+  byte EXE_SIZE_HI              = #hi(#sizeof("game.bin"))
+
+  // where the executable should be loaded
+  byte EXE_LOC_LO_ADDR          = $82
+  byte EXE_LOC_LO               = #lo($0200)
+  byte EXE_LOC_HI_ADDR          = $83
+  byte EXE_LOC_HI               = #hi($0200)
+
+  // the cart block where executable starts
+  byte EXE_BLOCK_ADDR           = $84
+  byte EXE_BLOCK                = #rom.blockof(GAME)
+
+  // the number of 256 byte chunks per block
+  byte CHUNKS_PER_BLOCK_ADDR    = $85
+  byte CHUNKS_PER_BLOCK         = __BLOCK_SIZE__ >> 8
+
+  // the cart block where data starts
+  byte DATA_BLOCK_ADDR          = $86
+  byte DATA_BLOCK               = #rom.blockof(DATA)
+
+  // the end marker
+  byte END_ADDR                 = $00
+  byte END                      = $00
+
+#rom.end
+
+// main game executable goes in block 1
+#rom.org
+  // force block to start on block boundary
+  #align __BLOCK_SIZE__
+GAME:
+  #incbin "game.bin"
+#rom.end
+
+// the game asset database goes last
+#rom.org
+  // force block to start on block boundary
+  #align __BLOCK_SIZE__
+DATA:
+  #incbin "data.bin"
 #rom.end
 ```
 
