@@ -40,22 +40,26 @@ def main():
         # set up argument parser
         parser = argparse.ArgumentParser(description='HLAKit Compiler')
 
-        import pdb; pdb.set_trace()
         parser.add_argument('-t', '--target', type=str, required=True,
                             choices=Target.targets(),
                             help="Specify the target to compile for")
         parser.add_argument('-I', '--include', action="append", default=[],
                             help="Specify directories to search for included files")
+        parser.add_argument('files', metavar='FILE', type=str, nargs='+', 
+                            help="Source file(s) to compile")
 
         # parse arguments
         args = parser.parse_args()
 
+        # create the target
+        #target = Target.create( args.target )
+
         # create the compiler session
-        #session = Session.create( args )
+        #session = Session.create( args.include )
+
         #session.go()
     
     except:
-        parser.print_help()
         sys.exit(os.EX_USAGE)
 
     return sys.exit(os.EX_OK)
