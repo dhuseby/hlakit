@@ -25,3 +25,14 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of copyright holders and contributors.
 """
+
+from ..target import Target
+
+TARGET_CLASS = 'NintendoNESRicoh2A0X'
+
+class NintendoNESRicoh2A0X(Target):
+
+    def __init__(self):
+        super(NintendoNESRicoh2A0X, self).__init__()
+
+

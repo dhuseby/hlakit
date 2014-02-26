@@ -25,3 +25,14 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of copyright holders and contributors.
 """
+
+from ..cpu import CPU
+
+CPU_CLASS = 'MOS65SC02'
+
+class MOS65SC02(CPU):
+
+    def __init__(self):
+        super(MOS65SC02, self).__init__()
+
+

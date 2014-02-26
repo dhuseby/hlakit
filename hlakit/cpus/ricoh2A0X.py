@@ -25,3 +25,31 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of copyright holders and contributors.
 """
+
+from mos6502 import MOS6502
+
+class Ricoh2A0X(MOS6502):
+    '''
+    The 2A03 is a custom integrated circuit used as the heart of NES game 
+    consoles and Family Computers. To avoid costly glue logic, Nintendo squeezed 
+    alot of hardware (alot for the time, which was like 1982) inside this chip. 
+    Here is a list of known integrated components found in the 2A03 (* prefix 
+    indicates simple hardware discussed next).
+
+    - stock NMOS 6502 microprocessor lacking decimal mode support
+    - low frequency programmable timer
+    - two nearly-identical rectangle wave function generators
+    - triangle wave function generator
+    - random wavelength function generator
+    - audio sample playback unit (delta modulation channel)
+    - one shot programmable DMA transfer unit
+    - master dodecade clock divider
+    - two 6502 address decoders for $4016R and $4017R
+    - 3-bit register and address decoder for $4016W
+    '''
+
+    def __init__(self):
+
+        super(Ricoh2A0X, self).__init__()
+
+

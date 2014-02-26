@@ -1,0 +1,12 @@
+Metadata-Version: 1.0
+Name: hlakit
+Version: 0.9
+Summary: Multi-target High Level Assembler
+Home-page: https://wookie.github.io/hlakit
+Author: Dave Huseby
+Author-email: dave@linuxprogrammer.org
+License: BSD-2-Clause
+Description: The HLAKit docmentation is [here](https://wookie.github.io/hlakit).
+        
+Keywords: assembler,retro,games
+Platform: UNKNOWN

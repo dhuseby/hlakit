@@ -25,3 +25,14 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of copyright holders and contributors.
 """
+
+from ..target import Target
+
+TARGET_CLASS = 'AtariLynxMOS65SC02'
+
+class AtariLynxMOS65SC02(Target):
+
+    def __init__(self):
+        super(AtariLynxMOS65SC02, self).__init__()
+
+

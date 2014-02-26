@@ -25,3 +25,27 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of copyright holders and contributors.
 """
+
+import importlib
+
+class Target(object):
+
+    @classmethod
+    def targets(cls):
+        """Scan family, platform, and cpu modules to build the list of 
+        valid targets"""
+
+        targets = []
+        families = importlib.import_module('.'.join(['hlakit','families']))
+        for family in families.__all__:
+            f = importlib.import_module('.'.join(['hlakit','families',family]))
+            platforms = getattr(f, 'PLATFORMS')
+            for platform in platforms:
+                p = importlib.import_module('.'.join(['hlakit','platforms',platform]))
+                cpus = getattr(p, 'CPUS')
+                for cpu in cpus:
+                    targets.append("%s-%s-%s" % (family.lower(), platform.lower(), cpu.lower()))
+
+        return targets
+
+

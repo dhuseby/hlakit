@@ -25,3 +25,15 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of copyright holders and contributors.
 """
+
+from ..family import Family
+
+FAMILY_CLASS = 'Atari'
+PLATFORMS = ['lynx']
+
+class Atari(Family):
+
+
+    def __init__(self):
+        super(Atari, self).__init__()
+

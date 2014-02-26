@@ -1,0 +1,3 @@
+[console_scripts]
+hlakit = hlakit.hlakit:main
+

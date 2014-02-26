@@ -25,3 +25,15 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of copyright holders and contributors.
 """
+
+from ..platform import Platform
+
+PLATFORM_CLASS = 'Lynx'
+CPUS = ['mos65sc02']
+
+class Lynx(Platform):
+
+    def __init__(self):
+        super(Lynx, self).__init__()
+
+
