@@ -2,3 +2,6 @@
 *.pyc
 parser.out
 parsetab.py
+build
+dist
+hlakit.egg-info
