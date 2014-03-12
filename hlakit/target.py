@@ -28,8 +28,12 @@ or implied, of copyright holders and contributors.
 
 import importlib
 from exceptions import NotImplementedError
+from symboltable import SymbolTable
 
 class Target(object):
+
+    NAMESPACE = '__TARGET__'
+    TARGET = None
 
     @classmethod
     def targets(cls):
@@ -56,8 +60,28 @@ class Target(object):
         target = importlib.import_module('.'.join(['hlakit','targets',target_id]))
         class_name = getattr(target, 'TARGET_CLASS')
         ctor = getattr(target, class_name)
-        return ctor()
+        cls.TARGET = ctor()
+        return cls.TARGET
+
+    def __init__(self, family, platform, cpu):
+        SymbolTable().new_namespace( self.NAMESPACE, None )
+        SymbolTable().new_symbol( 'family', family, self.NAMESPACE )
+        SymbolTable().new_symbol( 'platform', platform, self.NAMESPACE )
+        SymbolTable().new_symbol( 'cpu', cpu, self.NAMESPACE )
 
     def scan(self, f):
         raise NotImplementedError('Target.scan not implemented')
+
+    @classmethod
+    def family(cls):
+        return SymbolTable().lookup_symbol( 'family', cls.NAMESPACE )
+
+    @classmethod
+    def platform(cls):
+        return SymbolTable().lookup_symbol( 'platform', cls.NAMESPACE )
+
+    @classmethod
+    def cpu(cls):
+        return SymbolTable().lookup_symbol( 'cpu', cls.NAMESPACE )
+
 

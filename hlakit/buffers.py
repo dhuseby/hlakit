@@ -34,12 +34,12 @@ from math import floor, ceil, log
 
 class Buffer(object):
 
-    def __init__(self, org=None, maxsize=None, padding=None):
+    def __init__(self, org=None, maxsize=None, padding=None, alignment=None):
         self._data = []
         self.org = org
         self.maxsize = maxsize
         self.padding = padding
-        self.alignment = None
+        self.alignment = alignment
 
     def save(self, fout):
         # TODO: check alignment and pad out to alignment using correct endianess

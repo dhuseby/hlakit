@@ -29,22 +29,30 @@ import ply.lex as lex
 
 from ..target import Target
 from ..preprocessor import Preprocessor
+from ..cpu import CPU
 from ..lexer import Lexer
 from ..symboltable import SymbolTable
 from ..paths import Paths
-#from ..families.atari import Atari
-#from ..platforms.lynx import Lynx
-#from ..cpus.mos65sc02 import MOS65SC02
+#from ..families.atari import AtariPreprocessor, AtariCPU
+from ..platforms.lynx import LynxPreprocessor, LynxCPU
+from ..cpus.mos65sc02 import MOS65SC02
 
 TARGET_CLASS = 'AtariLynxMOS65SC02'
 
 class AtariLynxMOS65SC02(Target):
 
+    FAMILY = 'ATARI'
+    PLATFORM = 'LYNX'
+    CPU = 'MOS65SC02'
+
     def __init__(self):
-        super(AtariLynxMOS65SC02, self).__init__()
+        super(AtariLynxMOS65SC02, self).__init__(self.FAMILY, self.PLATFORM, self.CPU)
         self._lexer = Lexer()
-        self._preprocessor = Preprocessor()
-        self._lexer.register_callbacks( self._preprocessor )
+        self._lexer.register_callbacks( Preprocessor() )
+        self._lexer.register_callbacks( LynxPreprocessor() )
+        self._lexer.register_callbacks( CPU() )
+        self._lexer.register_callbacks( LynxCPU() )
+        self._lexer.register_callbacks( MOS65SC02() )
 
     def scan(self, f):
         """ feed the file through the lexer and return the tokens """

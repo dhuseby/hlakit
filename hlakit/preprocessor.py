@@ -70,8 +70,7 @@ class Preprocessor(object):
     ] + list(reserved.values())
 
     def __init__(self):
-        st = SymbolTable()
-        st.new_namespace( self.NAMESPACE, None )
+        SymbolTable().new_namespace( self.NAMESPACE, None )
 
     @property
     def callbacks(self):
@@ -123,20 +122,18 @@ class Preprocessor(object):
             'FATAL': self._msgs,
             'SETPAD': self._setpad,
             'USEPATH': self._usepath,
-            'SIZEOF': self._sizeof
+            'SIZEOF': self._sizeof,
+            'ALIGN': self._align
         }
 
     def _new_symbol(self, name, value):
-        st = SymbolTable()
-        st.new_symbol( name, value, self.NAMESPACE )
+        SymbolTable().new_symbol( name, value, self.NAMESPACE )
 
     def _del_symbol(self, name):
-        st = SymbolTable()
-        st.del_symbol( name, self.NAMESPACE )
+        SymbolTable().del_symbol( name, self.NAMESPACE )
 
     def _lookup_symbol(self, name):
-        st = SymbolTable()
-        return st.lookup_symbol( name, self.NAMESPACE )
+        return SymbolTable().lookup_symbol( name, self.NAMESPACE )
 
     def _initial_id(self, l, t):
         t.type = self.reserved.get( t.value, 'ID' )
@@ -563,13 +560,13 @@ class Preprocessor(object):
         value = cl.token()
         rparen = cl.token()
 
-        if lparen.type != '(' or value.type not in ('ID', 'IMMEDIATE') or rparen.type != ')':
+        if lparen.type != '(' or value.type not in ('ID', 'IMMEDIATE', 'STRING') or rparen.type != ')':
             raise LexerError(l)
 
-        l.token()
-        l.token()
-        value = l.token()
-        l.token()
+        l.token()           # sizeof
+        l.token()           # (
+        value = l.token()   # value
+        l.token()           # )
 
         if value.type == 'IMMEDIATE':
             num_size = len(bin(value.value)[2:])
@@ -577,11 +574,29 @@ class Preprocessor(object):
             while (num_bytes * 8) <= num_size:
                 num_bytes += 1
             value.value = num_bytes
+        elif value.type == 'STRING':
+            # try to find the file
+            filepath = Paths().resolve_filepath( value.value)
+            if filepath is None:
+                raise LexerError(l)
+            # get the file size
+            value.value = os.stat(f.value).st_size
         else:
             # TODO: look up the symbol in the current scoped symbol table to get it's type
             value.value = 4
-            pass
 
         value.type = 'IMMEDIATE'
         return (True, value)
+
+    def _align(self, l, t, ntok, cl):
+        l.token()         # align
+        a = l.token() # number
+
+        if a.type != 'NUMBER':
+            LexerError(l)
+
+        Buffers().buffer.alignment = a.value
+
+        return (True, l.token())
+
 

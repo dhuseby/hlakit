@@ -26,8 +26,104 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of copyright holders and contributors.
 """
 
+from lexer import Lexer, LexerError
+
 class CPU(object):
 
+    reserved = {
+        'shared'    : 'SHARED',
+        'noreturn'  : 'NORETURN',
+        'if'        : 'IF',
+        'else'      : 'ELSE',
+        'while'     : 'WHILE',
+        'do'        : 'DO',
+        'loop'      : 'LOOP',
+        'switch'    : 'SWITCH',
+        'case'      : 'CASE',
+        'default'   : 'DEFAULT',
+        'function'  : 'FUNCTION',
+        'inline'    : 'MACRO',
+        'return'    : 'RETURN',
+        'struct'    : 'STRUCT',
+    }
+
+    tokens = list(reserved.values())
+
     def __init__(self):
-        super(CPU, self).__init__()
+        pass
+
+    @property
+    def callbacks(self):
+        return { ( 'NORESOLVE_ID',      self._ni_id ),
+                 ( 'INITIAL_ID',        self._ni_id ) }
+
+    @property
+    def handlers(self):
+        return {
+            'SHARED': self._shared,
+            'NORETURN': self._noreturn,
+            'IF': self._if,
+            'ELSE': self._else,
+            'WHILE': self._while,
+            'DO': self._do,
+            'LOOP': self._loop,
+            'SWITCH': self._switch,
+            'CASE': self._case,
+            'DEFAULT': self._default,
+            'FUNCTION': self._function,
+            'MACRO': self._macro,
+            'RETURN': self._return,
+            'STRUCT': self._struct
+        }
+
+    def _ni_id(self, l, t):
+        t.type = self.reserved.get( t.value, 'ID' )
+        if t.type != 'ID' and l.lexer.lexstate == 'INITIAL_ID':
+            handler = self.handlers[t.type]
+            return handler(l, t)
+
+        # not one of our reserved words so we don't handle it
+        return (False, t)
+
+    def _shared(self, l, t):
+        return (True, t)
+
+    def _noreturn(self, l, t):
+        return (True, t)
+
+    def _if(self, l, t):
+        return (True, t)
+
+    def _else(self, l, t):
+        return (True, t)
+
+    def _while(self, l, t):
+        return (True, t)
+
+    def _do(self, l, t):
+        return (True, t)
+
+    def _loop(self, l, t):
+        return (True, t)
+
+    def _switch(self, l, t):
+        return (True, t)
+
+    def _case(self, l, t):
+        return (True, t)
+
+    def _default(self, l, t):
+        return (True, t)
+
+    def _function(self, l, t):
+        return (True, t)
+
+    def _macro(self, l, t):
+        return (True, t)
+
+    def _return(self, l, t):
+        return (True, t)
+
+    def _struct(self, l, t):
+        return (True, t)
 

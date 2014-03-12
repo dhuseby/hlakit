@@ -26,32 +26,58 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of copyright holders and contributors.
 """
 
+import types
+
 from ..platform import Platform
 from ..lexer import Lexer, LexerError
+from ..symboltable import SymbolTable
 
 PLATFORM_CLASS = 'Lynx'
 CPUS = ['mos65sc02']
 
-class Lynx(Platform):
+class LynxCPU(object):
 
-    def __init__(self):
-        super(Lynx, self).__init__()
+    reserved = {
+        'interrupt'     : 'INTERRUPT'
+    }
 
-class LynxLexer(Lexer):
+    tokens = list(reserved.values())
+
+    @property
+    def callbacks(self):
+        return { ( 'NORESOLVE_ID',      self._ni_id ),
+                 ( 'INITIAL_ID',        self._ni_id   ) }
+
+    def _ni_id(self, l, t):
+        t.type = self.reserved.get( t.value, 'ID' )
+        if t.type != 'ID':
+            # it's an 'interrupt' keyword, make sure the next token isn't '.'
+            cl = l.lexer.clone()
+            ntok = cl.token()
+            if ntok.type == '.':
+                raise LexerError(l)
+
+            return (True, t)
+
+        # not one of our reserved words or a defined macro name
+        # so we don't handle it
+        return (False, t)
+
+
+class LynxPreprocessor(object):
+
+    # the symbol table namespace for the lynx
+    NAMESPACE = '__LYNX_HEADER__'
 
     # this class needs to register these as #<keyword> callbacks
     # with the lexer object that is passed into the regiser function
     # these will use register_preprocessor call to hook up the callbacks
     reserved = {
-        'align'         : 'ALIGN',
         'rom'           : 'ROM',
         'ram'           : 'RAM',
         'loader'        : 'LOADER',
-        'bank'          : 'BANK',
-        'org'           : 'ORG',
-        'end'           : 'END',
-        'blockof'       : 'BLOCKOF',
         'lnx'           : 'LNX',
+        # lnx
         'version'       : 'VERSION',
         'name'          : 'NAME',
         'manufacturer'  : 'MANUFACTURER',
@@ -59,38 +85,146 @@ class LynxLexer(Lexer):
         'banks'         : 'BANKS',
         'block_count'   : 'BLOCKS',
         'block_size'    : 'BLOCKSIZE',
-        'off'           : 'OFF'
+        'off'           : 'OFF',
+        # rom
+        'bank'          : 'BANK',
+        'blockof'       : 'BLOCKOF',
+        # rom, ram, loader
+        'org'           : 'ORG',
+        'end'           : 'END'
     }
 
-    tokens = [
-        'NL',
-        'ID',
-        'WS',
-        'STRING',
-        'NUMBER',
-        'IMMEDIATE'
-    ] + list(reserved.values())
+    tokens = list(reserved.values())
 
     def __init__(self):
-        super(Lexer, self).__init__()
-        self._lnx_header = {}
-        self._blocks = {}
+        SymbolTable().new_namespace( self.NAMESPACE, None )
 
-    def t_NL(self, t):
-        r'\n'
-        t.lexer.lineno += 1
-        return t
+    @property
+    def callbacks(self):
+        return { ( 'NORESOLVE_ID',      self._ni_id    ),
+                 ( 'INITIAL_ID',        self._ni_id    ),
+                 ( 'INITIAL_HASH',      self._rni_hash ) }
 
-    def t_WS(self, t):
-        r'\s+'
-        # eat whitespace
+    @property
+    def handlers(self):
+        return {
+            'LNX': {
+                'VERSION'      : self._lnx_version,
+                'NAME'         : self._lnx_name,
+                'MANUFACTURER' : self._lnx_manufacturer,
+                'ROTATION'     : self._lnx_rotation,
+                'BANKS'        : self._lnx_banks,
+                'BLOCKS'       : self._lnx_block_count,
+                'BLOCKSIZE'    : self._lnx_block_size,
+                'OFF'          : self._lnx_off
+            },
+            'ROM': {
+                'BANK'         : self._rom_bank,
+                'ORG'          : self._rom_org,
+                'END'          : self._rom_end,
+                'BLOCKOF'      : self._rom_blockof
+            },
+            'RAM': {
+                'ORG'          : self._ram_org,
+                'END'          : self._ram_end
+            },
+            'LOADER': {
+                'ORG'          : self._loader_org,
+                'END'          : self._loader_end
+            }
+        }
 
-    def t_define_ID(self, t):
-        r'[a-zA-Z_][\w]*'
-        # check for a reserved word
-        t.type = self.reserved.get(t.value, 'ID')
-        return t
+    def _new_symbol(self, name, value):
+        st = SymbolTable()
+        st.new_symbol( name, value, self.NAMESPACE )
 
-    def t_HASH(self, t):
-        r'\#'
+    def _del_symbol(self, name):
+        st = SymbolTable()
+        st.del_symbol( name, self.NAMESPACE )
+
+    def _lookup_symbol(self, name):
+        st = SymbolTable()
+        return st.lookup_symbol( name, self.NAMESPACE )
+
+    def _ni_id(self, l, t):
+        t.type = self.reserved.get( t.value, 'ID' )
+        if t.type != 'ID':
+            # it is one of our reserved words, so we handle it
+            return (True, t)
+
+        # not one of our reserved words or a defined macro name
+        # so we don't handle it
+        return (False, t)
+
+    def _rni_hash(self, l, t):
+        if t.lexer.lexstate in ('RAW', 'NORESOLVE'):
+            # don't do immediate processing when in RAW or NORESOLVE state
+            t.type = 'ID'
+            return (True, t)
+
+        # peek at next token
+        cl = l.lexer.clone()
+
+        handler = self.handlers
+        while type(handler) is types.DictType:
+            ntok = cl.token()
+            if ntok.value == '.':
+                continue
+            handler = handler.get(ntok.type, None)
+
+        # is it ours?
+        if handler is None:
+            return (False, t)
+
+        # call our handler function
+        return handler(l, t, ntok, cl)
+
+    def _lnx_version(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _lnx_name(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _lnx_manufacturer(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _lnx_rotation(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _lnx_banks(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _lnx_block_count(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _lnx_block_size(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _lnx_off(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _rom_bank(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _rom_org(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _rom_end(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _rom_blockof(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _ram_org(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _ram_end(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _loader_org(self, l, t, ntok, cl):
+        return (False, l.token())
+
+    def _loader_end(self, l, t, ntok, cl):
+        return (False, l.token())
+
 
