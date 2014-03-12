@@ -47,7 +47,7 @@ class CPU(object):
         'struct'    : 'STRUCT',
     }
 
-    tokens = list(reserved.values())
+    tokens = [ 'VARIABLE' ] + list(reserved.values())
 
     def __init__(self):
         pass
@@ -86,10 +86,20 @@ class CPU(object):
         return (False, t)
 
     def _shared(self, l, t):
-        return (True, t)
+        shared_obj = l.token()
+        if shared_obj.type not in ('VARIABLE', 'FUNCTION'):
+            raise LexerError(l)
+        # set shared flag
+        shared_obj.share = True
+        return (True, shared_obj)
 
     def _noreturn(self, l, t):
-        return (True, t)
+        noreturn_fn = l.token()
+        if noreturn_fn.type != 'FUNCTION':
+            raise LexerError(l)
+        # set noreturn flag
+        noreturn_fn.noreturn = True
+        return (True, noreturn_fn)
 
     def _if(self, l, t):
         return (True, t)

@@ -133,7 +133,8 @@ class MOS65SC02(object):
     tokens = [ 
         'TYPE',
         'OPCODE',
-        'REG'
+        'REG',
+        'VARIABLE'
     ]
 
     def __init__(self):
@@ -154,14 +155,69 @@ class MOS65SC02(object):
 
     def _ni_id(self, l, t):
         t.type = self.reserved.get( t.value, 'ID' )
-        if t.type != 'ID' and l.lexer.lexstate == 'INITIAL_ID':
+        if t.type != 'ID' and l.lexer.lexstate == 'INITIAL':
             handler = self.handlers[t.type]
             return handler(l, t)
 
         # not one of our reserved words so we don't handle it
         return (False, t)
 
+    def _try_var_array_size(self, l, t, ntok, cl):
+        size = cl.token()
+        if size.type not in ('NUMBER', ']'):
+            raise LexerError(l)
+        l.token() # [
+        l.token() # size or ]
+        if size.type == 'NUMBER':
+            l.token() # ]
+            return size.value
+        return -1 # automatically calculate from value
+
+    def _try_var_addr(self, l, t, ntok, cl):
+        addr = cl.token()
+        if addr.type != 'NUMBER':
+            raise LexerError(l)
+        l.token()
+        l.token()
+        return addr.value
+
+    def _try_var_value(self, l, t, ntok, cl, array_size):
+        value = cl.token()
+        if value.type not in ( 'STRING', 'NUMBER', '{' ):
+            raise LexerError(l)
+        
+        if value.type in ( 'STRING', 'NUMBER' ):
+            return value.value
+
+        # TODO: handle structs and array values
+
+
     def _type(self, l, t):
+        # TODO: make this full variable parsing work
+        name = l.token()
+        cl = l.lexer.clone()
+        ntok = cl.token()
+        array_size = None
+        addr = None
+        value = None
+
+        if ntok.type == '[':
+            array_size = self._try_var_array_size(l, t, ntok, cl)
+            ntok = cl.token()
+
+        if ntok.type == ':':
+            addr = self._try_var_addr(l, t, ntok, cl)
+            ntok = cl.token()
+
+        if ntok.type == '=':
+            value = self._try_var_value(l, t, ntok, cl, array_size)
+
+        v = { 'name': name.value,
+              'type': t.value,
+              'addr': addr,
+              'value': value }
+        t.type = 'VARIABLE'
+        t.value = v
         return (True, t)
 
     def _opcode(self, l, t):

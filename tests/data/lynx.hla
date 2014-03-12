@@ -1,3 +1,4 @@
+byte MAPCTL : $FFF9
 shared byte foo = 1
 #lnx.off
 #lnx.version 1
@@ -10,7 +11,6 @@ interrupt foo()
     // comment
 }
 
-byte MAPCTL : $FFF9
 byte IODIR  : $FD8A
 
 noreturn function blah() {
