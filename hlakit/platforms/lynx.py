@@ -27,6 +27,7 @@ or implied, of copyright holders and contributors.
 """
 
 from ..platform import Platform
+from ..lexer import Lexer, LexerError
 
 PLATFORM_CLASS = 'Lynx'
 CPUS = ['mos65sc02']
@@ -36,4 +37,60 @@ class Lynx(Platform):
     def __init__(self):
         super(Lynx, self).__init__()
 
+class LynxLexer(Lexer):
+
+    # this class needs to register these as #<keyword> callbacks
+    # with the lexer object that is passed into the regiser function
+    # these will use register_preprocessor call to hook up the callbacks
+    reserved = {
+        'align'         : 'ALIGN',
+        'rom'           : 'ROM',
+        'ram'           : 'RAM',
+        'loader'        : 'LOADER',
+        'bank'          : 'BANK',
+        'org'           : 'ORG',
+        'end'           : 'END',
+        'blockof'       : 'BLOCKOF',
+        'lnx'           : 'LNX',
+        'version'       : 'VERSION',
+        'name'          : 'NAME',
+        'manufacturer'  : 'MANUFACTURER',
+        'rotation'      : 'ROTATION',
+        'banks'         : 'BANKS',
+        'block_count'   : 'BLOCKS',
+        'block_size'    : 'BLOCKSIZE',
+        'off'           : 'OFF'
+    }
+
+    tokens = [
+        'NL',
+        'ID',
+        'WS',
+        'STRING',
+        'NUMBER',
+        'IMMEDIATE'
+    ] + list(reserved.values())
+
+    def __init__(self):
+        super(Lexer, self).__init__()
+        self._lnx_header = {}
+        self._blocks = {}
+
+    def t_NL(self, t):
+        r'\n'
+        t.lexer.lineno += 1
+        return t
+
+    def t_WS(self, t):
+        r'\s+'
+        # eat whitespace
+
+    def t_define_ID(self, t):
+        r'[a-zA-Z_][\w]*'
+        # check for a reserved word
+        t.type = self.reserved.get(t.value, 'ID')
+        return t
+
+    def t_HASH(self, t):
+        r'\#'
 

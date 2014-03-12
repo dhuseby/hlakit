@@ -27,6 +27,7 @@ or implied, of copyright holders and contributors.
 """
 
 import importlib
+from exceptions import NotImplementedError
 
 class Target(object):
 
@@ -48,4 +49,15 @@ class Target(object):
 
         return targets
 
+
+    @classmethod
+    def create(cls, t):
+        target_id = t.replace('-','_')
+        target = importlib.import_module('.'.join(['hlakit','targets',target_id]))
+        class_name = getattr(target, 'TARGET_CLASS')
+        ctor = getattr(target, class_name)
+        return ctor()
+
+    def scan(self, f):
+        raise NotImplementedError('Target.scan not implemented')
 

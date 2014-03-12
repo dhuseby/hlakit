@@ -25,4 +25,4 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of copyright holders and contributors.
 """
-__all__ = ['atari-lynx-mos65sc02', 'nintendo-nes-ricoh2a0x']
+__all__ = ['atari_lynx_mos65sc02', 'nintendo_nes_ricoh2a0x']

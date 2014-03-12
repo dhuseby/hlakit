@@ -26,13 +26,13 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of copyright holders and contributors.
 """
 
-from ..target import Target
+import unittest
+from hlakit.targets.atari_lynx_mos65sc02 import AtariLynxMOS65SC02Lexer
 
-TARGET_CLASS = 'AtariLynxMOS65SC02'
+class CheckAtariLynxMOS65SC02(unittest.TestCase):
 
-class AtariLynxMOS65SC02(Target):
-
-    def __init__(self):
-        super(AtariLynxMOS65SC02, self).__init__()
-
+    def testPoundDefine(self):
+        l = AtariLynxMOS65SC02Lexer()
+        l.build()
+        tokens = l.test('#define FOO "blah"')
 

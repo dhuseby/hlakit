@@ -1,0 +1,49 @@
+#include "tests/data/empty.hla"
+#include "tests/data/preprocessor2.hla"
+
+#$05
+
+#define A
+#define B #1
+#define C #2K
+#define D #0x0304
+#define E #$04
+#define F #%11001111
+#define G
+#undef G
+
+#ifdef A
+#define H
+#endif
+
+#ifndef G
+#define I
+#endif
+
+#ifdef G
+#define J
+#else
+#define K
+#endif
+
+#todo
+#todo "Todo"
+#warning
+#warning "Warning"
+#error
+#error "Error"
+#fatal
+#fatal "Fatal"
+
+#incbin "tests/data/test.bin"
+
+#usepath "tests/data"
+
+#define L #lo(D)
+#define M #hi(D)
+#define N #nylo(F)
+#define O #nyhi(F)
+
+#sizeof(D)
+#setpad "Foo"
+#setpad 0xFF

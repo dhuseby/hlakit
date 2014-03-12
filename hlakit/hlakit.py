@@ -40,9 +40,9 @@ def main():
         # set up argument parser
         parser = argparse.ArgumentParser(description='HLAKit Compiler')
 
+        targets = "\n".join(Target.targets())
         parser.add_argument('-t', '--target', type=str, required=True,
-                            choices=Target.targets(),
-                            help="Specify the target to compile for")
+                            help="Specify the target to compile for.  Valid targets are:\n%s" % targets)
         parser.add_argument('-I', '--include', action="append", default=[],
                             help="Specify directories to search for included files")
         parser.add_argument('files', metavar='FILE', type=str, nargs='+', 
@@ -52,12 +52,18 @@ def main():
         args = parser.parse_args()
 
         # create the target
-        #target = Target.create( args.target )
+        target = Target.create( args.target )
+        for f in args.files:
+            tokens = target.scan(f)
+            for t in tokens:
+                print "%s" % t
 
         # create the compiler session
-        #session = Session.create( args.include )
+        #session = Session.create( target, args.include )
 
-        #session.go()
+        # comile the files
+        #for f in args.files:
+        #    session.compile_file( f )
     
     except:
         sys.exit(os.EX_USAGE)

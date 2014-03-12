@@ -4,7 +4,6 @@
 #fatal "a fatal message"
 
 #include "foo.h"
-#include <bar.h>
 
 byte	a
 char	b

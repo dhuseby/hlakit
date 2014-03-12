@@ -25,50 +25,33 @@ The views and conclusions contained in the software and documentation are those 
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of copyright holders and contributors.
 """
+import ply.lex as lex
 
-class Session(object):
-    """ Session is a global singleton that holds all of the state info """
+from ..target import Target
+from ..preprocessor import Preprocessor
+from ..lexer import Lexer
+from ..symboltable import SymbolTable
+from ..paths import Paths
+#from ..families.atari import Atari
+#from ..platforms.lynx import Lynx
+#from ..cpus.mos65sc02 import MOS65SC02
 
-    _shared_state = {}
+TARGET_CLASS = 'AtariLynxMOS65SC02'
 
-    def __new__(cls, *a, **k):
-        obj = object.__new__(cls, *a, **k)
-        obj.__dict__ = cls._shared_state
-        return obj
+class AtariLynxMOS65SC02(Target):
 
-    @classmethod
-    def create(cls, target, includes):
-        s = Session()
-        s.target = target
-        for i in includes:
-            s.add_include_dir(i)
-        return s
+    def __init__(self):
+        super(AtariLynxMOS65SC02, self).__init__()
+        self._lexer = Lexer()
+        self._preprocessor = Preprocessor()
+        self._lexer.register_callbacks( self._preprocessor )
 
-    @property
-    def target(self):
-        if getattr(self, '_target', None) is None:
-            return None
-        return self._target
+    def scan(self, f):
+        """ feed the file through the lexer and return the tokens """
+        self._lexer.push_lex_context_file(f)
+        tokens = self._lexer.scan()
+        SymbolTable().dump()
+        Paths().dump()
+        return tokens
 
-    @target.setter
-    def target(self, t):
-        self._target = t
-
-    def add_include_dir(self, d):
-        if getattr(self, '_dirs', None) is None:
-            self._dirs = set
-        self._dirs.add(d)
-
-    def compile_file(self, f):
-        # scan the file into tokens
-        tokens = self.target.scan(f)
-
-        # parse the tokens into an abstract syntax tree
-        #ast = self.target.parse(tokens)
-
-        # translate the AST into intermediate code
-        #ic = self.target.translate(ast)
-
-        # generate the output binary from the IC
-        #self.target.generate(ic)
 

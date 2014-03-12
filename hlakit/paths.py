@@ -26,8 +26,10 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of copyright holders and contributors.
 """
 
-class Session(object):
-    """ Session is a global singleton that holds all of the state info """
+import os
+from exceptions import Exception
+
+class Paths(object):
 
     _shared_state = {}
 
@@ -36,39 +38,45 @@ class Session(object):
         obj.__dict__ = cls._shared_state
         return obj
 
-    @classmethod
-    def create(cls, target, includes):
-        s = Session()
-        s.target = target
-        for i in includes:
-            s.add_include_dir(i)
-        return s
+    def _reset_state(self):
+        # we always search the local directory first
+        self._search_paths = [ os.getcwd() ]
 
-    @property
-    def target(self):
-        if getattr(self, '_target', None) is None:
+    def _check_state(self):
+        if getattr(self, '_search_paths', None) is None:
+            self._reset_state()
+
+    def add_path(self, path):
+        self._check_state()
+        apath = os.path.abspath(path)
+        if not os.path.isdir(apath):
+            raise Exception('invalid search path %s' % path)
+        self._search_paths.insert(0, apath)
+
+    def resolve_filepath(self, filepath):
+        self._check_state()
+        if len(filepath) < 1:
             return None
-        return self._target
 
-    @target.setter
-    def target(self, t):
-        self._target = t
+        # if first char is os.sep, we interpret the filepath as being absolute
+        if filepath[0] == os.sep:
+            apath = os.path.abspath(filepath)
+            if os.path.isfile(apath):
+                return apath
 
-    def add_include_dir(self, d):
-        if getattr(self, '_dirs', None) is None:
-            self._dirs = set
-        self._dirs.add(d)
+        # otherwise we try to find the file in the search paths
+        else:
+            for path in self._search_paths:
+                apath = os.path.abspath(os.path.join(path, filepath))
+                if os.path.isfile(apath):
+                    return apath
 
-    def compile_file(self, f):
-        # scan the file into tokens
-        tokens = self.target.scan(f)
+        return None
 
-        # parse the tokens into an abstract syntax tree
-        #ast = self.target.parse(tokens)
+    def dump(self):
+        self._check_state()
+        import pprint
+        print "search paths:"
+        pprint.pprint(self._search_paths)
 
-        # translate the AST into intermediate code
-        #ic = self.target.translate(ast)
-
-        # generate the output binary from the IC
-        #self.target.generate(ic)
 
