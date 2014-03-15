@@ -180,28 +180,98 @@ class LynxPreprocessor(object):
         return handler(l, t, ntok, cl)
 
     def _lnx_version(self, l, t, ntok, cl):
-        return (False, l.token())
+        v = cl.token()
+        if v.type != 'NUMBER':
+            raise LexerError(l)
+        if v.value not in ( 1,2 ):
+            raise LexerError(l)
+        self._new_symbol(ntok.type, v.value)
+        l.token() # lnx
+        l.token() # '.'
+        l.token() # version
+        l.token() # NUMBER
+        return (True, l.token())
 
     def _lnx_name(self, l, t, ntok, cl):
-        return (False, l.token())
+        v = cl.token()
+        if v.type != 'STRING':
+            raise LexerError(l)
+        self._new_symbol(ntok.type, v.value)
+        l.token() # lnx
+        l.token() # '.'
+        l.token() # name
+        l.token() # STRING
+        return (True, l.token())
 
     def _lnx_manufacturer(self, l, t, ntok, cl):
-        return (False, l.token())
+        v = cl.token()
+        if v.type != 'STRING':
+            raise LexerError(l)
+        self._new_symbol(ntok.type, v.value)
+        l.token() # lnx
+        l.token() # '.'
+        l.token() # manufacturer
+        l.token() # STRING
+        return (True, l.token())
 
     def _lnx_rotation(self, l, t, ntok, cl):
-        return (False, l.token())
+        v = cl.token()
+        if v.type != 'STRING':
+            raise LexerError(l)
+        if v.value.lower() not in ('none', 'left', 'right'):
+            raise LexerError(l)
+        self._new_symbol(ntok.type, v.value)
+        l.token() # lnx
+        l.token() # '.'
+        l.token() # rotation
+        l.token() # STRING
+        return (True, l.token())
 
     def _lnx_banks(self, l, t, ntok, cl):
-        return (False, l.token())
+        v = cl.token()
+        if v.type != 'NUMBER':
+            raise LexerError(l)
+        if v.value not in ( 1,2 ):
+            raise LexerError(l)
+        self._new_symbol(ntok.type, v.value)
+        l.token() # lnx
+        l.token() # '.'
+        l.token() # banks
+        l.token() # NUMBER
+        return (True, l.token())
 
     def _lnx_block_count(self, l, t, ntok, cl):
-        return (False, l.token())
+        v = cl.token()
+        if v.type != 'NUMBER':
+            raise LexerError(l)
+        if v.value not in ( 256,512 ):
+            raise LexerError(l)
+        self._new_symbol(ntok.type, v.value)
+        l.token() # lnx
+        l.token() # '.'
+        l.token() # block_count
+        l.token() # NUMBER
+        return (True, l.token())
 
     def _lnx_block_size(self, l, t, ntok, cl):
-        return (False, l.token())
+        v = cl.token()
+        if v.type != 'NUMBER':
+            raise LexerError(l)
+        if v.value not in ( 256,512,1024,2048,4096 ):
+            raise LexerError(l)
+        self._new_symbol(ntok.type, v.value)
+        l.token() # lnx
+        l.token() # '.'
+        l.token() # block_size
+        l.token() # NUMBER
+        return (True, l.token())
 
     def _lnx_off(self, l, t, ntok, cl):
-        return (False, l.token())
+        self._new_symbol(ntok.type, True)
+        l.token() # lnx
+        l.token() # '.'
+        l.token() # off
+        return (True, l.token())
 
     def _rom_bank(self, l, t, ntok, cl):
         return (False, l.token())
