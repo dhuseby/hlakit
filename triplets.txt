@@ -1,0 +1,64 @@
+GCC has a pattern for specifying targets using a "triplet" like so:
+
+cpu-company-system
+
+where system can have the form of:
+
+os
+kernel-os
+
+Since a lot of the machines targetted by HLAKit don't have an OS, we will be
+extending the target triplet so that system can also be:
+
+machine
+machine-variant
+
+Where the difference between machines is anything hardware specific.  A perfect
+example of this is the Nintendo Entertainment System (NES).  The CPU in the NES
+is a Mos Technologies 6502 with some custom modifications (missing BCD, memory
+mapped registers, and polling).  There are also two variants of the CPU, one
+for NTSC markets and one for PAL markets.  The PAL chip has a different clock
+divider to get the 50Hz refresh rate for PAL instead of the 60Hz for NTSC. So,
+what is the triplet for the NES machines?  The answer is:
+
+mos6502-nintendo-nes-ntsc
+mos6502-nintendo-nes-pal
+
+When HLAKit runs, the selection of "nintendo", "nes" and "ntsc" will tell
+HLAKit to use the Ricoh 2A0X CPU definition instead of the base 6502 CPU
+definition and in the NES system library, the clock divider constant will be
+set to 60Hz.  If instead "pal" was specified, the only difference is that the
+clock divider will be set to 50Hz in the NES system library.
+
+So what are all of the target triplets for the systems HLAKit plans to support?
+
+mos6052-apple-ii
+mos6502-apple-iic
+mos6502-apple-iie
+mos6502-apple-iie-enhanced
+mos6502-atari-800-ntsc
+mos6502-atari-800-pal
+mos6502-atari-2600
+mos6502-atari-5200
+mos6502-atari-7800
+mos6502-atari-lynx
+mos6502-commodore-64
+mos6502-nec-pcengine
+mos6502-nintendo-nes-ntsc
+mos6502-nintendo-nes-pal
+m68k-neogeo-aes
+m68k-sega-genesis
+wdc65c816-apple-iigs
+wdc65c816-nintendo-snes
+z80-neogeo-aes
+z80-nintendo-gameboy
+z80-nintendo-gameboy-color
+z80-sega-gamegear
+z80-sega-genesis
+z80-sega-mastersystem
+z80-sega-sg1000
+z80-sinclair-zx80
+z80-sinclair-zx81
+z80-sinclair-spectrum
+z80-ti-85
+
