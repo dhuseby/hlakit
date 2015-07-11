@@ -1,9 +1,11 @@
 HLAKit -- A High Level Assembler Toolkit
-Version 0.8
+========================================
+
+Version 0.8.0
 Copyright (C) 2010 Dave Huseby <dave@linuxprogrammer.org>
 
 Introduction
-============
+------------
 
 HLAKit is based on and inspired by the NESHLA project by Brian Provinciano.  He
 created an awesome NES-specific high level assembly (HLA) language that makes
@@ -11,21 +13,28 @@ writing NES games much easier than wrangling the cc65 toolchain or any other
 NES toolchain out there.
 
 The goal of HLAKit is to create an easily extensible high level assembler
-toolkit that supports as many old game consoles as possible..  The high level 
+toolkit that supports as many old game consoles as possible.  The high level 
 assembly language that the front end parses is derived from the high level 
 assembly that NESHLA supported and is mostly exactly the same.  It has been
 extended to allow for more cpu and platform specific extensions and to
 make processor specific assembly mnemonics easily switchable.
 
 Unlike C, the HLA language doesn't seek to completely abstract the hardware
-from the programmer.  Instead the HLA borrows C's functional/file organization
-mechanics but still requires programmers to write assembly mnemonics to get
-things done.  The end result is an assembly language that is easy to organize
-and understand, making building large complex software easier than traditional
-"flat" assembly.
+from the programmer.  Instead the HLA borrows C's curly braced blocks and file
+organization mechanics but still requires programmers to write assembly
+mnemonics to get things done.  The end result is an assembly language that is
+easy to organize and understand, making building large complex software easier
+than traditional "flat" assembly.
+
+The other neat addition the HLA language adds is the ability to declare structs
+similar to C.  It makes building data structures much more straight forward and
+referencing struct members with "dot syntax" (e.g. `foo.bar.baz`) makes life
+much easier.  Since structs can be assigned to specific memory addresses,
+like any other variable, that enables "dot syntax" access to memory mapped
+registers on all supported platforms.
 
 Design
-======
+------
 
 Like most compilers, the HLAKit compiler is organized into a front-end and a
 back-end.  Both the front-end and back-ends are implemented in an encapsulated,
@@ -53,8 +62,8 @@ well as sets the interface for all CPU-specific and platform-specific
 generators.  Each CPU has a generator that derives from the base generator and
 implements the binary generation for that specific CPU.  Each platform has a 
 generator that derives from CPU-specific generator and adds support for handling
-the platform-specific link-time preprocessor directives (e.g. #rom.org, 
-#rom.banksize, etc).
+the platform-specific link-time preprocessor directives (e.g. `#rom.org`, 
+`#rom.banksize`, etc).
 
 Selecting the CPU and/or platform for a project can be done with command line 
 arguments.  Use --cpu=6502 and/or --platform=NES for specifying the CPU and 
@@ -65,11 +74,11 @@ NeoGeo AES has a 68K and a Z80).  If you only specify the CPU, then the
 executable file.
 
 Currently Supported CPUs
-========================
+------------------------
 
-6502
+* 6502
 
 Currently Supported Platforms
-=============================
+-----------------------------
 
 Generic
